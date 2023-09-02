@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <consts.h>
 
+#include <error/error.h>
+
 int main()
 {
     puts("MetaReal Compiler version " MR_VERSION);
