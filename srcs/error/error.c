@@ -29,3 +29,42 @@ void print_illegal_char(const illegal_char_t *error, const char *fname, const ch
         putc(' ', stderr);
     fputs("^\n\n", stderr);
 }
+
+void print_invalid_syntax(const invalid_syntax_t *error, const char *fname, const char *code)
+{
+    fputs("\nInvalid Syntax Error", stderr);
+
+    if (error->detail)
+        fprintf(stderr, ": %s", error->detail);
+
+    fprintf(stderr, "\nFile \"%s\", line %llu\n\n", fname, error->poss.ln);
+
+    uint64_t s = error->poss.idx;
+    for (; s; s--)
+        if (code[s] == '\n')
+        {
+            s++;
+            break;
+        }
+
+    uint64_t i;
+
+    for (i = s; code[i] != '\n' && code[i] != '\0'; i++)
+        putc(code[i], stderr);
+    putc('\n', stderr);
+
+    for (i = s; i < error->poss.idx; i++)
+        putc(' ', stderr);
+
+    if (error->poss.ln == error->pose.ln)
+        for (; i < error->pose.idx; i++)
+            putc('^', stderr);
+    else
+    {
+        for (; code[i] != '\n'; i++)
+            putc('^', stderr);
+        putc('~', stderr);
+    }
+
+    fputs("\n\n", stderr);
+}

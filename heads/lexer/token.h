@@ -29,6 +29,8 @@ struct __TOKEN_T
 };
 typedef struct __TOKEN_T token_t;
 
+extern const char *token_labels[MUL_T + 1];
+
 void free_tokens(token_t *tokens);
 void print_tokens(const token_t *tokens);
 

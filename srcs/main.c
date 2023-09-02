@@ -3,6 +3,7 @@
 */
 
 #include <lexer/lexer.h>
+#include <parser/parser.h>
 #include <stdio.h>
 #include <alloc.h>
 #include <string.h>
@@ -16,7 +17,7 @@ int main()
     char *ptr;
 
     lex_res_t lex_res;
-
+    parse_res_t parse_res;
     while (1)
     {
         fputs(">>> ", stdout);
@@ -33,8 +34,15 @@ int main()
             continue;
         }
 
-        print_tokens(lex_res.tokens);
-        free_tokens(lex_res.tokens);
+        parse_res = parse(lex_res.tokens);
+        if (!parse_res.nodes)
+        {
+            print_invalid_syntax(&parse_res.error, DEF_FILE_NAME, code);
+            continue;
+        }
+
+        print_nodes(parse_res.nodes, parse_res.size);
+        free_nodes(parse_res.nodes, parse_res.size);
     }
 
     mr_free(code);
