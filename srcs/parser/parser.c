@@ -5,6 +5,8 @@
 #include <parser/parser.h>
 #include <alloc.h>
 
+#include <stdio.h>
+
 #define set_node(t, v, ps, pe)           \
     do                                   \
     {                                    \
@@ -84,15 +86,15 @@ parse_res_t parse(token_t *tokens)
             break;
 
         tokens = expr(&res, tokens);
+        if (!res.nodes)
+        {
+            free_tokens(tokens);
+            mr_free(ptr);
+            return res;
+        }
+
         res.size++;
     } while (0);
-
-    if (!res.nodes)
-    {
-        free_tokens(tokens);
-        mr_free(ptr);
-        return res;
-    }
 
     if (tokens->type)
     {
@@ -105,6 +107,8 @@ parse_res_t parse(token_t *tokens)
         mr_free(ptr);
         return res;
     }
+
+    mr_free(ptr);
 
     if (!res.size)
     {

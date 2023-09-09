@@ -6,8 +6,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+//uint64_t i = 0;
+
 void *mr_alloc(uint64_t size)
 {
+    //printf("%llu\n", ++i);
+
     void *block = malloc(size);
     if (!block)
     {
@@ -32,5 +36,8 @@ void *mr_realloc(void *block, uint64_t size)
 
 void mr_free(void *block)
 {
+    //if (block)
+    //    printf("%llu\n", --i);
+
     free(block);
 }

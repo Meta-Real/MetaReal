@@ -16,7 +16,7 @@ all: clean $(OUT)
 	./$(OUT)
 
 $(OUT): $(OBJS)
-	$(CC) -o $(OUT) $(OBJS)
+	$(CC) -o $(OUT) $(OBJS) -lgmp
 
 $(ODIR)/%.o: $(SDIR)/%.c
 	$(CC) $(CFLAGS) -c -o $@ $< -I $(HDIR)

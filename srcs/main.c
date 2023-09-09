@@ -4,6 +4,7 @@
 
 #include <lexer/lexer.h>
 #include <parser/parser.h>
+#include <optimizer/optimizer.h>
 #include <stdio.h>
 #include <alloc.h>
 #include <string.h>
@@ -11,13 +12,14 @@
 
 int main()
 {
-    puts("MetaReal Compiler version " MR_VERSION);
+    puts("MetaReal Compiler version " MR_VERSION "\n");
 
     char *code = mr_alloc(DEF_CODE_SIZE);
     char *ptr;
 
     lex_res_t lex_res;
     parse_res_t parse_res;
+    opt_res_t opt_res;
     while (1)
     {
         fputs(">>> ", stdout);
@@ -41,8 +43,13 @@ int main()
             continue;
         }
 
-        print_nodes(parse_res.nodes, parse_res.size);
-        free_nodes(parse_res.nodes, parse_res.size);
+        if (!parse_res.size)
+            continue;
+
+        opt_res = optimize(parse_res.nodes, parse_res.size);
+
+        print_values(opt_res.values, opt_res.size);
+        free_values(opt_res.values, opt_res.size);
     }
 
     mr_free(code);

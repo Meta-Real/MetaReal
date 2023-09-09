@@ -24,7 +24,10 @@ const char *node_labels[UNARY_OPERATION_N + 1] =
 void free_nodes(node_t *nodes, uint64_t size)
 {
     if (!size)
+    {
+        mr_free(nodes);
         return;
+    }
 
     do
         free_node(nodes + --size);
