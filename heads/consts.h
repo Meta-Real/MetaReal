@@ -9,7 +9,10 @@
 #define DEF_FILE_NAME "<stdin>"
 #define DEF_CODE_SIZE 1024
 
-#define DEF_TOKEN_LIST_LEN 128
-#define DEF_NUM_SIZE 8
+#define LEX_TOKEN_LIST_LEN 128
+#define LEX_NUM_SIZE 8
+
+#define GEN_CONSTS_LEN 128
+#define GEN_MAIN_LEN 1024
 
 #endif /* __MR_CONSTS__ */

@@ -22,10 +22,10 @@ token_t handle_int(const char *code, pos_t *pos);
 lex_res_t lex(const char *code)
 {
     lex_res_t res;
-    res.tokens = mr_alloc(DEF_TOKEN_LIST_LEN * sizeof(token_t));
+    res.tokens = mr_alloc(LEX_TOKEN_LIST_LEN * sizeof(token_t));
 
     uint64_t size = 0;
-    uint64_t alloc = DEF_TOKEN_LIST_LEN;
+    uint64_t alloc = LEX_TOKEN_LIST_LEN;
 
     pos_t pos = set_pos(0, 1);
     while (code[pos.idx])
@@ -37,7 +37,7 @@ lex_res_t lex(const char *code)
         }
 
         if (size == alloc)
-            res.tokens = mr_realloc(res.tokens, (alloc += DEF_TOKEN_LIST_LEN) * sizeof(token_t));
+            res.tokens = mr_realloc(res.tokens, (alloc += LEX_TOKEN_LIST_LEN) * sizeof(token_t));
 
         if (code[pos.idx] >= '0' && code[pos.idx] <= '9')
         {
@@ -81,16 +81,16 @@ token_t handle_int(const char *code, pos_t *pos)
 {
     token_t res;
     res.type = INT_T;
-    res.value = mr_alloc(DEF_NUM_SIZE);
+    res.value = mr_alloc(LEX_NUM_SIZE);
     res.size = 0;
     res.poss = *pos;
 
-    uint64_t alloc = DEF_NUM_SIZE;
+    uint64_t alloc = LEX_NUM_SIZE;
 
     do
     {
         if (res.size == alloc)
-            res.value = mr_realloc(res.value, alloc += DEF_NUM_SIZE);
+            res.value = mr_realloc(res.value, alloc += LEX_NUM_SIZE);
 
         res.value[res.size++] = code[pos->idx++];
     } while (code[pos->idx] >= '0' && code[pos->idx] <= '9');

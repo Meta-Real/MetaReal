@@ -17,7 +17,7 @@
         res.value.pose = *pose; \
     } while (0)
 
-visit_res_t visit(node_t *node);
+visit_res_t visit_node(node_t *node);
 
 visit_res_t visit_int(char *node, pos_t *poss, pos_t *pose);
 visit_res_t visit_bin_operation(bin_operation_node_t *node, pos_t *poss, pos_t *pose);
@@ -32,7 +32,7 @@ opt_res_t optimize(node_t *nodes, uint64_t size)
     visit_res_t visit_res;
     do
     {
-        visit_res = visit(nodes + res.size);
+        visit_res = visit_node(nodes + res.size);
         res.values[res.size++] = visit_res.value;
     } while (0);
 
@@ -42,7 +42,7 @@ opt_res_t optimize(node_t *nodes, uint64_t size)
     return res;
 }
 
-visit_res_t visit(node_t *node)
+visit_res_t visit_node(node_t *node)
 {
     switch (node->type)
     {
@@ -73,10 +73,10 @@ visit_res_t visit_int(char *node, pos_t *poss, pos_t *pose)
 
 visit_res_t visit_bin_operation(bin_operation_node_t *node, pos_t *poss, pos_t *pose)
 {
-    visit_res_t res = visit(&node->left);
+    visit_res_t res = visit_node(&node->left);
     value_t left = res.value;
 
-    res = visit(&node->right);
+    res = visit_node(&node->right);
     value_t right = res.value;
 
     switch (node->operator)
@@ -101,7 +101,7 @@ visit_res_t visit_bin_operation(bin_operation_node_t *node, pos_t *poss, pos_t *
 
 visit_res_t visit_unary_operation(unary_operation_node_t *node, pos_t *poss, pos_t *pose)
 {
-    visit_res_t res = visit(&node->operand);
+    visit_res_t res = visit_node(&node->operand);
 
     switch (node->operator)
     {

@@ -5,6 +5,7 @@
 #include <lexer/lexer.h>
 #include <parser/parser.h>
 #include <optimizer/optimizer.h>
+#include <generator/generator.h>
 #include <stdio.h>
 #include <alloc.h>
 #include <string.h>
@@ -16,10 +17,12 @@ int main()
 
     char *code = mr_alloc(DEF_CODE_SIZE);
     char *ptr;
+    FILE *file;
 
     lex_res_t lex_res;
     parse_res_t parse_res;
     opt_res_t opt_res;
+    gen_res_t gen_res;
     while (1)
     {
         fputs(">>> ", stdout);
@@ -47,9 +50,15 @@ int main()
             continue;
 
         opt_res = optimize(parse_res.nodes, parse_res.size);
+        gen_res = generate(opt_res.values, opt_res.size);
 
-        print_values(opt_res.values, opt_res.size);
-        free_values(opt_res.values, opt_res.size);
+        //file = fopen("test.s", "w");
+        fputs(gen_res.consts, stdout);
+        fputs(gen_res.main, stdout);
+        //fclose(file);
+
+        mr_free(gen_res.main);
+        mr_free(gen_res.consts);
     }
 
     mr_free(code);
