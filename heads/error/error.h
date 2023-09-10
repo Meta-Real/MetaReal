@@ -24,10 +24,28 @@ struct __INVALID_SYNTAX_T
 };
 typedef struct __INVALID_SYNTAX_T invalid_syntax_t;
 
+enum __INVALID_SEMANTIC_TYPES
+{
+    ILLEGAL_OP,
+    DIV_BY_ZERO
+};
+
+struct __INVALID_SEMANTIC_T
+{
+    char *detail;
+    uint8_t type;
+
+    pos_t poss;
+    pos_t pose;
+};
+typedef struct __INVALID_SEMANTIC_T invalid_semantic_t;
+
 #define set_illegal_char(c, p) ((illegal_char_t){c, p})
 #define set_invalid_syntax(d, ps, pe) ((invalid_syntax_t){d, ps, pe})
+#define set_invalid_semantic(d, t, ps, pe) ((invalid_semantic_t){d, t, ps, pe})
 
 void print_illegal_char(const illegal_char_t *error, const char *fname, const char *code);
 void print_invalid_syntax(const invalid_syntax_t *error, const char *fname, const char *code);
+void print_invalid_semantic(invalid_semantic_t *error, const char *fname, const char *code);
 
 #endif /* __MR_ERROR__ */

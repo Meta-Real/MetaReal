@@ -10,14 +10,14 @@
 
 void *mr_alloc(uint64_t size)
 {
-    //printf("%llu\n", ++i);
-
     void *block = malloc(size);
     if (!block)
     {
         fprintf(stderr, "Internal Error: Could not allocate %llu bytes of memory\n", size);
         abort();
     }
+
+    //printf("%llu, >>> %p\n", ++i, block);
 
     return block;
 }
@@ -37,7 +37,7 @@ void *mr_realloc(void *block, uint64_t size)
 void mr_free(void *block)
 {
     //if (block)
-    //    printf("%llu\n", --i);
+    //    printf("%llu, <<<<<<<<<<<< %p\n", --i, block);
 
     free(block);
 }

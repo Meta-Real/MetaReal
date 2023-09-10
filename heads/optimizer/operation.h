@@ -10,8 +10,9 @@
 visit_res_t compute_add(value_t *left, value_t *right);
 visit_res_t compute_sub(value_t *left, value_t *right);
 visit_res_t compute_mul(value_t *left, value_t *right);
+visit_res_t compute_div(value_t *left, value_t *right);
 
-visit_res_t compute_pos(value_t *operand);
-visit_res_t compute_neg(value_t *operand);
+visit_res_t compute_pos(value_t *operand, pos_t *poss);
+visit_res_t compute_neg(value_t *operand, pos_t *poss);
 
 #endif /* __MR_OPERATION__ */

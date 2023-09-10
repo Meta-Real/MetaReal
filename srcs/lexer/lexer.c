@@ -5,6 +5,7 @@
 #include <lexer/lexer.h>
 #include <alloc.h>
 #include <consts.h>
+#include <stddef.h>
 
 #define set_token(t)                   \
     do                                 \
@@ -17,7 +18,7 @@
         res.tokens[size++].pose = pos; \
     } while (0)
 
-token_t handle_int(const char *code, pos_t *pos);
+token_t handle_num(const char *code, pos_t *pos);
 
 lex_res_t lex(const char *code)
 {
@@ -39,9 +40,9 @@ lex_res_t lex(const char *code)
         if (size == alloc)
             res.tokens = mr_realloc(res.tokens, (alloc += LEX_TOKEN_LIST_LEN) * sizeof(token_t));
 
-        if (code[pos.idx] >= '0' && code[pos.idx] <= '9')
+        if ((code[pos.idx] >= '0' && code[pos.idx] <= '9') || code[pos.idx] == '.')
         {
-            res.tokens[size++] = handle_int(code, &pos);
+            res.tokens[size++] = handle_num(code, &pos);
             continue;
         }
 
@@ -55,6 +56,15 @@ lex_res_t lex(const char *code)
             break;
         case '*':
             set_token(MUL_T);
+            break;
+        case '/':
+            set_token(DIV_T);
+            break;
+        case '(':
+            set_token(LPAREN_T);
+            break;
+        case ')':
+            set_token(RPAREN_T);
             break;
         default:
             while (size)
@@ -77,7 +87,7 @@ lex_res_t lex(const char *code)
     return res;
 }
 
-token_t handle_int(const char *code, pos_t *pos)
+token_t handle_num(const char *code, pos_t *pos)
 {
     token_t res;
     res.type = INT_T;
@@ -89,15 +99,21 @@ token_t handle_int(const char *code, pos_t *pos)
 
     do
     {
+        if (code[pos->idx] == '.')
+        {
+            if (res.type == FLOAT_T)
+                break;
+            res.type = FLOAT_T;
+        }
+
         if (res.size == alloc)
             res.value = mr_realloc(res.value, alloc += LEX_NUM_SIZE);
 
         res.value[res.size++] = code[pos->idx++];
-    } while (code[pos->idx] >= '0' && code[pos->idx] <= '9');
+    } while ((code[pos->idx] >= '0' && code[pos->idx] <= '9') || code[pos->idx] == '.');
 
     res.value = mr_realloc(res.value, res.size + 1);
     res.value[res.size] = '\0';
     res.pose = *pos;
-
     return res;
 }

@@ -6,11 +6,12 @@
 #include <alloc.h>
 #include <stdio.h>
 
-const char *token_labels[MUL_T + 1] =
+const char *token_labels[9] =
 {
     "EOF",
-    "INT",
-    "ADD", "SUB", "MUL"
+    "INT", "FLOAT"
+    "ADD", "SUB", "MUL", "DIV",
+    "LPAREN", "RPAREN"
 };
 
 void free_tokens(token_t *tokens)

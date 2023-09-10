@@ -127,7 +127,7 @@ token_t *expr(parse_res_t *res, token_t *tokens)
 
 token_t *term(parse_res_t *res, token_t *tokens)
 {
-    bin_operation(factor, factor, tokens->type == MUL_T);
+    bin_operation(factor, factor, tokens->type == MUL_T || tokens->type == DIV_T);
 }
 
 token_t *factor(parse_res_t *res, token_t *tokens)
@@ -156,10 +156,33 @@ token_t *factor(parse_res_t *res, token_t *tokens)
 
 token_t *core(parse_res_t *res, token_t *tokens)
 {
+    if (tokens->type == LPAREN_T)
+    {
+        pos_t poss = tokens++->poss;
+
+        tokens = expr(res, tokens);
+        if (!res->nodes)
+            return tokens;
+
+        if (tokens->type != RPAREN_T)
+        {
+            free_node(res->nodes + res->size);
+            set_error(set_invalid_syntax("Expected ')'", tokens->poss, tokens->pose));
+            return tokens;
+        }
+
+        res->nodes[res->size].poss = poss;
+        res->nodes[res->size].pose = tokens++->pose;
+        return tokens;
+    }
+
     switch (tokens->type)
     {
     case INT_T:
         set_node(INT_N, tokens->value, tokens->poss, tokens->pose);
+        return ++tokens;
+    case FLOAT_T:
+        set_node(FLOAT_N, tokens->value, tokens->poss, tokens->pose);
         return ++tokens;
     }
 

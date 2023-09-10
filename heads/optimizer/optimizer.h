@@ -7,17 +7,23 @@
 
 #include <optimizer/value.h>
 #include <parser/node.h>
+#include <error/error.h>
 
 struct __OPT_RES_T
 {
     value_t *values;
     uint64_t size;
+
+    invalid_semantic_t error;
 };
 typedef struct __OPT_RES_T opt_res_t;
 
 struct __VISIT_RES_T
 {
     value_t value;
+
+    invalid_semantic_t error;
+    uint8_t has_error;
 };
 typedef struct __VISIT_RES_T visit_res_t;
 

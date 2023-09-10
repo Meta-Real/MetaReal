@@ -12,10 +12,15 @@ enum __TOKEN_TYPES
     EOF_T,
 
     INT_T,
+    FLOAT_T,
 
     ADD_T,
     SUB_T,
-    MUL_T
+    MUL_T,
+    DIV_T,
+
+    LPAREN_T,
+    RPAREN_T
 };
 
 struct __TOKEN_T
@@ -29,7 +34,7 @@ struct __TOKEN_T
 };
 typedef struct __TOKEN_T token_t;
 
-extern const char *token_labels[MUL_T + 1];
+extern const char *token_labels[9];
 
 void free_tokens(token_t *tokens);
 void print_tokens(const token_t *tokens);

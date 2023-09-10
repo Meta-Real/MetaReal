@@ -32,6 +32,9 @@ int main()
         if (ptr)
             *ptr = '\0';
 
+        if (!*code)
+            break;
+
         lex_res = lex(code);
         if (!lex_res.tokens)
         {
@@ -50,12 +53,23 @@ int main()
             continue;
 
         opt_res = optimize(parse_res.nodes, parse_res.size);
+        if (!opt_res.values)
+        {
+            print_invalid_semantic(&opt_res.error, DEF_FILE_NAME, code);
+            continue;
+        }
+
+        if (!opt_res.size)
+            continue;
+
         gen_res = generate(opt_res.values, opt_res.size);
 
         //file = fopen("test.s", "w");
+        //fputs(gen_res.consts, file);
+        //fputs(gen_res.main, file);
+        //fclose(file);
         fputs(gen_res.consts, stdout);
         fputs(gen_res.main, stdout);
-        //fclose(file);
 
         mr_free(gen_res.main);
         mr_free(gen_res.consts);

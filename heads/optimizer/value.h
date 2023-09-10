@@ -5,12 +5,12 @@
 #ifndef __MR_VALUE__
 #define __MR_VALUE__
 
-#include <gmp.h>
 #include <pos.h>
 
 enum __VALUE_TYPES
 {
     INT_V,
+    FLOAT_V
 };
 
 struct __VALUE_T
@@ -23,15 +23,12 @@ struct __VALUE_T
 };
 typedef struct __VALUE_T value_t;
 
-struct __INT_VALUE_T
-{
-    mpz_t num;
-};
-typedef struct __INT_VALUE_T int_value_t;
+extern const char *value_names[2];
+extern uint8_t value_name_lens[2];
 
 void free_values(value_t *values, uint64_t size);
 void print_values(const value_t *values, uint64_t size);
 
-void free_int_value(int_value_t *value);
+void free_value(const value_t *value);
 
 #endif /* __MR_VALUE__ */
