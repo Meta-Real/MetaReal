@@ -71,6 +71,7 @@
 token_t *expr(parse_res_t *res, token_t *tokens);
 token_t *term(parse_res_t *res, token_t *tokens);
 token_t *factor(parse_res_t *res, token_t *tokens);
+token_t *power(parse_res_t *res, token_t *tokens);
 token_t *core(parse_res_t *res, token_t *tokens);
 
 parse_res_t parse(token_t *tokens)
@@ -133,7 +134,7 @@ token_t *expr(parse_res_t *res, token_t *tokens)
 
 token_t *term(parse_res_t *res, token_t *tokens)
 {
-    bin_operation(factor, factor, tokens->type == MUL_T || tokens->type == DIV_T);
+    bin_operation(factor, factor, tokens->type >= MUL_T && tokens->type <= QUOT_T);
 }
 
 token_t *factor(parse_res_t *res, token_t *tokens)
@@ -157,7 +158,12 @@ token_t *factor(parse_res_t *res, token_t *tokens)
         return tokens;
     }
 
-    return core(res, tokens);
+    return power(res, tokens);
+}
+
+token_t *power(parse_res_t *res, token_t *tokens)
+{
+    bin_operation(core, factor, tokens->type == POW_T);
 }
 
 token_t *core(parse_res_t *res, token_t *tokens)
@@ -189,6 +195,9 @@ token_t *core(parse_res_t *res, token_t *tokens)
         return ++tokens;
     case FLOAT_T:
         set_node(FLOAT_N, tokens->value, tokens->poss, tokens->pose);
+        return ++tokens;
+    case IMAG_T:
+        set_node(IMAG_N, tokens->value, tokens->poss, tokens->pose);
         return ++tokens;
     }
 

@@ -3,7 +3,7 @@
 */
 
 #include <optimizer/operation.h>
-#include <optimizer/float.h>
+#include <optimizer/complex.h>
 #include <lexer/token.h>
 #include <alloc.h>
 #include <stdio.h>
@@ -23,6 +23,7 @@ visit_res_t visit_node(node_t *node);
 
 visit_res_t visit_int(char *node, pos_t *poss, pos_t *pose);
 visit_res_t visit_float(char *node, pos_t *poss, pos_t *pose);
+visit_res_t visit_imag(char *node, pos_t *poss, pos_t *pose);
 visit_res_t visit_bin_operation(bin_operation_node_t *node, pos_t *poss, pos_t *pose);
 visit_res_t visit_unary_operation(unary_operation_node_t *node, pos_t *poss, pos_t *pose);
 
@@ -63,6 +64,8 @@ visit_res_t visit_node(node_t *node)
         return visit_int(node->value, &node->poss, &node->pose);
     case FLOAT_N:
         return visit_float(node->value, &node->poss, &node->pose);
+    case IMAG_N:
+        return visit_imag(node->value, &node->poss, &node->pose);
     case BIN_OPERATION_N:
         return visit_bin_operation(node->value, &node->poss, &node->pose);
     case UNARY_OPERATION_N:
@@ -88,6 +91,16 @@ visit_res_t visit_float(char *node, pos_t *poss, pos_t *pose)
     visit_res_t res;
     res.has_error = 0;
     set_value(FLOAT_V, float_set_str(node));
+
+    mr_free(node);
+    return res;
+}
+
+visit_res_t visit_imag(char *node, pos_t *poss, pos_t *pose)
+{
+    visit_res_t res;
+    res.has_error = 0;
+    set_value(COMPLEX_V, complex_set_str(node));
 
     mr_free(node);
     return res;
@@ -126,6 +139,15 @@ visit_res_t visit_bin_operation(bin_operation_node_t *node, pos_t *poss, pos_t *
         break;
     case DIV_T:
         res = compute_div(&left, &right);
+        break;
+    case MOD_T:
+        res = compute_mod(&left, &right);
+        break;
+    case QUOT_T:
+        res = compute_quot(&left, &right);
+        break;
+    case POW_T:
+        res = compute_pow(&left, &right);
         break;
     }
 

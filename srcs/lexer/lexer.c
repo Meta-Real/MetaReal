@@ -18,6 +18,23 @@
         res.tokens[size++].pose = pos; \
     } while (0)
 
+#define set_token_d(t1, t2, d)          \
+    do                                  \
+    {                                   \
+        res.tokens[size].value = NULL;  \
+        res.tokens[size].poss = pos;    \
+                                        \
+        if (code[++pos.idx] == d)       \
+        {                               \
+            res.tokens[size].type = t1; \
+            pos.idx++;                  \
+        }                               \
+        else                            \
+            res.tokens[size].type = t2; \
+                                        \
+        res.tokens[size++].pose = pos;  \
+    } while (0)
+
 token_t handle_num(const char *code, pos_t *pos);
 
 lex_res_t lex(const char *code)
@@ -58,10 +75,13 @@ lex_res_t lex(const char *code)
             set_token(SUB_T);
             break;
         case '*':
-            set_token(MUL_T);
+            set_token_d(POW_T, MUL_T, '*');
             break;
         case '/':
-            set_token(DIV_T);
+            set_token_d(QUOT_T, DIV_T, '/');
+            break;
+        case '%':
+            set_token(MOD_T);
             break;
         case '(':
             set_token(LPAREN_T);
@@ -114,6 +134,12 @@ token_t handle_num(const char *code, pos_t *pos)
 
         res.value[res.size++] = code[pos->idx++];
     } while ((code[pos->idx] >= '0' && code[pos->idx] <= '9') || code[pos->idx] == '.');
+
+    if (code[pos->idx] == 'i')
+    {
+        res.type = IMAG_T;
+        pos->idx++;
+    }
 
     res.value = mr_realloc(res.value, res.size + 1);
     res.value[res.size] = '\0';

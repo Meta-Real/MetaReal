@@ -4,6 +4,7 @@
         "type_traits": "c",
         "xtr1common": "c",
         "xutility": "c",
-        "utility": "c"
+        "utility": "c",
+        "cmath": "c"
     }
 }

@@ -11,6 +11,7 @@ enum __NODE_TYPES
 {
     INT_N,
     FLOAT_N,
+    IMAG_N,
 
     BIN_OPERATION_N,
     UNARY_OPERATION_N

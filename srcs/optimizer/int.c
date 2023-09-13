@@ -35,27 +35,47 @@ void int_print(const int_value_t *num)
     gmp_printf("%Zd", num->num);
 }
 
-void int_add(int_value_t *res, const int_value_t *left, const int_value_t *right)
+void int_add(int_value_t *left, const int_value_t *right)
 {
-    mpz_add(res->num, left->num, right->num);
+    mpz_add(left->num, left->num, right->num);
 }
 
-void int_sub(int_value_t *res, const int_value_t *left, const int_value_t *right)
+void int_sub(int_value_t *left, const int_value_t *right)
 {
-    mpz_sub(res->num, left->num, right->num);
+    mpz_sub(left->num, left->num, right->num);
 }
 
-void int_mul(int_value_t *res, const int_value_t *left, const int_value_t *right)
+void int_mul(int_value_t *left, const int_value_t *right)
 {
-    mpz_mul(res->num, left->num, right->num);
+    mpz_mul(left->num, left->num, right->num);
 }
 
-void int_neg(int_value_t *res, const int_value_t *num)
+void int_mod(int_value_t *left, const int_value_t *right)
 {
-    mpz_neg(res->num, num->num);
+    mpz_mod(left->num, left->num, right->num);
+}
+
+void int_quot(int_value_t *left, const int_value_t *right)
+{
+    mpz_fdiv_q(left->num, left->num, right->num);
+}
+
+void int_pow(int_value_t *left, const int_value_t *right)
+{
+    mpz_pow_ui(left->num, left->num, mpz_get_ui(right->num));
+}
+
+void int_neg(int_value_t *num)
+{
+    mpz_neg(num->num, num->num);
 }
 
 uint8_t int_iszero(const int_value_t *num)
 {
-    return !mpz_size(num->num);
+    return !mpz_sgn(num->num);
+}
+
+uint8_t int_isneg(const int_value_t *num)
+{
+    return mpz_sgn(num->num) < 0;
 }

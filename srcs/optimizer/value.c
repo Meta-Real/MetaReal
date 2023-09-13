@@ -3,24 +3,26 @@
 */
 
 #include <optimizer/value.h>
-#include <optimizer/float.h>
+#include <optimizer/complex.h>
 #include <alloc.h>
 #include <stdio.h>
 
 void print_value(const value_t *value);
 
-const char *value_names[2] =
+const char *value_names[3] =
 {
     "int",
-    "float"
+    "float",
+    "complex"
 };
 
-uint8_t value_name_lens[2] = {3, 5};
+uint8_t value_name_lens[3] = {3, 5, 7};
 
-const char *value_labels[2] =
+const char *value_labels[3] =
 {
     "INT",
-    "FLOAT"
+    "FLOAT",
+    "COMPLEX"
 };
 
 void free_values(value_t *values, uint64_t size)
@@ -56,6 +58,9 @@ void free_value(const value_t *value)
     case FLOAT_V:
         float_free(value->value);
         break;
+    case COMPLEX_V:
+        complex_free(value->value);
+        break;
     }
 }
 
@@ -70,6 +75,9 @@ void print_value(const value_t *value)
         break;
     case FLOAT_V:
         float_print(value->value);
+        break;
+    case COMPLEX_V:
+        complex_print(value->value);
         break;
     }
 
