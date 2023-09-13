@@ -4,8 +4,8 @@
 
 #include <parser/parser.h>
 #include <alloc.h>
-
-#include <stdio.h>
+#include <stddef.h>
+#include <consts.h>
 
 #define set_node(t, v, ps, pe)           \
     do                                   \
@@ -76,14 +76,20 @@ token_t *core(parse_res_t *res, token_t *tokens);
 parse_res_t parse(token_t *tokens)
 {
     parse_res_t res;
-    res.nodes = mr_alloc(sizeof(node_t));
+    res.nodes = mr_alloc(PARSE_NODE_LIST_LEN * sizeof(node_t));
     res.size = 0;
+
+    uint64_t alloc = PARSE_NODE_LIST_LEN;
 
     token_t *ptr = tokens;
     do
     {
+        for (; tokens->type == SEMICOLON_T; tokens++);
         if (!tokens->type)
             break;
+
+        if (res.size == alloc)
+            res.nodes = mr_realloc(res.nodes, (alloc += PARSE_NODE_LIST_LEN) * sizeof(node_t));
 
         tokens = expr(&res, tokens);
         if (!res.nodes)
@@ -94,7 +100,7 @@ parse_res_t parse(token_t *tokens)
         }
 
         res.size++;
-    } while (0);
+    } while (tokens->type == SEMICOLON_T);
 
     if (tokens->type)
     {

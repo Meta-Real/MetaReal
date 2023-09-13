@@ -37,4 +37,6 @@ void float_div_int(float_value_t *res, const float_value_t *left, const int_valu
 void float_int_div(float_value_t *res, const int_value_t *left, const float_value_t *right);
 float_value_t *float_int_div_int(const int_value_t *left, const int_value_t *right);
 
+uint8_t float_iszero(const float_value_t *num);
+
 #endif /* __MR_FLOAT__ */

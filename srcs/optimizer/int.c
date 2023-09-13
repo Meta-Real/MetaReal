@@ -54,3 +54,8 @@ void int_neg(int_value_t *res, const int_value_t *num)
 {
     mpz_neg(res->num, num->num);
 }
+
+uint8_t int_iszero(const int_value_t *num)
+{
+    return !mpz_size(num->num);
+}

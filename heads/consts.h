@@ -12,7 +12,11 @@
 #define LEX_TOKEN_LIST_LEN 128
 #define LEX_NUM_SIZE 8
 
+#define PARSE_NODE_LIST_LEN 64
+
 #define GEN_CONSTS_LEN 128
 #define GEN_MAIN_LEN 1024
+
+#define GEN_CONSTS_LIST_LEN 8
 
 #endif /* __MR_CONSTS__ */

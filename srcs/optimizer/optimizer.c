@@ -8,6 +8,7 @@
 #include <alloc.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <consts.h>
 
 #define set_value(t, v)         \
     do                          \
@@ -28,11 +29,10 @@ visit_res_t visit_unary_operation(unary_operation_node_t *node, pos_t *poss, pos
 opt_res_t optimize(node_t *nodes, uint64_t size)
 {
     opt_res_t res;
-    res.values = mr_alloc(sizeof(value_t));
-    res.size = 0;
+    res.values = mr_alloc(size * sizeof(value_t));
 
     visit_res_t visit_res;
-    do
+    for (res.size = 0; res.size < size; res.size++)
     {
         visit_res = visit_node(nodes + res.size);
         if (visit_res.has_error)
@@ -48,12 +48,10 @@ opt_res_t optimize(node_t *nodes, uint64_t size)
             return res;
         }
 
-        res.values[res.size++] = visit_res.value;
-    } while (0);
+        res.values[res.size] = visit_res.value;
+    }
 
     mr_free(nodes);
-
-    res.values = mr_realloc(res.values, res.size * sizeof(value_t));
     return res;
 }
 

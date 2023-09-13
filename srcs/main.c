@@ -59,15 +59,12 @@ int main()
             continue;
         }
 
-        if (!opt_res.size)
-            continue;
-
         gen_res = generate(opt_res.values, opt_res.size);
 
-        //file = fopen("test.s", "w");
-        //fputs(gen_res.consts, file);
-        //fputs(gen_res.main, file);
-        //fclose(file);
+        file = fopen("test.s", "w");
+        fputs(gen_res.consts, file);
+        fputs(gen_res.main, file);
+        fclose(file);
         fputs(gen_res.consts, stdout);
         fputs(gen_res.main, stdout);
 

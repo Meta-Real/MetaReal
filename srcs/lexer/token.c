@@ -6,9 +6,10 @@
 #include <alloc.h>
 #include <stdio.h>
 
-const char *token_labels[9] =
+const char *token_labels[10] =
 {
     "EOF",
+    "SEMICOLON",
     "INT", "FLOAT"
     "ADD", "SUB", "MUL", "DIV",
     "LPAREN", "RPAREN"

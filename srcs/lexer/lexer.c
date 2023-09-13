@@ -48,6 +48,9 @@ lex_res_t lex(const char *code)
 
         switch (code[pos.idx])
         {
+        case ';':
+            set_token(SEMICOLON_T);
+            break;
         case '+':
             set_token(ADD_T);
             break;

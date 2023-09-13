@@ -93,16 +93,26 @@ void float_div_int(float_value_t *res, const float_value_t *left, const int_valu
 
 void float_int_div(float_value_t *res, const int_value_t *left, const float_value_t *right)
 {
-    mpfr_set_z(res->num, left->num, MPFR_RNDN);
-    mpfr_div(res->num, res->num, right->num, MPFR_RNDN);
+    mpfr_t lint;
+    mpfr_init2(lint, 64);
+    mpfr_set_z(lint, left->num, MPFR_RNDN);
+
+    mpfr_div(res->num, lint, right->num, MPFR_RNDN);
+
+    mpfr_clear(lint);
 }
 
 float_value_t *float_int_div_int(const int_value_t *left, const int_value_t *right)
 {
     float_value_t *res = mr_alloc(sizeof(float_value_t));
     mpfr_init2(res->num, 64);
-
     mpfr_set_z(res->num, left->num, MPFR_RNDN);
+
     mpfr_div_z(res->num, res->num, right->num, MPFR_RNDN);
     return res;
+}
+
+uint8_t float_iszero(const float_value_t *num)
+{
+    return mpfr_zero_p(num->num);
 }

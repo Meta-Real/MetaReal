@@ -6,6 +6,7 @@
 #include <optimizer/float.h>
 #include <alloc.h>
 #include <stdio.h>
+#include <string.h>
 
 #define bin_operation(l, r, f1, f2)       \
     do                                    \
@@ -49,6 +50,17 @@
         res.has_error = 1;                                                          \
         res.error = set_invalid_semantic(detail, ILLEGAL_OP, *poss, operand->pose); \
         return res;                                                                 \
+    } while (0)
+
+#define div_by_zero_error                                                                \
+    do                                                                                   \
+    {                                                                                    \
+        char *detail = mr_alloc(17);                                                     \
+        strcpy(detail, "Division by zero");                                              \
+                                                                                         \
+        res.has_error = 1;                                                               \
+        res.error = set_invalid_semantic(detail, DIV_BY_ZERO, right->poss, right->pose); \
+        return res;                                                                      \
     } while (0)
 
 visit_res_t compute_add(value_t *left, value_t *right)
@@ -95,7 +107,7 @@ visit_res_t compute_sub(value_t *left, value_t *right)
     switch (left->type)
     {
     case INT_V:
-        switch (left->type)
+        switch (right->type)
         {
         case INT_V:
             bin_operation(left, right, int_sub, int_free);
@@ -123,7 +135,7 @@ visit_res_t compute_mul(value_t *left, value_t *right)
     switch (left->type)
     {
     case INT_V:
-        switch (left->type)
+        switch (right->type)
         {
         case INT_V:
             bin_operation(left, right, int_mul, int_free);
@@ -151,9 +163,16 @@ visit_res_t compute_div(value_t *left, value_t *right)
     switch (left->type)
     {
     case INT_V:
-        switch (left->type)
+        switch (right->type)
         {
         case INT_V:
+            if (int_iszero(right->value))
+            {
+                int_free(right->value);
+                int_free(left->value);
+                div_by_zero_error;
+            }
+
             res.value.type = FLOAT_V;
             res.value.value = float_int_div_int(left->value, right->value);
 
@@ -161,14 +180,35 @@ visit_res_t compute_div(value_t *left, value_t *right)
             int_free(left->value);
             return res;
         case FLOAT_V:
+            if (float_iszero(right->value))
+            {
+                float_free(right->value);
+                int_free(left->value);
+                div_by_zero_error;
+            }
+
             bin_operation_rev(left, right, float_int_div, int_free);
         }
     case FLOAT_V:
         switch (right->type)
         {
         case INT_V:
+            if (int_iszero(right->value))
+            {
+                int_free(right->value);
+                float_free(left->value);
+                div_by_zero_error;
+            }
+
             bin_operation(left, right, float_div_int, int_free);
         case FLOAT_V:
+            if (float_iszero(right->value))
+            {
+                float_free(right->value);
+                float_free(left->value);
+                div_by_zero_error;
+            }
+
             bin_operation(left, right, float_div, float_free);
         }
     }

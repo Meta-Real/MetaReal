@@ -6,6 +6,7 @@
 #define __MR_INT__
 
 #include <gmp.h>
+#include <stdint.h>
 
 struct __INT_VALUE_T
 {
@@ -26,5 +27,7 @@ void int_sub(int_value_t *res, const int_value_t *left, const int_value_t *right
 void int_mul(int_value_t *res, const int_value_t *left, const int_value_t *right);
 
 void int_neg(int_value_t *res, const int_value_t *num);
+
+uint8_t int_iszero(const int_value_t *num);
 
 #endif /* __MR_INT__ */

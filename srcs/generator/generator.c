@@ -24,7 +24,9 @@ typedef struct __GEN_ADV_RES_T gen_adv_res_t;
 
 struct __DATA_T
 {
-    uint64_t ccount;
+    char **consts;
+    uint64_t csize;
+    uint64_t calloc;
 };
 typedef struct __DATA_T data_t;
 
@@ -33,6 +35,7 @@ void generate_value(gen_adv_res_t *res, data_t *data, value_t *value);
 void generate_int(gen_adv_res_t *res, data_t *data, int_value_t *value);
 void generate_float(gen_adv_res_t *res, data_t *data, float_value_t *value);
 
+uint64_t value_set_id(uint8_t *new, const data_t *data, const char *value);
 uint8_t uint64_len(uint64_t num);
 
 gen_res_t generate(value_t *values, uint64_t size)
@@ -44,16 +47,23 @@ gen_res_t generate(value_t *values, uint64_t size)
     res_adv.calloc = GEN_CONSTS_LEN;
 
     res_adv.main = mr_alloc(GEN_MAIN_LEN);
-    res_adv.msize = 49;
+    res_adv.msize = 48;
     res_adv.malloc = GEN_MAIN_LEN;
 
-    strcpy(res_adv.main, "\t.globl\tmain\nmain:\n\tsubq\t$32, %rsp\n\tcall\t__main\n\n");
+    strcpy(res_adv.main, "\t.globl\tmain\nmain:\n\tsubq\t$32, %rsp\n\tcall\t__main\n");
 
     data_t data;
-    data.ccount = 0;
+    data.consts = mr_alloc(GEN_CONSTS_LIST_LEN * sizeof(char*));
+    data.csize = 0;
+    data.calloc = GEN_CONSTS_LIST_LEN;
 
-    for (uint64_t i = 0; i < size; i++)
+    uint64_t i;
+    for (i = 0; i < size; i++)
         generate_value(&res_adv, &data, values + i);
+
+    for (i = 0; i < data.csize; i++)
+        mr_free(data.consts[i]);
+    mr_free(data.consts);
     mr_free(values);
 
     res_adv.consts = mr_realloc(res_adv.consts, res_adv.csize + 1);
@@ -88,25 +98,37 @@ void generate_int(gen_adv_res_t *res, data_t *data, int_value_t *value)
 {
     char *num = int_get_str(value);
     uint64_t nlen = strlen(num);
-    uint8_t clen = uint64_len(data->ccount);
 
-    uint64_t len = nlen + clen + 18;
-    if (res->csize + len > res->calloc)
-        res->consts = mr_realloc(res->consts, res->calloc += nlen + GEN_CONSTS_LEN);
+    uint8_t new = 0;
+    uint64_t id = value_set_id(&new, data, num);
+    uint8_t clen = uint64_len(id);
 
-    sprintf(res->consts + res->csize, ".LC%llu:\n\t.ascii\t\"%s\\0\"\n", data->ccount, num);
-    res->csize += len;
+    uint64_t len;
 
-    len = clen + 34;
+    if (new)
+    {
+        len = nlen + clen + 18;
+        if (res->csize + len > res->calloc)
+            res->consts = mr_realloc(res->consts, res->calloc += nlen + GEN_CONSTS_LEN);
+
+        sprintf(res->consts + res->csize, ".LC%llu:\n\t.ascii\t\"%s\\0\"\n", id, num);
+        res->csize += len;
+
+        if (data->csize == data->calloc)
+            data->consts = mr_realloc(data->consts, (data->calloc += GEN_CONSTS_LIST_LEN) * sizeof(char*));
+
+        data->consts[data->csize++] = num;
+    }
+    else
+        mr_free(num);
+
+    len = clen + 33;
     if (res->msize + len > res->malloc)
         res->main = mr_realloc(res->main, res->malloc += GEN_MAIN_LEN);
 
-    sprintf(res->main + res->msize, "\tleaq\t.LC%llu(%%rip), %%rcx\n\tcall\tputs\n\n", data->ccount);
+    sprintf(res->main + res->msize, "\tleaq\t.LC%llu(%%rip), %%rcx\n\tcall\tputs\n", id);
     res->msize += len;
 
-    data->ccount++;
-
-    mr_free(num);
     int_free(value);
 }
 
@@ -114,26 +136,48 @@ void generate_float(gen_adv_res_t *res, data_t *data, float_value_t *value)
 {
     char *num = float_get_str(value);
     uint64_t nlen = strlen(num);
-    uint8_t clen = uint64_len(data->ccount);
 
-    uint64_t len = nlen + clen + 18;
-    if (res->csize + len > res->calloc)
-        res->consts = mr_realloc(res->consts, res->calloc += nlen + GEN_CONSTS_LEN);
+    uint8_t new = 0;
+    uint64_t id = value_set_id(&new, data, num);
+    uint8_t clen = uint64_len(id);
 
-    sprintf(res->consts + res->csize, ".LC%llu:\n\t.ascii\t\"%s\\0\"\n", data->ccount, num);
-    res->csize += len;
+    uint64_t len;
 
-    len = clen + 34;
+    if (new)
+    {
+        len = nlen + clen + 18;
+        if (res->csize + len > res->calloc)
+            res->consts = mr_realloc(res->consts, res->calloc += nlen + GEN_CONSTS_LEN);
+
+        sprintf(res->consts + res->csize, ".LC%llu:\n\t.ascii\t\"%s\\0\"\n", id, num);
+        res->csize += len;
+
+        if (data->csize == data->calloc)
+            data->consts = mr_realloc(data->consts, (data->calloc += GEN_CONSTS_LIST_LEN) * sizeof(char*));
+
+        data->consts[data->csize++] = num;
+    }
+    else
+        mr_free(num);
+
+    len = clen + 33;
     if (res->msize + len > res->malloc)
         res->main = mr_realloc(res->main, res->malloc += GEN_MAIN_LEN);
 
-    sprintf(res->main + res->msize, "\tleaq\t.LC%llu(%%rip), %%rcx\n\tcall\tputs\n\n", data->ccount);
+    sprintf(res->main + res->msize, "\tleaq\t.LC%llu(%%rip), %%rcx\n\tcall\tputs\n", id);
     res->msize += len;
 
-    data->ccount++;
-
-    mr_free(num);
     float_free(value);
+}
+
+uint64_t value_set_id(uint8_t *new, const data_t *data, const char *value)
+{
+    for (uint64_t i = 0; i < data->csize; i++)
+        if (!strcmp(data->consts[i], value))
+            return i;
+
+    *new = 1;
+    return data->csize;
 }
 
 uint8_t uint64_len(uint64_t num)

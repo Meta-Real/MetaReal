@@ -11,6 +11,8 @@ enum __TOKEN_TYPES
 {
     EOF_T,
 
+    SEMICOLON_T,
+
     INT_T,
     FLOAT_T,
 
@@ -34,7 +36,7 @@ struct __TOKEN_T
 };
 typedef struct __TOKEN_T token_t;
 
-extern const char *token_labels[9];
+extern const char *token_labels[10];
 
 void free_tokens(token_t *tokens);
 void print_tokens(const token_t *tokens);
