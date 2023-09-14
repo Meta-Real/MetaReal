@@ -603,6 +603,136 @@ ret:
     ill_op_error("**", 2);
 }
 
+visit_res_t compute_band(value_t *left, value_t *right)
+{
+    visit_res_t res;
+    res.has_error = 0;
+
+    switch (left->type)
+    {
+    case INT_V:
+        switch (right->type)
+        {
+        case INT_V:
+            bin_operation(left, right, int_and, int_free);
+        }
+
+        free_value(right);
+        int_free(left->value);
+        goto ret;
+    }
+
+    free_value(right);
+    free_value(left);
+
+ret:
+    ill_op_error("&", 1);
+}
+
+visit_res_t compute_bor(value_t *left, value_t *right)
+{
+    visit_res_t res;
+    res.has_error = 0;
+
+    switch (left->type)
+    {
+    case INT_V:
+        switch (right->type)
+        {
+        case INT_V:
+            bin_operation(left, right, int_or, int_free);
+        }
+
+        free_value(right);
+        int_free(left->value);
+        goto ret;
+    }
+
+    free_value(right);
+    free_value(left);
+
+ret:
+    ill_op_error("|", 1);
+}
+
+visit_res_t compute_bxor(value_t *left, value_t *right)
+{
+    visit_res_t res;
+    res.has_error = 0;
+
+    switch (left->type)
+    {
+    case INT_V:
+        switch (right->type)
+        {
+        case INT_V:
+            bin_operation(left, right, int_xor, int_free);
+        }
+
+        free_value(right);
+        int_free(left->value);
+        goto ret;
+    }
+
+    free_value(right);
+    free_value(left);
+
+ret:
+    ill_op_error("^", 1);
+}
+
+visit_res_t compute_lshift(value_t *left, value_t *right)
+{
+    visit_res_t res;
+    res.has_error = 0;
+
+    switch (left->type)
+    {
+    case INT_V:
+        switch (right->type)
+        {
+        case INT_V:
+            bin_operation(left, right, int_lshift, int_free);
+        }
+
+        free_value(right);
+        int_free(left->value);
+        goto ret;
+    }
+
+    free_value(right);
+    free_value(left);
+
+ret:
+    ill_op_error("<<", 2);
+}
+
+visit_res_t compute_rshift(value_t *left, value_t *right)
+{
+    visit_res_t res;
+    res.has_error = 0;
+
+    switch (left->type)
+    {
+    case INT_V:
+        switch (right->type)
+        {
+        case INT_V:
+            bin_operation(left, right, int_rshift, int_free);
+        }
+
+        free_value(right);
+        int_free(left->value);
+        goto ret;
+    }
+
+    free_value(right);
+    free_value(left);
+
+ret:
+    ill_op_error(">>", 2);
+}
+
 visit_res_t compute_pos(value_t *operand, pos_t *poss)
 {
     visit_res_t res;
@@ -612,6 +742,7 @@ visit_res_t compute_pos(value_t *operand, pos_t *poss)
     {
     case INT_V:
     case FLOAT_V:
+    case COMPLEX_V:
         res.value = *operand;
         return res;
     }
@@ -635,8 +766,29 @@ visit_res_t compute_neg(value_t *operand, pos_t *poss)
         float_neg(operand->value);
         res.value = *operand;
         return res;
+    case COMPLEX_V:
+        complex_neg(operand->value);
+        res.value = *operand;
+        return res;
     }
 
     free_value(operand);
     ill_unary_op_error("-", 1);
+}
+
+visit_res_t compute_bnot(value_t *operand, pos_t *poss)
+{
+    visit_res_t res;
+    res.has_error = 0;
+
+    switch (operand->type)
+    {
+    case INT_V:
+        int_not(operand->value);
+        res.value = *operand;
+        return res;
+    }
+
+    free_value(operand);
+    ill_unary_op_error("~", 1);
 }

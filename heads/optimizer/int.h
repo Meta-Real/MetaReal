@@ -28,8 +28,14 @@ void int_mul(int_value_t *left, const int_value_t *right);
 void int_mod(int_value_t *left, const int_value_t *right);
 void int_quot(int_value_t *left, const int_value_t *right);
 void int_pow(int_value_t *left, const int_value_t *right);
+void int_and(int_value_t *left, const int_value_t *right);
+void int_or(int_value_t *left, const int_value_t *right);
+void int_xor(int_value_t *left, const int_value_t *right);
+void int_lshift(int_value_t *left, const int_value_t *right);
+void int_rshift(int_value_t *left, const int_value_t *right);
 
 void int_neg(int_value_t *num);
+void int_not(int_value_t *num);
 
 uint8_t int_iszero(const int_value_t *num);
 uint8_t int_isneg(const int_value_t *num);

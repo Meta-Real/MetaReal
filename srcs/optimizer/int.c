@@ -65,9 +65,39 @@ void int_pow(int_value_t *left, const int_value_t *right)
     mpz_pow_ui(left->num, left->num, mpz_get_ui(right->num));
 }
 
+void int_and(int_value_t *left, const int_value_t *right)
+{
+    mpz_and(left->num, left->num, right->num);
+}
+
+void int_or(int_value_t *left, const int_value_t *right)
+{
+    mpz_ior(left->num, left->num, right->num);
+}
+
+void int_xor(int_value_t *left, const int_value_t *right)
+{
+    mpz_xor(left->num, left->num, right->num);
+}
+
+void int_lshift(int_value_t *left, const int_value_t *right)
+{
+    mpz_mul_2exp(left->num, left->num, mpz_get_ui(right->num));
+}
+
+void int_rshift(int_value_t *left, const int_value_t *right)
+{
+    mpz_fdiv_q_2exp(left->num, left->num, mpz_get_ui(right->num));
+}
+
 void int_neg(int_value_t *num)
 {
     mpz_neg(num->num, num->num);
+}
+
+void int_not(int_value_t *num)
+{
+    mpz_com(num->num, num->num);
 }
 
 uint8_t int_iszero(const int_value_t *num)

@@ -149,6 +149,21 @@ visit_res_t visit_bin_operation(bin_operation_node_t *node, pos_t *poss, pos_t *
     case POW_T:
         res = compute_pow(&left, &right);
         break;
+    case BAND_T:
+        res = compute_band(&left, &right);
+        break;
+    case BOR_T:
+        res = compute_bor(&left, &right);
+        break;
+    case BXOR_T:
+        res = compute_bxor(&left, &right);
+        break;
+    case LSHIFT_T:
+        res = compute_lshift(&left, &right);
+        break;
+    case RSHIFT_T:
+        res = compute_rshift(&left, &right);
+        break;
     }
 
     if (res.has_error)
@@ -175,6 +190,9 @@ visit_res_t visit_unary_operation(unary_operation_node_t *node, pos_t *poss, pos
         break;
     case SUB_T:
         res = compute_neg(&res.value, poss);
+        break;
+    case BNOT_T:
+        res = compute_bnot(&res.value, poss);
         break;
     }
 

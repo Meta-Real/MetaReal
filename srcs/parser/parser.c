@@ -68,6 +68,10 @@
         return tokens;                                      \
     } while (0)
 
+token_t *bor(parse_res_t *res, token_t *tokens);
+token_t *bxor(parse_res_t *res, token_t *tokens);
+token_t *band(parse_res_t *res, token_t *tokens);
+token_t *shift(parse_res_t *res, token_t *tokens);
 token_t *expr(parse_res_t *res, token_t *tokens);
 token_t *term(parse_res_t *res, token_t *tokens);
 token_t *factor(parse_res_t *res, token_t *tokens);
@@ -92,7 +96,7 @@ parse_res_t parse(token_t *tokens)
         if (res.size == alloc)
             res.nodes = mr_realloc(res.nodes, (alloc += PARSE_NODE_LIST_LEN) * sizeof(node_t));
 
-        tokens = expr(&res, tokens);
+        tokens = bor(&res, tokens);
         if (!res.nodes)
         {
             free_tokens(tokens);
@@ -127,6 +131,26 @@ parse_res_t parse(token_t *tokens)
     return res;
 }
 
+token_t *bor(parse_res_t *res, token_t *tokens)
+{
+    bin_operation(bxor, bxor, tokens->type == BOR_T);
+}
+
+token_t *bxor(parse_res_t *res, token_t *tokens)
+{
+    bin_operation(band, band, tokens->type == BXOR_T);
+}
+
+token_t *band(parse_res_t *res, token_t *tokens)
+{
+    bin_operation(shift, shift, tokens->type == BAND_T);
+}
+
+token_t *shift(parse_res_t *res, token_t *tokens)
+{
+    bin_operation(expr, expr, tokens->type == LSHIFT_T || tokens->type == RSHIFT_T);
+}
+
 token_t *expr(parse_res_t *res, token_t *tokens)
 {
     bin_operation(term, term, tokens->type == ADD_T || tokens->type == SUB_T);
@@ -139,7 +163,7 @@ token_t *term(parse_res_t *res, token_t *tokens)
 
 token_t *factor(parse_res_t *res, token_t *tokens)
 {
-    if (tokens->type == ADD_T || tokens->type == SUB_T)
+    if (tokens->type == ADD_T || tokens->type == SUB_T || tokens->type == BNOT_T)
     {
         unary_operation_node_t *value = mr_alloc(sizeof(unary_operation_node_t));
         value->operator = tokens->type;
@@ -172,7 +196,7 @@ token_t *core(parse_res_t *res, token_t *tokens)
     {
         pos_t poss = tokens++->poss;
 
-        tokens = expr(res, tokens);
+        tokens = bor(res, tokens);
         if (!res->nodes)
             return tokens;
 

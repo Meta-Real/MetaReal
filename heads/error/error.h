@@ -10,6 +10,7 @@
 struct __ILLEGAL_CHAR_T
 {
     char chr;
+    uint8_t expected;
 
     pos_t pos;
 };
@@ -40,7 +41,7 @@ struct __INVALID_SEMANTIC_T
 };
 typedef struct __INVALID_SEMANTIC_T invalid_semantic_t;
 
-#define set_illegal_char(c, p) ((illegal_char_t){c, p})
+#define set_illegal_char(c, e, p) ((illegal_char_t){c, e, p})
 #define set_invalid_syntax(d, ps, pe) ((invalid_syntax_t){d, ps, pe})
 #define set_invalid_semantic(d, t, ps, pe) ((invalid_semantic_t){d, t, ps, pe})
 

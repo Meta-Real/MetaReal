@@ -83,6 +83,58 @@ lex_res_t lex(const char *code)
         case '%':
             set_token(MOD_T);
             break;
+        case '&':
+            set_token(BAND_T);
+            break;
+        case '|':
+            set_token(BOR_T);
+            break;
+        case '^':
+            set_token(BXOR_T);
+            break;
+        case '<':
+            res.tokens[size].poss = pos;
+
+            if (code[++pos.idx] != '<')
+            {
+                while (size)
+                    mr_free(res.tokens[--size].value);
+                mr_free(res.tokens);
+                res.tokens = NULL;
+
+                res.error = set_illegal_char('<', 1, pos);
+                return res;
+            }
+
+            res.tokens[size].type = LSHIFT_T;
+            res.tokens[size].value = NULL;
+
+            pos.idx++;
+            res.tokens[size++].pose = pos;
+            break;
+        case '>':
+            res.tokens[size].poss = pos;
+
+            if (code[++pos.idx] != '>')
+            {
+                while (size)
+                    mr_free(res.tokens[--size].value);
+                mr_free(res.tokens);
+                res.tokens = NULL;
+
+                res.error = set_illegal_char('>', 1, pos);
+                return res;
+            }
+
+            res.tokens[size].type = RSHIFT_T;
+            res.tokens[size].value = NULL;
+
+            pos.idx++;
+            res.tokens[size++].pose = pos;
+            break;
+        case '~':
+            set_token(BNOT_T);
+            break;
         case '(':
             set_token(LPAREN_T);
             break;
@@ -95,7 +147,7 @@ lex_res_t lex(const char *code)
             mr_free(res.tokens);
             res.tokens = NULL;
 
-            res.error = set_illegal_char(code[pos.idx], pos);
+            res.error = set_illegal_char(code[pos.idx], 0, pos);
             return res;
         }
     }

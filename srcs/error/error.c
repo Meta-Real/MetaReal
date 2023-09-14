@@ -14,9 +14,12 @@ const char *invalid_semantic_labels[2] =
 
 void print_illegal_char(const illegal_char_t *error, const char *fname, const char *code)
 {
-    fprintf(stderr,
-        "\nIllegal Character Error: '%c'\nFile \"%s\", line %llu\n\n",
-        error->chr, fname, error->pos.ln);
+    if (error->expected)
+        fputs("\nExpected Character Error: ", stderr);
+    else
+        fputs("\nIllegal Character Error: ", stderr);
+
+    fprintf(stderr, "'%c'\nFile \"%s\", line %llu\n\n", error->chr, fname, error->pos.ln);
 
     uint64_t s = error->pos.idx;
     for (; s; s--)
@@ -78,8 +81,7 @@ void print_invalid_syntax(const invalid_syntax_t *error, const char *fname, cons
 
 void print_invalid_semantic(invalid_semantic_t *error, const char *fname, const char *code)
 {
-    fprintf(stderr,
-        "\nInvalid Semantic Error: %s\nFile \"%s\", line %llu\nError Type: %s\n\n",
+    fprintf(stderr, "\nInvalid Semantic Error: %s\nFile \"%s\", line %llu\nError Type: %s\n\n",
         error->detail, fname, error->poss.ln, invalid_semantic_labels[error->type]);
     mr_free(error->detail);
 
