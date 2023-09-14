@@ -16,6 +16,7 @@ typedef struct __COMPLEX_VALUE_T complex_value_t;
 
 complex_value_t *complex_init();
 complex_value_t *complex_set_str(const char *str);
+complex_value_t *complex_set_ui(uint32_t ui);
 void complex_free(complex_value_t *num);
 
 char *complex_get_str(const complex_value_t *num);
@@ -29,6 +30,8 @@ void complex_div(complex_value_t *left, const complex_value_t *right);
 void complex_pow(complex_value_t *left, const complex_value_t *right);
 
 void complex_neg(complex_value_t *num);
+
+uint8_t complex_eq(const complex_value_t *left, const complex_value_t *right);
 
 void complex_add_int(complex_value_t *left, const int_value_t *right);
 void complex_add_float(complex_value_t *left, const float_value_t *right);
@@ -48,6 +51,20 @@ void complex_pow_float(complex_value_t *left, const float_value_t *right);
 void complex_float_pow(const float_value_t *left, complex_value_t *right);
 complex_value_t *complex_int_pow_float(const int_value_t *left, const float_value_t *right);
 complex_value_t *complex_float_pow_float(const float_value_t *left, const float_value_t *right);
+
+uint8_t complex_eq_int(const complex_value_t *left, const int_value_t *right);
+uint8_t complex_eq_float(const complex_value_t *left, const float_value_t *right);
+
+void complex_add_ui(complex_value_t *left, uint32_t right);
+void complex_sub_ui(complex_value_t *left, uint32_t right);
+void complex_ui_sub(uint32_t left, complex_value_t *right);
+void complex_mul_ui(complex_value_t *left, uint32_t right);
+void complex_div_ui(complex_value_t *left, uint32_t right);
+void complex_ui_div(uint32_t left, complex_value_t *right);
+void complex_pow_ui(complex_value_t *left, uint32_t right);
+void complex_ui_pow(uint32_t left, complex_value_t *right);
+
+uint8_t complex_eq_ui(const complex_value_t *left, uint32_t right);
 
 uint8_t complex_iszero(const complex_value_t *num);
 

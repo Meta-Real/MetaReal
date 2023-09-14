@@ -5,6 +5,12 @@
         "xtr1common": "c",
         "xutility": "c",
         "utility": "c",
-        "cmath": "c"
+        "cmath": "c",
+        "complex": "c",
+        "functional": "c",
+        "optional": "c",
+        "system_error": "c",
+        "array": "c",
+        "tuple": "c"
     }
 }

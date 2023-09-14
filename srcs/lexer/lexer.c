@@ -35,6 +35,50 @@
         res.tokens[size++].pose = pos;  \
     } while (0)
 
+#define set_token_t1(t1, t2, t3, d1, d2) \
+    do                                   \
+    {                                    \
+        res.tokens[size].value = NULL;   \
+        res.tokens[size].poss = pos;     \
+                                         \
+        if (code[++pos.idx] == d1)       \
+        {                                \
+            res.tokens[size].type = t1;  \
+            pos.idx++;                   \
+        }                                \
+        else if (code[pos.idx] == d2)    \
+        {                                \
+            res.tokens[size].type = t2;  \
+            pos.idx++;                   \
+        }                                \
+        else                             \
+            res.tokens[size].type = t3;  \
+                                         \
+        res.tokens[size++].pose = pos;   \
+    } while (0)
+
+#define set_token_t2(t1, t2, t3, d1, d2)    \
+    do                                      \
+    {                                       \
+        res.tokens[size].value = NULL;      \
+        res.tokens[size].poss = pos;        \
+                                            \
+        if (code[++pos.idx] == d1)          \
+        {                                   \
+            if (code[++pos.idx] == d2)      \
+            {                               \
+                res.tokens[size].type = t1; \
+                pos.idx++;                  \
+            }                               \
+            else                            \
+                res.tokens[size].type = t2; \
+        }                                   \
+        else                                \
+            res.tokens[size].type = t3;     \
+                                            \
+        res.tokens[size++].pose = pos;      \
+    } while (0)
+
 token_t handle_num(const char *code, pos_t *pos);
 
 lex_res_t lex(const char *code)
@@ -84,56 +128,28 @@ lex_res_t lex(const char *code)
             set_token(MOD_T);
             break;
         case '&':
-            set_token(BAND_T);
+            set_token_d(AND_T, B_AND_T, '|');
             break;
         case '|':
-            set_token(BOR_T);
+            set_token_d(OR_T, B_OR_T, '|');
             break;
         case '^':
-            set_token(BXOR_T);
+            set_token(B_XOR_T);
             break;
         case '<':
-            res.tokens[size].poss = pos;
-
-            if (code[++pos.idx] != '<')
-            {
-                while (size)
-                    mr_free(res.tokens[--size].value);
-                mr_free(res.tokens);
-                res.tokens = NULL;
-
-                res.error = set_illegal_char('<', 1, pos);
-                return res;
-            }
-
-            res.tokens[size].type = LSHIFT_T;
-            res.tokens[size].value = NULL;
-
-            pos.idx++;
-            res.tokens[size++].pose = pos;
+            set_token_t1(LSHIFT_T, LTE_T, LT_T, '<', '=');
             break;
         case '>':
-            res.tokens[size].poss = pos;
-
-            if (code[++pos.idx] != '>')
-            {
-                while (size)
-                    mr_free(res.tokens[--size].value);
-                mr_free(res.tokens);
-                res.tokens = NULL;
-
-                res.error = set_illegal_char('>', 1, pos);
-                return res;
-            }
-
-            res.tokens[size].type = RSHIFT_T;
-            res.tokens[size].value = NULL;
-
-            pos.idx++;
-            res.tokens[size++].pose = pos;
+            set_token_t1(RSHIFT_T, GTE_T, GT_T, '>', '=');
             break;
         case '~':
-            set_token(BNOT_T);
+            set_token(B_NOT_T);
+            break;
+        case '=':
+            set_token_t2(EX_EQ_T, EQ_T, ASSIGN_T, '=', '=');
+            break;
+        case '!':
+            set_token_t2(EX_NEQ_T, NEQ_T, NOT_T, '=', '=');
             break;
         case '(':
             set_token(LPAREN_T);

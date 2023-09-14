@@ -35,6 +35,7 @@ void generate_value(gen_adv_res_t *res, data_t *data, value_t *value);
 void generate_int(gen_adv_res_t *res, data_t *data, int_value_t *value);
 void generate_float(gen_adv_res_t *res, data_t *data, float_value_t *value);
 void generate_complex(gen_adv_res_t *res, data_t *data, complex_value_t *value);
+void generate_bool(gen_adv_res_t *res, data_t *data, uint8_t value);
 
 uint64_t value_set_id(uint8_t *new, const data_t *data, const char *value);
 uint8_t uint64_len(uint64_t num);
@@ -91,6 +92,9 @@ void generate_value(gen_adv_res_t *res, data_t *data, value_t *value)
         return;
     case COMPLEX_V:
         generate_complex(res, data, value->value);
+        return;
+    case BOOL_V:
+        generate_bool(res, data, (uintptr_t)value->value);
         return;
     }
 
@@ -210,6 +214,54 @@ void generate_complex(gen_adv_res_t *res, data_t *data, complex_value_t *value)
     res->msize += len;
 
     complex_free(value);
+}
+
+void generate_bool(gen_adv_res_t *res, data_t *data, uint8_t value)
+{
+    char *state;
+    uint8_t slen;
+    if (value)
+    {
+        state = mr_alloc(5);
+        strcpy(state, "true");
+        slen = 4;
+    }
+    else
+    {
+        state = mr_alloc(6);
+        strcpy(state, "false");
+        slen = 5;
+    }
+
+    uint8_t new = 0;
+    uint64_t id = value_set_id(&new, data, state);
+    uint8_t clen = uint64_len(id);
+
+    uint64_t len;
+
+    if (new)
+    {
+        len = slen + clen + 18;
+        if (res->csize + len > res->calloc)
+            res->consts = mr_realloc(res->consts, res->calloc += slen + GEN_CONSTS_LEN);
+
+        sprintf(res->consts + res->csize, ".LC%llu:\n\t.ascii\t\"%s\\0\"\n", id, state);
+        res->csize += len;
+
+        if (data->csize == data->calloc)
+            data->consts = mr_realloc(data->consts, (data->calloc += GEN_CONSTS_LIST_LEN) * sizeof(char*));
+
+        data->consts[data->csize++] = state;
+    }
+    else
+        mr_free(state);
+
+    len = clen + 33;
+    if (res->msize + len > res->malloc)
+        res->main = mr_realloc(res->main, res->malloc += GEN_MAIN_LEN);
+
+    sprintf(res->main + res->msize, "\tleaq\t.LC%llu(%%rip), %%rcx\n\tcall\tputs\n", id);
+    res->msize += len;
 }
 
 uint64_t value_set_id(uint8_t *new, const data_t *data, const char *value)

@@ -22,6 +22,14 @@ complex_value_t *complex_set_str(const char *str)
     return num;
 }
 
+complex_value_t *complex_set_ui(uint32_t ui)
+{
+    complex_value_t *num = mr_alloc(sizeof(complex_value_t));
+    mpc_init2(num->num, 64);
+    mpc_set_ui_ui(num->num, ui, 0, MPC_RNDNN);
+    return num;
+}
+
 void complex_free(complex_value_t *num)
 {
     mpc_clear(num->num);
@@ -82,6 +90,11 @@ void complex_pow(complex_value_t *left, const complex_value_t *right)
 void complex_neg(complex_value_t *num)
 {
     mpc_neg(num->num, num->num, MPC_RNDNN);
+}
+
+uint8_t complex_eq(const complex_value_t *left, const complex_value_t *right)
+{
+    return !mpc_cmp(left->num, right->num);
 }
 
 void complex_add_int(complex_value_t *left, const int_value_t *right)
@@ -230,6 +243,76 @@ complex_value_t *complex_float_pow_float(const float_value_t *left, const float_
 
     mpc_pow_fr(res->num, res->num, right->num, MPC_RNDNN);
     return res;
+}
+
+uint8_t complex_eq_int(const complex_value_t *left, const int_value_t *right)
+{
+    if (!mpfr_zero_p(mpc_imagref(left->num)))
+        return 0;
+
+    return !mpfr_cmp_z(mpc_realref(left->num), right->num);
+}
+
+uint8_t complex_eq_float(const complex_value_t *left, const float_value_t *right)
+{
+    if (!mpfr_zero_p(mpc_imagref(left->num)))
+        return 0;
+
+    return mpfr_equal_p(mpc_realref(left->num), right->num) != 0;
+}
+
+void complex_add_ui(complex_value_t *left, uint32_t right)
+{
+    mpc_add_ui(left->num, left->num, right, MPC_RNDNN);
+}
+
+void complex_sub_ui(complex_value_t *left, uint32_t right)
+{
+    mpc_sub_ui(left->num, left->num, right, MPC_RNDNN);
+}
+
+void complex_ui_sub(uint32_t left, complex_value_t *right)
+{
+    mpc_ui_sub(right->num, left, right->num, MPC_RNDNN);
+}
+
+void complex_mul_ui(complex_value_t *left, uint32_t right)
+{
+    mpc_mul_ui(left->num, left->num, right, MPC_RNDNN);
+}
+
+void complex_div_ui(complex_value_t *left, uint32_t right)
+{
+    mpc_div_ui(left->num, left->num, right, MPC_RNDNN);
+}
+
+void complex_ui_div(uint32_t left, complex_value_t *right)
+{
+    mpc_ui_div(right->num, left, right->num, MPC_RNDNN);
+}
+
+void complex_pow_ui(complex_value_t *left, uint32_t right)
+{
+    mpc_pow_ui(left->num, left->num, right, MPC_RNDNN);
+}
+
+void complex_ui_pow(uint32_t left, complex_value_t *right)
+{
+    mpc_t lcomplex;
+    mpc_init2(lcomplex, 64);
+    mpc_set_ui(lcomplex, left, MPC_RNDNN);
+
+    mpc_pow(right->num, lcomplex, right->num, MPC_RNDNN);
+
+    mpc_clear(lcomplex);
+}
+
+uint8_t complex_eq_ui(const complex_value_t *left, uint32_t right)
+{
+    if (!mpfr_zero_p(mpc_imagref(left->num)))
+        return 0;
+
+    return !mpfr_cmp_ui(mpc_realref(left->num), right);
 }
 
 uint8_t complex_iszero(const complex_value_t *num)

@@ -59,6 +59,9 @@ int main()
             continue;
         }
 
+        if (!opt_res.size)
+            continue;
+
         gen_res = generate(opt_res.values, opt_res.size);
 
         file = fopen("test.s", "w");

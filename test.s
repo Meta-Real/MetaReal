@@ -1,5 +1,5 @@
 .LC0:
-	.ascii	"-13\0"
+	.ascii	"false\0"
 	.globl	main
 main:
 	subq	$32, %rsp

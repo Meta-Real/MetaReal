@@ -11,7 +11,9 @@ enum __VALUE_TYPES
 {
     INT_V,
     FLOAT_V,
-    COMPLEX_V
+    COMPLEX_V,
+
+    BOOL_V
 };
 
 struct __VALUE_T
@@ -24,12 +26,14 @@ struct __VALUE_T
 };
 typedef struct __VALUE_T value_t;
 
-extern const char *value_names[3];
-extern uint8_t value_name_lens[3];
+extern const char *value_names[4];
+extern uint8_t value_name_lens[4];
 
 void free_values(value_t *values, uint64_t size);
 void print_values(const value_t *values, uint64_t size);
 
 void free_value(const value_t *value);
+
+uint8_t value_istrue(value_t *value);
 
 #endif /* __MR_VALUE__ */

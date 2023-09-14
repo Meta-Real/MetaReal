@@ -25,13 +25,28 @@ enum __TOKEN_TYPES
     QUOT_T,
     POW_T,
 
-    BAND_T,
-    BOR_T,
-    BXOR_T,
+    B_AND_T,
+    B_OR_T,
+    B_XOR_T,
     LSHIFT_T,
     RSHIFT_T,
+    B_NOT_T,
 
-    BNOT_T,
+    EQ_T,
+    NEQ_T,
+    EX_EQ_T,
+    EX_NEQ_T,
+
+    LT_T,
+    GT_T,
+    LTE_T,
+    GTE_T,
+
+    AND_T,
+    OR_T,
+    NOT_T,
+
+    ASSIGN_T,
 
     LPAREN_T,
     RPAREN_T
@@ -48,7 +63,7 @@ struct __TOKEN_T
 };
 typedef struct __TOKEN_T token_t;
 
-extern const char *token_labels[20];
+extern const char *token_labels[32];
 
 void free_tokens(token_t *tokens);
 void print_tokens(const token_t *tokens);

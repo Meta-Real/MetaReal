@@ -52,6 +52,11 @@ opt_res_t optimize(node_t *nodes, uint64_t size)
         res.values[res.size] = visit_res.value;
     }
 
+    if (res.size)
+        res.values = mr_realloc(res.values, res.size * sizeof(value_t));
+    else
+        mr_free(res.values);
+
     mr_free(nodes);
     return res;
 }
@@ -149,20 +154,44 @@ visit_res_t visit_bin_operation(bin_operation_node_t *node, pos_t *poss, pos_t *
     case POW_T:
         res = compute_pow(&left, &right);
         break;
-    case BAND_T:
-        res = compute_band(&left, &right);
+    case B_AND_T:
+        res = compute_b_and(&left, &right);
         break;
-    case BOR_T:
-        res = compute_bor(&left, &right);
+    case B_OR_T:
+        res = compute_b_or(&left, &right);
         break;
-    case BXOR_T:
-        res = compute_bxor(&left, &right);
+    case B_XOR_T:
+        res = compute_b_xor(&left, &right);
         break;
     case LSHIFT_T:
         res = compute_lshift(&left, &right);
         break;
     case RSHIFT_T:
         res = compute_rshift(&left, &right);
+        break;
+    case EQ_T:
+        res = compute_eq(&left, &right);
+        break;
+    case NEQ_T:
+        res = compute_neq(&left, &right);
+        break;
+    case EX_EQ_T:
+        res = compute_ex_eq(&left, &right);
+        break;
+    case EX_NEQ_T:
+        res = compute_ex_neq(&left, &right);
+        break;
+    case LT_T:
+        res = compute_lt(&left, &right);
+        break;
+    case GT_T:
+        res = compute_gt(&left, &right);
+        break;
+    case LTE_T:
+        res = compute_lte(&left, &right);
+        break;
+    case GTE_T:
+        res = compute_gte(&left, &right);
         break;
     }
 
@@ -191,8 +220,11 @@ visit_res_t visit_unary_operation(unary_operation_node_t *node, pos_t *poss, pos
     case SUB_T:
         res = compute_neg(&res.value, poss);
         break;
-    case BNOT_T:
-        res = compute_bnot(&res.value, poss);
+    case B_NOT_T:
+        res = compute_b_not(&res.value, poss);
+        break;
+    case NOT_T:
+        res = compute_not(&res.value, poss);
         break;
     }
 

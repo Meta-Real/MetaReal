@@ -68,9 +68,13 @@
         return tokens;                                      \
     } while (0)
 
-token_t *bor(parse_res_t *res, token_t *tokens);
-token_t *bxor(parse_res_t *res, token_t *tokens);
-token_t *band(parse_res_t *res, token_t *tokens);
+token_t *or(parse_res_t *res, token_t *tokens);
+token_t *and(parse_res_t *res, token_t *tokens);
+token_t *cmp1(parse_res_t *res, token_t *tokens);
+token_t *cmp2(parse_res_t *res, token_t *tokens);
+token_t *b_or(parse_res_t *res, token_t *tokens);
+token_t *b_xor(parse_res_t *res, token_t *tokens);
+token_t *b_and(parse_res_t *res, token_t *tokens);
 token_t *shift(parse_res_t *res, token_t *tokens);
 token_t *expr(parse_res_t *res, token_t *tokens);
 token_t *term(parse_res_t *res, token_t *tokens);
@@ -96,7 +100,7 @@ parse_res_t parse(token_t *tokens)
         if (res.size == alloc)
             res.nodes = mr_realloc(res.nodes, (alloc += PARSE_NODE_LIST_LEN) * sizeof(node_t));
 
-        tokens = bor(&res, tokens);
+        tokens = or(&res, tokens);
         if (!res.nodes)
         {
             free_tokens(tokens);
@@ -119,31 +123,48 @@ parse_res_t parse(token_t *tokens)
         return res;
     }
 
-    mr_free(ptr);
-
-    if (!res.size)
-    {
+    if (res.size)
+        res.nodes = mr_realloc(res.nodes, res.size * sizeof(node_t));
+    else
         mr_free(res.nodes);
-        return res;
-    }
 
-    res.nodes = mr_realloc(res.nodes, res.size * sizeof(node_t));
+    mr_free(ptr);
     return res;
 }
 
-token_t *bor(parse_res_t *res, token_t *tokens)
+token_t *or(parse_res_t *res, token_t *tokens)
 {
-    bin_operation(bxor, bxor, tokens->type == BOR_T);
+    bin_operation(and, and, tokens->type == OR_T);
 }
 
-token_t *bxor(parse_res_t *res, token_t *tokens)
+token_t *and(parse_res_t *res, token_t *tokens)
 {
-    bin_operation(band, band, tokens->type == BXOR_T);
+    bin_operation(cmp1, cmp1, tokens->type == AND_T);
 }
 
-token_t *band(parse_res_t *res, token_t *tokens)
+token_t *cmp1(parse_res_t *res, token_t *tokens)
 {
-    bin_operation(shift, shift, tokens->type == BAND_T);
+    bin_operation(cmp2, cmp2, tokens->type >= LT_T && tokens->type <= GTE_T);
+}
+
+token_t *cmp2(parse_res_t *res, token_t *tokens)
+{
+    bin_operation(b_or, b_or, tokens->type >= EQ_T && tokens->type <= EX_NEQ_T);
+}
+
+token_t *b_or(parse_res_t *res, token_t *tokens)
+{
+    bin_operation(b_xor, b_xor, tokens->type == B_OR_T);
+}
+
+token_t *b_xor(parse_res_t *res, token_t *tokens)
+{
+    bin_operation(b_and, b_and, tokens->type == B_XOR_T);
+}
+
+token_t *b_and(parse_res_t *res, token_t *tokens)
+{
+    bin_operation(shift, shift, tokens->type == B_AND_T);
 }
 
 token_t *shift(parse_res_t *res, token_t *tokens)
@@ -163,7 +184,7 @@ token_t *term(parse_res_t *res, token_t *tokens)
 
 token_t *factor(parse_res_t *res, token_t *tokens)
 {
-    if (tokens->type == ADD_T || tokens->type == SUB_T || tokens->type == BNOT_T)
+    if (tokens->type == ADD_T || tokens->type == SUB_T || tokens->type == B_NOT_T || tokens->type == NOT_T)
     {
         unary_operation_node_t *value = mr_alloc(sizeof(unary_operation_node_t));
         value->operator = tokens->type;
@@ -196,7 +217,7 @@ token_t *core(parse_res_t *res, token_t *tokens)
     {
         pos_t poss = tokens++->poss;
 
-        tokens = bor(res, tokens);
+        tokens = or(res, tokens);
         if (!res->nodes)
             return tokens;
 
