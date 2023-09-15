@@ -11,6 +11,9 @@
         "optional": "c",
         "system_error": "c",
         "array": "c",
-        "tuple": "c"
+        "tuple": "c",
+        "xiosbase": "c",
+        "sstream": "c",
+        "iosfwd": "c"
     }
 }
