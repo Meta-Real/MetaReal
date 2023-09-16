@@ -13,6 +13,7 @@ enum __TOKEN_TYPES
 
     SEMICOLON_T,
 
+    ID_T,
     INT_T,
     FLOAT_T,
     IMAG_T,
@@ -49,21 +50,27 @@ enum __TOKEN_TYPES
     ASSIGN_T,
 
     LPAREN_T,
-    RPAREN_T
+    RPAREN_T,
+
+    AND_KT,
+    OR_KT,
+    NOT_KT,
+
+    TRUE_KT,
+    FALSE_KT
 };
 
 struct __TOKEN_T
 {
     uint8_t type;
     char *value;
-    uint64_t size;
 
     pos_t poss;
     pos_t pose;
 };
 typedef struct __TOKEN_T token_t;
 
-extern const char *token_labels[32];
+extern const char *token_labels[38];
 
 void free_tokens(token_t *tokens);
 void print_tokens(const token_t *tokens);

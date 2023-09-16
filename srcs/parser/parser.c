@@ -134,12 +134,12 @@ parse_res_t parse(token_t *tokens)
 
 token_t *or(parse_res_t *res, token_t *tokens)
 {
-    bin_operation(and, and, tokens->type == OR_T);
+    bin_operation(and, and, tokens->type == OR_T || tokens->type == OR_KT);
 }
 
 token_t *and(parse_res_t *res, token_t *tokens)
 {
-    bin_operation(cmp1, cmp1, tokens->type == AND_T);
+    bin_operation(cmp1, cmp1, tokens->type == AND_T || tokens->type == AND_KT);
 }
 
 token_t *cmp1(parse_res_t *res, token_t *tokens)
@@ -184,7 +184,8 @@ token_t *term(parse_res_t *res, token_t *tokens)
 
 token_t *factor(parse_res_t *res, token_t *tokens)
 {
-    if (tokens->type == ADD_T || tokens->type == SUB_T || tokens->type == B_NOT_T || tokens->type == NOT_T)
+    if (tokens->type == ADD_T || tokens->type == SUB_T || tokens->type == B_NOT_T ||
+        tokens->type == NOT_T || tokens->type == NOT_KT)
     {
         unary_operation_node_t *value = mr_alloc(sizeof(unary_operation_node_t));
         value->operator = tokens->type;
@@ -243,6 +244,12 @@ token_t *core(parse_res_t *res, token_t *tokens)
         return ++tokens;
     case IMAG_T:
         set_node(IMAG_N, tokens->value, tokens->poss, tokens->pose);
+        return ++tokens;
+    case TRUE_KT:
+        set_node(BOOL_N, (void*)1, tokens->poss, tokens->pose);
+        return ++tokens;
+    case FALSE_KT:
+        set_node(BOOL_N, NULL, tokens->poss, tokens->pose);
         return ++tokens;
     }
 

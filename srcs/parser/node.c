@@ -15,9 +15,9 @@ void print_bin_operation_node(const bin_operation_node_t *node);
 void free_unary_operation_node(unary_operation_node_t *node);
 void print_unary_operation_node(const unary_operation_node_t *node);
 
-const char *node_labels[5] =
+const char *node_labels[6] =
 {
-    "INT", "FLOAT", "IMAG",
+    "INT", "FLOAT", "IMAG", "BOOL",
     "BIN_OPERATION", "UNARY_OPERATION"
 };
 
@@ -53,6 +53,8 @@ void free_node(const node_t *node)
     case IMAG_N:
         mr_free(node->value);
         break;
+    case BOOL_N:
+        break;
     case BIN_OPERATION_N:
         free_bin_operation_node(node->value);
         break;
@@ -73,6 +75,8 @@ void print_node(const node_t *node)
     case IMAG_N:
         fputs(node->value, stdout);
         break;
+    case BOOL_N:
+        printf("%hu", (uint8_t)(uintptr_t)node->value);
     case BIN_OPERATION_N:
         print_bin_operation_node(node->value);
         break;

@@ -79,7 +79,22 @@
         res.tokens[size++].pose = pos;      \
     } while (0)
 
+token_t handle_id(const char *code, pos_t *pos);
 token_t handle_num(const char *code, pos_t *pos);
+
+uint8_t check_id(const char *id, uint64_t len);
+
+const char *keywords[5] =
+{
+    "and", "or", "not",
+    "true", "false"
+};
+
+uint8_t keyword_lens[5] =
+{
+    3, 2, 3,
+    4, 5
+};
 
 lex_res_t lex(const char *code)
 {
@@ -101,6 +116,12 @@ lex_res_t lex(const char *code)
         if (size == alloc)
             res.tokens = mr_realloc(res.tokens, (alloc += LEX_TOKEN_LIST_LEN) * sizeof(token_t));
 
+        if ((code[pos.idx] >= 'a' && code[pos.idx] <= 'z') || (code[pos.idx] >= 'A' && code[pos.idx] <= 'Z')
+            || code[pos.idx] == '_')
+        {
+            res.tokens[size++] = handle_id(code, &pos);
+            continue;
+        }
         if ((code[pos.idx] >= '0' && code[pos.idx] <= '9') || code[pos.idx] == '.')
         {
             res.tokens[size++] = handle_num(code, &pos);
@@ -128,7 +149,7 @@ lex_res_t lex(const char *code)
             set_token(MOD_T);
             break;
         case '&':
-            set_token_d(AND_T, B_AND_T, '|');
+            set_token_d(AND_T, B_AND_T, '&');
             break;
         case '|':
             set_token_d(OR_T, B_OR_T, '|');
@@ -178,16 +199,49 @@ lex_res_t lex(const char *code)
     return res;
 }
 
+token_t handle_id(const char *code, pos_t *pos)
+{
+    token_t res;
+    res.value = mr_alloc(LEX_ID_SIZE);
+    res.poss = *pos;
+
+    uint64_t size = 0;
+    uint64_t alloc = LEX_ID_SIZE;
+    do
+    {
+        if (size == alloc)
+            res.value = mr_realloc(res.value, alloc += LEX_ID_SIZE);
+
+        res.value[size++] = code[pos->idx++];
+    } while ((code[pos->idx] >= 'a' && code[pos->idx] <= 'z') ||
+        (code[pos->idx] >= 'A' && code[pos->idx] <= 'Z') ||
+        (code[pos->idx] >= '0' && code[pos->idx] <= '9') || code[pos->idx] == '_');
+
+    res.type = check_id(res.value, size);
+    if (res.type != ID_T)
+    {
+        mr_free(res.value);
+        res.value = NULL;
+    }
+    else
+    {
+        res.value = mr_realloc(res.value, size + 1);
+        res.value[size] = '\0';
+    }
+
+    res.pose = *pos;
+    return res;
+}
+
 token_t handle_num(const char *code, pos_t *pos)
 {
     token_t res;
     res.type = INT_T;
     res.value = mr_alloc(LEX_NUM_SIZE);
-    res.size = 0;
     res.poss = *pos;
 
+    uint64_t size = 0;
     uint64_t alloc = LEX_NUM_SIZE;
-
     do
     {
         if (code[pos->idx] == '.')
@@ -197,10 +251,10 @@ token_t handle_num(const char *code, pos_t *pos)
             res.type = FLOAT_T;
         }
 
-        if (res.size == alloc)
+        if (size == alloc)
             res.value = mr_realloc(res.value, alloc += LEX_NUM_SIZE);
 
-        res.value[res.size++] = code[pos->idx++];
+        res.value[size++] = code[pos->idx++];
     } while ((code[pos->idx] >= '0' && code[pos->idx] <= '9') || code[pos->idx] == '.');
 
     if (code[pos->idx] == 'i')
@@ -209,8 +263,30 @@ token_t handle_num(const char *code, pos_t *pos)
         pos->idx++;
     }
 
-    res.value = mr_realloc(res.value, res.size + 1);
-    res.value[res.size] = '\0';
+    res.value = mr_realloc(res.value, size + 1);
+    res.value[size] = '\0';
     res.pose = *pos;
     return res;
+}
+
+uint8_t check_id(const char *id, uint64_t len)
+{
+    if (len > 5)
+        return ID_T;
+
+    uint8_t j;
+    for (uint8_t i = 0; i < 5; i++)
+    {
+        if (len != keyword_lens[i])
+            continue;
+
+        for (j = 0; j < len; j++)
+            if (id[j] != keywords[i][j])
+                break;
+
+        if (j == len)
+            return i + AND_KT;
+    }
+
+    return ID_T;
 }

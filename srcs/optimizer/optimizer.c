@@ -24,6 +24,7 @@ visit_res_t visit_node(node_t *node);
 visit_res_t visit_int(char *node, pos_t *poss, pos_t *pose);
 visit_res_t visit_float(char *node, pos_t *poss, pos_t *pose);
 visit_res_t visit_imag(char *node, pos_t *poss, pos_t *pose);
+visit_res_t visit_bool(void *state, pos_t *poss, pos_t *pose);
 visit_res_t visit_bin_operation(bin_operation_node_t *node, pos_t *poss, pos_t *pose);
 visit_res_t visit_unary_operation(unary_operation_node_t *node, pos_t *poss, pos_t *pose);
 
@@ -71,6 +72,8 @@ visit_res_t visit_node(node_t *node)
         return visit_float(node->value, &node->poss, &node->pose);
     case IMAG_N:
         return visit_imag(node->value, &node->poss, &node->pose);
+    case BOOL_N:
+        return visit_bool(node->value, &node->poss, &node->pose);
     case BIN_OPERATION_N:
         return visit_bin_operation(node->value, &node->poss, &node->pose);
     case UNARY_OPERATION_N:
@@ -111,6 +114,15 @@ visit_res_t visit_imag(char *node, pos_t *poss, pos_t *pose)
     return res;
 }
 
+visit_res_t visit_bool(void *state, pos_t *poss, pos_t *pose)
+{
+    visit_res_t res;
+    res.has_error = 0;
+    set_value(BOOL_V, state);
+
+    return res;
+}
+
 visit_res_t visit_bin_operation(bin_operation_node_t *node, pos_t *poss, pos_t *pose)
 {
     visit_res_t res = visit_node(&node->left);
@@ -118,6 +130,45 @@ visit_res_t visit_bin_operation(bin_operation_node_t *node, pos_t *poss, pos_t *
     {
         free_node(&node->right);
         goto ret;
+    }
+
+    if (node->operator == AND_T || node->operator == AND_KT)
+    {
+        if (!value_istrue(&res.value))
+        {
+            res.value.type = BOOL_V;
+            res.value.value = NULL;
+
+            free_node(&node->right);
+            goto rets;
+        }
+
+        res = visit_node(&node->right);
+        if (res.has_error)
+            goto ret;
+
+        res.value.value = (void*)(uintptr_t)value_istrue(&res.value);
+        res.value.type = BOOL_V;
+        goto rets;
+    }
+    if (node->operator == OR_T || node->operator == OR_KT)
+    {
+        if (value_istrue(&res.value))
+        {
+            res.value.type = BOOL_V;
+            res.value.value = (void*)1;
+
+            free_node(&node->right);
+            goto rets;
+        }
+
+        res = visit_node(&node->right);
+        if (res.has_error)
+            goto ret;
+
+        res.value.value = (void*)(uintptr_t)value_istrue(&res.value);
+        res.value.type = BOOL_V;
+        goto rets;
     }
 
     value_t left = res.value;
@@ -198,6 +249,7 @@ visit_res_t visit_bin_operation(bin_operation_node_t *node, pos_t *poss, pos_t *
     if (res.has_error)
         goto ret;
 
+rets:
     res.value.poss = *poss;
     res.value.pose = *pose;
 
@@ -224,6 +276,7 @@ visit_res_t visit_unary_operation(unary_operation_node_t *node, pos_t *poss, pos
         res = compute_b_not(&res.value, poss);
         break;
     case NOT_T:
+    case NOT_KT:
         res = compute_not(&res.value, poss);
         break;
     }

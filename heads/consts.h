@@ -10,6 +10,7 @@
 #define DEF_CODE_SIZE 1024
 
 #define LEX_TOKEN_LIST_LEN 128
+#define LEX_ID_SIZE 16
 #define LEX_NUM_SIZE 8
 
 #define PARSE_NODE_LIST_LEN 64
