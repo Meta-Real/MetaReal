@@ -15,10 +15,14 @@ void print_bin_operation_node(const bin_operation_node_t *node);
 void free_unary_operation_node(unary_operation_node_t *node);
 void print_unary_operation_node(const unary_operation_node_t *node);
 
-const char *node_labels[6] =
+void free_var_assign_node(var_assign_node_t *node);
+void print_var_assign_node(const var_assign_node_t *node);
+
+const char *node_labels[9] =
 {
-    "INT", "FLOAT", "IMAG", "BOOL",
-    "BIN_OPERATION", "UNARY_OPERATION"
+    "NONE", "INT", "FLOAT", "IMAG", "BOOL",
+    "BIN_OPERATION", "UNARY_OPERATION",
+    "VAR_ASSIGN", "VAR_ACCESS"
 };
 
 void free_nodes(node_t *nodes, uint64_t size)
@@ -48,12 +52,14 @@ void free_node(const node_t *node)
 {
     switch (node->type)
     {
+    case NONE_N:
+    case BOOL_N:
+        break;
     case INT_N:
     case FLOAT_N:
     case IMAG_N:
+    case VAR_ACCESS_N:
         mr_free(node->value);
-        break;
-    case BOOL_N:
         break;
     case BIN_OPERATION_N:
         free_bin_operation_node(node->value);
@@ -61,11 +67,20 @@ void free_node(const node_t *node)
     case UNARY_OPERATION_N:
         free_unary_operation_node(node->value);
         break;
+    case VAR_ASSIGN_N:
+        free_var_assign_node(node->value);
+        break;
     }
 }
 
 void print_node(const node_t *node)
 {
+    if (!node->type)
+    {
+        fputs("(NONE)", stdout);
+        return;
+    }
+
     printf("(%s: ", node_labels[node->type]);
 
     switch (node->type)
@@ -73,6 +88,7 @@ void print_node(const node_t *node)
     case INT_N:
     case FLOAT_N:
     case IMAG_N:
+    case VAR_ACCESS_N:
         fputs(node->value, stdout);
         break;
     case BOOL_N:
@@ -82,6 +98,9 @@ void print_node(const node_t *node)
         break;
     case UNARY_OPERATION_N:
         print_unary_operation_node(node->value);
+        break;
+    case VAR_ASSIGN_N:
+        print_var_assign_node(node->value);
         break;
     }
 
@@ -113,4 +132,17 @@ void print_unary_operation_node(const unary_operation_node_t *node)
 {
     printf("%s, ", token_labels[node->operator]);
     print_node(&node->operand);
+}
+
+void free_var_assign_node(var_assign_node_t *node)
+{
+    free_node(&node->value);
+    mr_free(node->name);
+    mr_free(node);
+}
+
+void print_var_assign_node(const var_assign_node_t *node)
+{
+    printf("%s, ", node->name);
+    print_node(&node->value);
 }

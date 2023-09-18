@@ -6,9 +6,11 @@
 #include <stdio.h>
 #include <alloc.h>
 
-const char *invalid_semantic_labels[2] =
+const char *invalid_semantic_labels[4] =
 {
     "IllegalOpError",
+    "ValueError",
+    "NotDefError",
     "DivByZeroError"
 };
 

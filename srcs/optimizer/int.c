@@ -5,10 +5,174 @@
 #include <optimizer/int.h>
 #include <alloc.h>
 
+#define int_binary(f)                               \
+    do                                              \
+    {                                               \
+        if (left->ref)                              \
+        {                                           \
+            left->ref--;                            \
+                                                    \
+            if (right->ref)                         \
+            {                                       \
+                right->ref--;                       \
+                                                    \
+                int_value_t *res = int_init();      \
+                f(res->num, left->num, right->num); \
+                return res;                         \
+            }                                       \
+                                                    \
+            f(right->num, left->num, right->num);   \
+            return right;                           \
+        }                                           \
+                                                    \
+        f(left->num, left->num, right->num);        \
+                                                    \
+        int_free(right);                            \
+        return left;                                \
+    } while (0)
+
+#define int_binary2(f)                                          \
+    do                                                          \
+    {                                                           \
+        if (left->ref)                                          \
+        {                                                       \
+            left->ref--;                                        \
+                                                                \
+            if (right->ref)                                     \
+            {                                                   \
+                right->ref--;                                   \
+                                                                \
+                int_value_t *res = int_init();                  \
+                f(res->num, left->num, mpz_get_ui(right->num)); \
+                return res;                                     \
+            }                                                   \
+                                                                \
+            f(right->num, left->num, mpz_get_ui(right->num));   \
+            return right;                                       \
+        }                                                       \
+                                                                \
+        f(left->num, left->num, mpz_get_ui(right->num));        \
+                                                                \
+        int_free(right);                                        \
+        return left;                                            \
+    } while (0)
+
+#define int_binary_ui(f)                   \
+    do                                     \
+    {                                      \
+        if (left->ref)                     \
+        {                                  \
+            left->ref--;                   \
+                                           \
+            int_value_t *res = int_init(); \
+            f(res->num, left->num, right); \
+            return res;                    \
+        }                                  \
+                                           \
+        f(left->num, left->num, right);    \
+        return left;                       \
+    } while (0)
+
+#define int_binary_ui_rev(f)               \
+    do                                     \
+    {                                      \
+        if (right->ref)                    \
+        {                                  \
+            right->ref--;                  \
+                                           \
+            int_value_t *res = int_init(); \
+            f(res->num, left, right->num); \
+            return res;                    \
+        }                                  \
+                                           \
+        f(right->num, left, right->num);   \
+        return right;                      \
+    } while (0)
+
+#define int_binary_ui2(f)                         \
+    do                                            \
+    {                                             \
+        if (left->ref)                            \
+        {                                         \
+            left->ref--;                          \
+                                                  \
+            int_value_t *res = int_set_ui(right); \
+            f(res->num, left->num, res->num);     \
+            return res;                           \
+        }                                         \
+                                                  \
+        mpz_t rint;                               \
+        mpz_init(rint);                           \
+                                                  \
+        f(left->num, left->num, rint);            \
+                                                  \
+        mpz_clear(rint);                          \
+        return left;                              \
+    } while (0)
+
+#define int_binary_ui2_rev(f)                    \
+    do                                           \
+    {                                            \
+        if (right->ref)                          \
+        {                                        \
+            right->ref--;                        \
+                                                 \
+            int_value_t *res = int_set_ui(left); \
+            f(res->num, res->num, right->num);   \
+            return res;                          \
+        }                                        \
+                                                 \
+        mpz_t lint;                              \
+        mpz_init(lint);                          \
+                                                 \
+        f(right->num, lint, right->num);         \
+                                                 \
+        mpz_clear(lint);                         \
+        return right;                            \
+    } while (0)
+
+#define int_binary_ui3(f)                                  \
+    do                                                     \
+    {                                                      \
+        if (right->ref)                                    \
+        {                                                  \
+            right->ref--;                                  \
+                                                           \
+            int_value_t *res = int_set_ui(left);           \
+            f(res->num, res->num, mpz_get_ui(right->num)); \
+            return res;                                    \
+        }                                                  \
+                                                           \
+        mpz_t lint;                                        \
+        mpz_init(lint);                                    \
+                                                           \
+        f(right->num, lint, mpz_get_ui(right->num));       \
+                                                           \
+        mpz_clear(lint);                                   \
+        return right;                                      \
+    } while (0)
+
+#define int_unary(f)                       \
+    do                                     \
+    {                                      \
+        if (num->ref)                      \
+        {                                  \
+            num->ref--;                    \
+                                           \
+            int_value_t *res = int_init(); \
+            mpz_neg(res->num, num->num);   \
+            return res;                    \
+        }                                  \
+                                           \
+        mpz_neg(num->num, num->num);       \
+        return num;                        \
+    } while (0)
+
 int_value_t *int_init()
 {
     int_value_t *num = mr_alloc(sizeof(int_value_t));
     mpz_init(num->num);
+    num->ref = 0;
     return num;
 }
 
@@ -16,6 +180,7 @@ int_value_t *int_set_str(const char *str)
 {
     int_value_t *num = mr_alloc(sizeof(int_value_t));
     mpz_init_set_str(num->num, str, 10);
+    num->ref = 0;
     return num;
 }
 
@@ -23,11 +188,18 @@ int_value_t *int_set_ui(uint32_t ui)
 {
     int_value_t *num = mr_alloc(sizeof(int_value_t));
     mpz_init_set_ui(num->num, ui);
+    num->ref = 0;
     return num;
 }
 
 void int_free(int_value_t *num)
 {
+    if (num->ref)
+    {
+        num->ref--;
+        return;
+    }
+
     mpz_clear(num->num);
     mr_free(num);
 }
@@ -42,74 +214,79 @@ void int_print(const int_value_t *num)
     gmp_printf("%Zd", num->num);
 }
 
-void int_add(int_value_t *left, const int_value_t *right)
+int_value_t *int_add(int_value_t *left, int_value_t *right)
 {
-    mpz_add(left->num, left->num, right->num);
+    int_binary(mpz_add);
 }
 
-void int_sub(int_value_t *left, const int_value_t *right)
+int_value_t *int_sub(int_value_t *left, int_value_t *right)
 {
-    mpz_sub(left->num, left->num, right->num);
+    int_binary(mpz_sub);
 }
 
-void int_mul(int_value_t *left, const int_value_t *right)
+int_value_t *int_mul(int_value_t *left, int_value_t *right)
 {
-    mpz_mul(left->num, left->num, right->num);
+    int_binary(mpz_mul);
 }
 
-void int_mod(int_value_t *left, const int_value_t *right)
+int_value_t *int_mod(int_value_t *left, int_value_t *right)
 {
-    mpz_mod(left->num, left->num, right->num);
+    int_binary(mpz_mod);
 }
 
-void int_quot(int_value_t *left, const int_value_t *right)
+int_value_t *int_quot(int_value_t *left, int_value_t *right)
 {
-    mpz_tdiv_q(left->num, left->num, right->num);
+    int_binary(mpz_tdiv_q);
 }
 
-void int_pow(int_value_t *left, const int_value_t *right)
+int_value_t *int_pow(int_value_t *left, int_value_t *right)
 {
-    mpz_pow_ui(left->num, left->num, mpz_get_ui(right->num));
+    int_binary2(mpz_pow_ui);
 }
 
-void int_and(int_value_t *left, const int_value_t *right)
+int_value_t *int_and(int_value_t *left, int_value_t *right)
 {
-    mpz_and(left->num, left->num, right->num);
+    int_binary(mpz_and);
 }
 
-void int_or(int_value_t *left, const int_value_t *right)
+int_value_t *int_or(int_value_t *left, int_value_t *right)
 {
-    mpz_ior(left->num, left->num, right->num);
+    int_binary(mpz_ior);
 }
 
-void int_xor(int_value_t *left, const int_value_t *right)
+int_value_t *int_xor(int_value_t *left, int_value_t *right)
 {
-    mpz_xor(left->num, left->num, right->num);
+    int_binary(mpz_xor);
 }
 
-void int_lshift(int_value_t *left, const int_value_t *right)
+int_value_t *int_lshift(int_value_t *left, int_value_t *right)
 {
-    mpz_mul_2exp(left->num, left->num, mpz_get_ui(right->num));
+    int_binary2(mpz_mul_2exp);
 }
 
-void int_rshift(int_value_t *left, const int_value_t *right)
+int_value_t *int_rshift(int_value_t *left, int_value_t *right)
 {
-    mpz_tdiv_q_2exp(left->num, left->num, mpz_get_ui(right->num));
+    int_binary2(mpz_tdiv_q_2exp);
 }
 
-void int_neg(int_value_t *num)
+int_value_t *int_neg(int_value_t *num)
 {
-    mpz_neg(num->num, num->num);
+    int_unary(mpz_neg);
 }
 
-void int_not(int_value_t *num)
+int_value_t *int_not(int_value_t *num)
 {
-    mpz_com(num->num, num->num);
+    int_unary(mpz_com);
 }
 
 uint8_t int_eq(const int_value_t *left, const int_value_t *right)
 {
     return !mpz_cmp(left->num, right->num);
+}
+
+uint8_t int_neq(const int_value_t *left, const int_value_t *right)
+{
+    return mpz_cmp(left->num, right->num) != 0;
 }
 
 uint8_t int_lt(const int_value_t *left, const int_value_t *right)
@@ -122,129 +299,119 @@ uint8_t int_gt(const int_value_t *left, const int_value_t *right)
     return mpz_cmp(left->num, right->num) > 0;
 }
 
-void int_add_ui(int_value_t *left, uint32_t right)
+uint8_t int_lte(const int_value_t *left, const int_value_t *right)
 {
-    mpz_add_ui(left->num, left->num, right);
+    return mpz_cmp(left->num, right->num) <= 0;
 }
 
-void int_sub_ui(int_value_t *left, uint32_t right)
+uint8_t int_gte(const int_value_t *left, const int_value_t *right)
 {
-    mpz_sub_ui(left->num, left->num, right);
+    return mpz_cmp(left->num, right->num) >= 0;
 }
 
-void int_ui_sub(uint32_t left, int_value_t *right)
+int_value_t *int_add_ui(int_value_t *left, uint32_t right)
 {
-    mpz_ui_sub(right->num, left, right->num);
+    int_binary_ui(mpz_add_ui);
 }
 
-void int_mul_ui(int_value_t *left, uint32_t right)
+int_value_t *int_sub_ui(int_value_t *left, uint32_t right)
 {
-    mpz_mul_ui(left->num, left->num, right);
+    int_binary_ui(mpz_sub_ui);
 }
 
-void int_mod_ui(int_value_t *left, uint32_t right)
+int_value_t *int_ui_sub(uint32_t left, int_value_t *right)
 {
-    mpz_mod_ui(left->num, left->num, right);
+    int_binary_ui_rev(mpz_ui_sub);
 }
 
-void int_ui_mod(uint32_t left, int_value_t *right)
+int_value_t *int_mul_ui(int_value_t *left, uint32_t right)
 {
-    mpz_t lint;
-    mpz_init_set_ui(lint, left);
-
-    mpz_mod(right->num, lint, right->num);
-
-    mpz_clear(lint);
+    int_binary_ui(mpz_mul_ui);
 }
 
-void int_quot_ui(int_value_t *left, uint32_t right)
+int_value_t *int_mod_ui(int_value_t *left, uint32_t right)
 {
-    mpz_tdiv_q_ui(left->num, left->num, right);
+    int_binary_ui(mpz_mod_ui);
 }
 
-void int_ui_quot(uint32_t left, int_value_t *right)
+int_value_t *int_ui_mod(uint32_t left, int_value_t *right)
 {
-    mpz_t lint;
-    mpz_init_set_ui(lint, left);
-
-    mpz_tdiv_q(right->num, lint, right->num);
-
-    mpz_clear(lint);
+    int_binary_ui2_rev(mpz_mod);
 }
 
-void int_pow_ui(int_value_t *left, uint32_t right)
+int_value_t *int_quot_ui(int_value_t *left, uint32_t right)
 {
-    mpz_pow_ui(left->num, left->num, right);
+    int_binary_ui(mpz_tdiv_q_ui);
 }
 
-void int_ui_pow(uint32_t left, int_value_t *right)
+int_value_t *int_ui_quot(uint32_t left, int_value_t *right)
 {
+    int_binary_ui2_rev(mpz_tdiv_q);
+}
+
+int_value_t *int_pow_ui(int_value_t *left, uint32_t right)
+{
+    int_binary_ui(mpz_pow_ui);
+}
+
+int_value_t *int_ui_pow(uint32_t left, int_value_t *right)
+{
+    if (right->ref)
+    {
+        right->ref--;
+
+        int_value_t *res = int_init();
+        mpz_ui_pow_ui(res->num, left, mpz_get_ui(right->num));
+        return res;
+    }
+
     mpz_ui_pow_ui(right->num, left, mpz_get_ui(right->num));
+    return right;
 }
 
-void int_and_ui(int_value_t *left, uint32_t right)
+int_value_t *int_and_ui(int_value_t *left, uint32_t right)
 {
-    mpz_t rint;
-    mpz_init_set_ui(rint, right);
-
-    mpz_and(left->num, left->num, rint);
-
-    mpz_clear(rint);
+    int_binary_ui2(mpz_and);
 }
 
-void int_or_ui(int_value_t *left, uint32_t right)
+int_value_t *int_or_ui(int_value_t *left, uint32_t right)
 {
-    mpz_t rint;
-    mpz_init_set_ui(rint, right);
-
-    mpz_ior(left->num, left->num, rint);
-
-    mpz_clear(rint);
+    int_binary_ui2(mpz_ior);
 }
 
-void int_xor_ui(int_value_t *left, uint32_t right)
+int_value_t *int_xor_ui(int_value_t *left, uint32_t right)
 {
-    mpz_t rint;
-    mpz_init_set_ui(rint, right);
-
-    mpz_xor(left->num, left->num, rint);
-
-    mpz_clear(rint);
+    int_binary_ui2(mpz_xor);
 }
 
-void int_lshift_ui(int_value_t *left, uint32_t right)
+int_value_t *int_lshift_ui(int_value_t *left, uint32_t right)
 {
-    mpz_mul_2exp(left->num, left->num, right);
+    int_binary_ui(mpz_mul_2exp);
 }
 
-void int_ui_lshift(uint32_t left, int_value_t *right)
+int_value_t *int_ui_lshift(uint32_t left, int_value_t *right)
 {
-    mpz_t lint;
-    mpz_init_set_ui(lint, left);
-
-    mpz_mul_2exp(right->num, lint, mpz_get_ui(right->num));
-
-    mpz_clear(lint);
+    int_binary_ui3(mpz_mul_2exp);
 }
 
-void int_rshift_ui(int_value_t *left, uint32_t right)
+int_value_t *int_rshift_ui(int_value_t *left, uint32_t right)
 {
-    mpz_tdiv_q_2exp(left->num, left->num, right);
+    int_binary_ui(mpz_tdiv_q_2exp);
 }
 
-void int_ui_rshift(uint32_t left, int_value_t *right)
+int_value_t *int_ui_rshift(uint32_t left, int_value_t *right)
 {
-    mpz_t lint;
-    mpz_init_set_ui(lint, left);
-
-    mpz_tdiv_q_2exp(right->num, lint, mpz_get_ui(right->num));
-
-    mpz_clear(lint);
+    int_binary_ui3(mpz_tdiv_q_2exp);
 }
 
 uint8_t int_eq_ui(const int_value_t *left, uint32_t right)
 {
     return !mpz_cmp_ui(left->num, right);
+}
+
+uint8_t int_neq_ui(const int_value_t *left, uint32_t right)
+{
+    return mpz_cmp_ui(left->num, right) != 0;
 }
 
 uint8_t int_lt_ui(const int_value_t *left, uint32_t right)
@@ -255,6 +422,16 @@ uint8_t int_lt_ui(const int_value_t *left, uint32_t right)
 uint8_t int_gt_ui(const int_value_t *left, uint32_t right)
 {
     return mpz_cmp_ui(left->num, right) > 0;
+}
+
+uint8_t int_lte_ui(const int_value_t *left, uint32_t right)
+{
+    return mpz_cmp_ui(left->num, right) <= 0;
+}
+
+uint8_t int_gte_ui(const int_value_t *left, uint32_t right)
+{
+    return mpz_cmp_ui(left->num, right) >= 0;
 }
 
 uint8_t int_iszero(const int_value_t *num)

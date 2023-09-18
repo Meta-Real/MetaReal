@@ -18,8 +18,6 @@ enum __TOKEN_TYPES
     FLOAT_T,
     IMAG_T,
 
-    ADD_T,
-    SUB_T,
     MUL_T,
     DIV_T,
     MOD_T,
@@ -31,7 +29,6 @@ enum __TOKEN_TYPES
     B_XOR_T,
     LSHIFT_T,
     RSHIFT_T,
-    B_NOT_T,
 
     EQ_T,
     NEQ_T,
@@ -45,16 +42,22 @@ enum __TOKEN_TYPES
 
     AND_T,
     OR_T,
-    NOT_T,
 
     ASSIGN_T,
 
     LPAREN_T,
     RPAREN_T,
 
+    ADD_T,
+    SUB_T,
+    B_NOT_T,
+    NOT_T,
+
+    NOT_KT,
     AND_KT,
     OR_KT,
-    NOT_KT,
+
+    VAR_KT,
 
     TRUE_KT,
     FALSE_KT
@@ -70,7 +73,7 @@ struct __TOKEN_T
 };
 typedef struct __TOKEN_T token_t;
 
-extern const char *token_labels[38];
+extern const char *token_labels[39];
 
 void free_tokens(token_t *tokens);
 void print_tokens(const token_t *tokens);

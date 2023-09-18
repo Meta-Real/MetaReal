@@ -6,6 +6,7 @@
 #include <alloc.h>
 #include <stddef.h>
 #include <consts.h>
+#include <stdio.h>
 
 #define set_node(t, v, ps, pe)           \
     do                                   \
@@ -81,6 +82,8 @@ token_t *term(parse_res_t *res, token_t *tokens);
 token_t *factor(parse_res_t *res, token_t *tokens);
 token_t *power(parse_res_t *res, token_t *tokens);
 token_t *core(parse_res_t *res, token_t *tokens);
+
+token_t *handle_var(parse_res_t *res, token_t *tokens);
 
 parse_res_t parse(token_t *tokens)
 {
@@ -184,8 +187,7 @@ token_t *term(parse_res_t *res, token_t *tokens)
 
 token_t *factor(parse_res_t *res, token_t *tokens)
 {
-    if (tokens->type == ADD_T || tokens->type == SUB_T || tokens->type == B_NOT_T ||
-        tokens->type == NOT_T || tokens->type == NOT_KT)
+    if (tokens->type >= ADD_T && tokens->type <= NOT_KT)
     {
         unary_operation_node_t *value = mr_alloc(sizeof(unary_operation_node_t));
         value->operator = tokens->type;
@@ -236,6 +238,9 @@ token_t *core(parse_res_t *res, token_t *tokens)
 
     switch (tokens->type)
     {
+    case ID_T:
+        set_node(VAR_ACCESS_N, tokens->value, tokens->poss, tokens->pose);
+        return ++tokens;
     case INT_T:
         set_node(INT_N, tokens->value, tokens->poss, tokens->pose);
         return ++tokens;
@@ -251,8 +256,43 @@ token_t *core(parse_res_t *res, token_t *tokens)
     case FALSE_KT:
         set_node(BOOL_N, NULL, tokens->poss, tokens->pose);
         return ++tokens;
+    case VAR_KT:
+        return handle_var(res, tokens);
     }
 
     set_error(set_invalid_syntax(NULL, tokens->poss, tokens->pose));
+    return tokens;
+}
+
+token_t *handle_var(parse_res_t *res, token_t *tokens)
+{
+    pos_t poss = tokens++->poss;
+
+    if (tokens->type != ID_T)
+    {
+        set_error(set_invalid_syntax("Expected identifier", tokens->poss, tokens->pose));
+        return tokens;
+    }
+
+    var_assign_node_t *value = mr_alloc(sizeof(var_assign_node_t));
+    value->name = tokens++->value;
+
+    if (tokens->type != ASSIGN_T)
+    {
+        value->value.type = NONE_N;
+        set_node(VAR_ASSIGN_N, value, poss, tokens[-1].pose);
+        return tokens;
+    }
+
+    tokens = or(res, ++tokens);
+    if (!res->nodes)
+    {
+        mr_free(value->name);
+        mr_free(value);
+        return tokens;
+    }
+
+    value->value = res->nodes[res->size];
+    set_node_peo(VAR_ASSIGN_N, value, poss);
     return tokens;
 }

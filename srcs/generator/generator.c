@@ -69,6 +69,7 @@ typedef struct __DATA_T data_t;
 
 void generate_value(gen_adv_res_t *res, data_t *data, value_t *value);
 
+void generate_none(gen_adv_res_t *res, data_t *data);
 void generate_int(gen_adv_res_t *res, data_t *data, int_value_t *value);
 void generate_float(gen_adv_res_t *res, data_t *data, float_value_t *value);
 void generate_complex(gen_adv_res_t *res, data_t *data, complex_value_t *value);
@@ -122,6 +123,8 @@ void generate_value(gen_adv_res_t *res, data_t *data, value_t *value)
 {
     switch (value->type)
     {
+    case NONE_V:
+        generate_none(res, data);
     case INT_V:
         generate_int(res, data, value->value);
         return;
@@ -138,6 +141,23 @@ void generate_value(gen_adv_res_t *res, data_t *data, value_t *value)
 
     fprintf(stderr, "Internal Error: Invalid value type #%hu (generate_value function)\n", value->type);
     abort();
+}
+
+void generate_none(gen_adv_res_t *res, data_t *data)
+{
+    char *str = "none";
+    uint8_t slen = 4;
+
+    uint8_t new = 0;
+    uint64_t id = value_set_id(&new, data, str, slen);
+    uint8_t clen = uint64_len(id);
+
+    uint64_t len;
+
+    if (new)
+        generate_datatype_consts(0);
+
+    generate_datatype_main;
 }
 
 void generate_int(gen_adv_res_t *res, data_t *data, int_value_t *value)

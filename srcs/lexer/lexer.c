@@ -84,15 +84,17 @@ token_t handle_num(const char *code, pos_t *pos);
 
 uint8_t check_id(const char *id, uint64_t len);
 
-const char *keywords[5] =
+const char *keywords[6] =
 {
-    "and", "or", "not",
+    "not", "and", "or",
+    "var",
     "true", "false"
 };
 
-uint8_t keyword_lens[5] =
+uint8_t keyword_lens[6] =
 {
-    3, 2, 3,
+    3, 3, 2,
+    3,
     4, 5
 };
 
@@ -285,7 +287,7 @@ uint8_t check_id(const char *id, uint64_t len)
                 break;
 
         if (j == len)
-            return i + AND_KT;
+            return i + NOT_KT;
     }
 
     return ID_T;

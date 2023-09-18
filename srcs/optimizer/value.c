@@ -10,16 +10,18 @@
 
 void print_value(const value_t *value);
 
-const char *value_names[4] =
+const char *value_names[5] =
 {
+    "none",
     "int", "float", "complex",
     "bool"
 };
 
-uint8_t value_name_lens[4] = {3, 5, 7, 4};
+uint8_t value_name_lens[5] = {4, 3, 5, 7, 4};
 
-const char *value_labels[4] =
+const char *value_labels[5] =
 {
+    "NONE",
     "INT", "FLOAT", "COMPLEX",
     "BOOL"
 };
@@ -47,10 +49,13 @@ void print_values(const value_t *values, uint64_t size)
     }
 }
 
-void free_value(const value_t *value)
+void free_value(value_t *value)
 {
     switch (value->type)
     {
+    case NONE_V:
+    case BOOL_V:
+        break;
     case INT_V:
         int_free(value->value);
         break;
@@ -59,8 +64,6 @@ void free_value(const value_t *value)
         break;
     case COMPLEX_V:
         complex_free(value->value);
-        break;
-    case BOOL_V:
         break;
     }
 }
@@ -71,6 +74,8 @@ uint8_t value_istrue(value_t *value)
 
     switch (value->type)
     {
+    case NONE_V:
+        return 0;
     case INT_V:
         res = !int_iszero(value->value);
 
@@ -94,8 +99,30 @@ uint8_t value_istrue(value_t *value)
     abort();
 }
 
+void value_addref(value_t *value)
+{
+    switch (value->type)
+    {
+    case INT_V:
+        ((int_value_t*)value->value)->ref++;
+        break;
+    case FLOAT_V:
+        ((float_value_t*)value->value)->ref++;
+        break;
+    case COMPLEX_V:
+        ((complex_value_t*)value->value)->ref++;
+        break;
+    }
+}
+
 void print_value(const value_t *value)
 {
+    if (!value->type)
+    {
+        fputs("(NONE)", stdout);
+        return;
+    }
+
     printf("(%s: ", value_labels[value->type]);
 
     switch (value->type)

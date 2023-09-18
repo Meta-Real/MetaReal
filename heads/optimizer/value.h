@@ -9,6 +9,8 @@
 
 enum __VALUE_TYPES
 {
+    NONE_V,
+
     INT_V,
     FLOAT_V,
     COMPLEX_V,
@@ -26,14 +28,15 @@ struct __VALUE_T
 };
 typedef struct __VALUE_T value_t;
 
-extern const char *value_names[4];
-extern uint8_t value_name_lens[4];
+extern const char *value_names[5];
+extern uint8_t value_name_lens[5];
 
 void free_values(value_t *values, uint64_t size);
 void print_values(const value_t *values, uint64_t size);
 
-void free_value(const value_t *value);
+void free_value(value_t *value);
 
 uint8_t value_istrue(value_t *value);
+void value_addref(value_t *value);
 
 #endif /* __MR_VALUE__ */

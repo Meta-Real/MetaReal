@@ -27,8 +27,10 @@ typedef struct __INVALID_SYNTAX_T invalid_syntax_t;
 
 enum __INVALID_SEMANTIC_TYPES
 {
-    ILLEGAL_OP,
-    DIV_BY_ZERO
+    ILLEGAL_OP_E,
+    VALUE_E,
+    NOT_DEF_E,
+    DIV_BY_ZERO_E
 };
 
 struct __INVALID_SEMANTIC_T

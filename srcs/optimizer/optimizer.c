@@ -2,12 +2,14 @@
     MetaReal Compiler version 1.0.0
 */
 
+#include <optimizer/context.h>
 #include <optimizer/operation.h>
 #include <optimizer/complex.h>
 #include <lexer/token.h>
 #include <alloc.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <consts.h>
 
 #define set_value(t, v)         \
@@ -19,26 +21,34 @@
         res.value.pose = *pose; \
     } while (0)
 
-visit_res_t visit_node(node_t *node);
+visit_res_t visit_node(node_t *node, context_t *context);
 
-visit_res_t visit_int(char *node, pos_t *poss, pos_t *pose);
-visit_res_t visit_float(char *node, pos_t *poss, pos_t *pose);
-visit_res_t visit_imag(char *node, pos_t *poss, pos_t *pose);
-visit_res_t visit_bool(void *state, pos_t *poss, pos_t *pose);
-visit_res_t visit_bin_operation(bin_operation_node_t *node, pos_t *poss, pos_t *pose);
-visit_res_t visit_unary_operation(unary_operation_node_t *node, pos_t *poss, pos_t *pose);
+visit_res_t visit_int(char *node, context_t *context, pos_t *poss, pos_t *pose);
+visit_res_t visit_float(char *node, context_t *context, pos_t *poss, pos_t *pose);
+visit_res_t visit_imag(char *node, context_t *context, pos_t *poss, pos_t *pose);
+visit_res_t visit_bool(void *node, context_t *context, pos_t *poss, pos_t *pose);
+visit_res_t visit_bin_operation(bin_operation_node_t *node, context_t *context, pos_t *poss, pos_t *pose);
+visit_res_t visit_unary_operation(unary_operation_node_t *node, context_t *context, pos_t *poss, pos_t *pose);
+visit_res_t visit_var_assign(var_assign_node_t *node, context_t *context, pos_t *poss, pos_t *pose);
+visit_res_t visit_var_access(char *node, context_t *context, pos_t *poss, pos_t *pose);
 
 opt_res_t optimize(node_t *nodes, uint64_t size)
 {
     opt_res_t res;
     res.values = mr_alloc(size * sizeof(value_t));
 
+    context_t context;
+    context.vars = mr_alloc(OPT_VARS_LIST_LEN * sizeof(var_t));
+    context.size = 0;
+    context.alloc = OPT_VARS_LIST_LEN;
+
     visit_res_t visit_res;
     for (res.size = 0; res.size < size; res.size++)
     {
-        visit_res = visit_node(nodes + res.size);
+        visit_res = visit_node(nodes + res.size, &context);
         if (visit_res.has_error)
         {
+            context_free(&context);
             free_values(res.values, res.size);
 
             for (uint64_t i = res.size + 1; i < size; i++)
@@ -53,6 +63,8 @@ opt_res_t optimize(node_t *nodes, uint64_t size)
         res.values[res.size] = visit_res.value;
     }
 
+    context_free(&context);
+
     if (res.size)
         res.values = mr_realloc(res.values, res.size * sizeof(value_t));
     else
@@ -62,29 +74,33 @@ opt_res_t optimize(node_t *nodes, uint64_t size)
     return res;
 }
 
-visit_res_t visit_node(node_t *node)
+visit_res_t visit_node(node_t *node, context_t *context)
 {
     switch (node->type)
     {
     case INT_N:
-        return visit_int(node->value, &node->poss, &node->pose);
+        return visit_int(node->value, context, &node->poss, &node->pose);
     case FLOAT_N:
-        return visit_float(node->value, &node->poss, &node->pose);
+        return visit_float(node->value, context, &node->poss, &node->pose);
     case IMAG_N:
-        return visit_imag(node->value, &node->poss, &node->pose);
+        return visit_imag(node->value, context, &node->poss, &node->pose);
     case BOOL_N:
-        return visit_bool(node->value, &node->poss, &node->pose);
+        return visit_bool(node->value, context, &node->poss, &node->pose);
     case BIN_OPERATION_N:
-        return visit_bin_operation(node->value, &node->poss, &node->pose);
+        return visit_bin_operation(node->value, context, &node->poss, &node->pose);
     case UNARY_OPERATION_N:
-        return visit_unary_operation(node->value, &node->poss, &node->pose);
+        return visit_unary_operation(node->value, context, &node->poss, &node->pose);
+    case VAR_ASSIGN_N:
+        return visit_var_assign(node->value, context, &node->poss, &node->pose);
+    case VAR_ACCESS_N:
+        return visit_var_access(node->value, context, &node->poss, &node->pose);
     }
 
     fprintf(stderr, "Internal Error: Invalid node type #%hu (visit function)\n", node->type);
     abort();
 }
 
-visit_res_t visit_int(char *node, pos_t *poss, pos_t *pose)
+visit_res_t visit_int(char *node, context_t *context, pos_t *poss, pos_t *pose)
 {
     visit_res_t res;
     res.has_error = 0;
@@ -94,7 +110,7 @@ visit_res_t visit_int(char *node, pos_t *poss, pos_t *pose)
     return res;
 }
 
-visit_res_t visit_float(char *node, pos_t *poss, pos_t *pose)
+visit_res_t visit_float(char *node, context_t *context, pos_t *poss, pos_t *pose)
 {
     visit_res_t res;
     res.has_error = 0;
@@ -104,7 +120,7 @@ visit_res_t visit_float(char *node, pos_t *poss, pos_t *pose)
     return res;
 }
 
-visit_res_t visit_imag(char *node, pos_t *poss, pos_t *pose)
+visit_res_t visit_imag(char *node, context_t *context, pos_t *poss, pos_t *pose)
 {
     visit_res_t res;
     res.has_error = 0;
@@ -114,18 +130,18 @@ visit_res_t visit_imag(char *node, pos_t *poss, pos_t *pose)
     return res;
 }
 
-visit_res_t visit_bool(void *state, pos_t *poss, pos_t *pose)
+visit_res_t visit_bool(void *node, context_t *context, pos_t *poss, pos_t *pose)
 {
     visit_res_t res;
     res.has_error = 0;
-    set_value(BOOL_V, state);
+    set_value(BOOL_V, node);
 
     return res;
 }
 
-visit_res_t visit_bin_operation(bin_operation_node_t *node, pos_t *poss, pos_t *pose)
+visit_res_t visit_bin_operation(bin_operation_node_t *node, context_t *context, pos_t *poss, pos_t *pose)
 {
-    visit_res_t res = visit_node(&node->left);
+    visit_res_t res = visit_node(&node->left, context);
     if (res.has_error)
     {
         free_node(&node->right);
@@ -143,7 +159,7 @@ visit_res_t visit_bin_operation(bin_operation_node_t *node, pos_t *poss, pos_t *
             goto rets;
         }
 
-        res = visit_node(&node->right);
+        res = visit_node(&node->right, context);
         if (res.has_error)
             goto ret;
 
@@ -162,7 +178,7 @@ visit_res_t visit_bin_operation(bin_operation_node_t *node, pos_t *poss, pos_t *
             goto rets;
         }
 
-        res = visit_node(&node->right);
+        res = visit_node(&node->right, context);
         if (res.has_error)
             goto ret;
 
@@ -173,7 +189,7 @@ visit_res_t visit_bin_operation(bin_operation_node_t *node, pos_t *poss, pos_t *
 
     value_t left = res.value;
 
-    res = visit_node(&node->right);
+    res = visit_node(&node->right, context);
     if (res.has_error)
     {
         free_value(&left);
@@ -258,9 +274,9 @@ ret:
     return res;
 }
 
-visit_res_t visit_unary_operation(unary_operation_node_t *node, pos_t *poss, pos_t *pose)
+visit_res_t visit_unary_operation(unary_operation_node_t *node, context_t *context, pos_t *poss, pos_t *pose)
 {
-    visit_res_t res = visit_node(&node->operand);
+    visit_res_t res = visit_node(&node->operand, context);
     if (res.has_error)
         goto ret;
 
@@ -286,6 +302,52 @@ visit_res_t visit_unary_operation(unary_operation_node_t *node, pos_t *poss, pos
 
     res.value.poss = *poss;
     res.value.pose = *pose;
+
+ret:
+    mr_free(node);
+    return res;
+}
+
+visit_res_t visit_var_assign(var_assign_node_t *node, context_t *context, pos_t *poss, pos_t *pose)
+{
+    visit_res_t res;
+    res.has_error = 0;
+
+    if (node->value.type)
+    {
+        res = visit_node(&node->value, context);
+        if (res.has_error)
+        {
+            mr_free(node->name);
+            goto ret;
+        }
+
+        value_addref(&res.value);
+    }
+    else
+        res.value.type = NONE_V;
+
+    var_set(context, node->name, &res.value);
+
+ret:
+    mr_free(node);
+    return res;
+}
+
+visit_res_t visit_var_access(char *node, context_t *context, pos_t *poss, pos_t *pose)
+{
+    visit_res_t res;
+    res.has_error = 0;
+    res.value = var_get(&res.has_error, context, node);
+
+    if (res.has_error)
+    {
+        char *detail = mr_alloc(18 + strlen(node));
+        sprintf(detail, "'%s' is not defined", node);
+
+        res.error = set_invalid_semantic(detail, NOT_DEF_E, *poss, *pose);
+        goto ret;
+    }
 
 ret:
     mr_free(node);
