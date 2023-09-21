@@ -6,7 +6,7 @@
 #include <alloc.h>
 #include <stdio.h>
 
-const char *token_labels[39] =
+const char *token_labels[42] =
 {
     "EOF",
     "SEMICOLON",
@@ -17,20 +17,22 @@ const char *token_labels[39] =
     "LT", "GT", "LTE", "GTE",
     "AND", "OR",
     "ASSIGN",
-    "ADD", "SUB", "B_NOT", "NOT",
     "LPAREN", "RPAREN",
+    "LSQUARE", "RSQUARE",
+    "COMMA",
+    "ADD", "SUB", "B_NOT", "NOT",
     "NOT_K", "OR_K", "NOT_K",
     "VAR_K",
     "TRUE_K", "FALSE_K"
 };
 
-void free_tokens(token_t *tokens)
+void tokens_free(token_t *tokens)
 {
     while (tokens->type)
         mr_free(tokens++->value);
 }
 
-void print_tokens(const token_t *tokens)
+void tokens_print(const token_t *tokens)
 {
     for (; tokens->type; tokens++)
     {

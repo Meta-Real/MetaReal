@@ -30,6 +30,8 @@ enum __INVALID_SEMANTIC_TYPES
     ILLEGAL_OP_E,
     VALUE_E,
     NOT_DEF_E,
+    MEM_OVERFLOW_E,
+    INDEX_E,
     DIV_BY_ZERO_E
 };
 

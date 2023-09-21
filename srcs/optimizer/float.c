@@ -702,6 +702,11 @@ uint8_t float_iszero(const float_value_t *num)
     return mpfr_zero_p(num->num);
 }
 
+uint8_t float_isnzero(const float_value_t *num)
+{
+    return !mpfr_zero_p(num->num);
+}
+
 uint8_t float_isneg(const float_value_t *num)
 {
     return mpfr_sgn(num->num) < 0;

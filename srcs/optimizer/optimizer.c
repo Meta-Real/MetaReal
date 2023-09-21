@@ -5,6 +5,7 @@
 #include <optimizer/context.h>
 #include <optimizer/operation.h>
 #include <optimizer/complex.h>
+#include <optimizer/list.h>
 #include <lexer/token.h>
 #include <alloc.h>
 #include <stdio.h>
@@ -23,10 +24,11 @@
 
 visit_res_t visit_node(node_t *node, context_t *context);
 
-visit_res_t visit_int(char *node, context_t *context, pos_t *poss, pos_t *pose);
-visit_res_t visit_float(char *node, context_t *context, pos_t *poss, pos_t *pose);
-visit_res_t visit_imag(char *node, context_t *context, pos_t *poss, pos_t *pose);
-visit_res_t visit_bool(void *node, context_t *context, pos_t *poss, pos_t *pose);
+visit_res_t visit_int(char *node, pos_t *poss, pos_t *pose);
+visit_res_t visit_float(char *node, pos_t *poss, pos_t *pose);
+visit_res_t visit_imag(char *node, pos_t *poss, pos_t *pose);
+visit_res_t visit_bool(void *node, pos_t *poss, pos_t *pose);
+visit_res_t visit_list(list_node_t *node, context_t *context, pos_t *poss, pos_t *pose);
 visit_res_t visit_bin_operation(bin_operation_node_t *node, context_t *context, pos_t *poss, pos_t *pose);
 visit_res_t visit_unary_operation(unary_operation_node_t *node, context_t *context, pos_t *poss, pos_t *pose);
 visit_res_t visit_var_assign(var_assign_node_t *node, context_t *context, pos_t *poss, pos_t *pose);
@@ -49,10 +51,10 @@ opt_res_t optimize(node_t *nodes, uint64_t size)
         if (visit_res.has_error)
         {
             context_free(&context);
-            free_values(res.values, res.size);
+            values_free(res.values, res.size);
 
             for (uint64_t i = res.size + 1; i < size; i++)
-                free_node(nodes + i);
+                node_free(nodes + i);
             mr_free(nodes);
 
             res.values = NULL;
@@ -79,13 +81,15 @@ visit_res_t visit_node(node_t *node, context_t *context)
     switch (node->type)
     {
     case INT_N:
-        return visit_int(node->value, context, &node->poss, &node->pose);
+        return visit_int(node->value, &node->poss, &node->pose);
     case FLOAT_N:
-        return visit_float(node->value, context, &node->poss, &node->pose);
+        return visit_float(node->value, &node->poss, &node->pose);
     case IMAG_N:
-        return visit_imag(node->value, context, &node->poss, &node->pose);
+        return visit_imag(node->value, &node->poss, &node->pose);
     case BOOL_N:
-        return visit_bool(node->value, context, &node->poss, &node->pose);
+        return visit_bool(node->value, &node->poss, &node->pose);
+    case LIST_N:
+        return visit_list(node->value, context, &node->poss, &node->pose);
     case BIN_OPERATION_N:
         return visit_bin_operation(node->value, context, &node->poss, &node->pose);
     case UNARY_OPERATION_N:
@@ -100,7 +104,7 @@ visit_res_t visit_node(node_t *node, context_t *context)
     abort();
 }
 
-visit_res_t visit_int(char *node, context_t *context, pos_t *poss, pos_t *pose)
+visit_res_t visit_int(char *node, pos_t *poss, pos_t *pose)
 {
     visit_res_t res;
     res.has_error = 0;
@@ -110,7 +114,7 @@ visit_res_t visit_int(char *node, context_t *context, pos_t *poss, pos_t *pose)
     return res;
 }
 
-visit_res_t visit_float(char *node, context_t *context, pos_t *poss, pos_t *pose)
+visit_res_t visit_float(char *node, pos_t *poss, pos_t *pose)
 {
     visit_res_t res;
     res.has_error = 0;
@@ -120,7 +124,7 @@ visit_res_t visit_float(char *node, context_t *context, pos_t *poss, pos_t *pose
     return res;
 }
 
-visit_res_t visit_imag(char *node, context_t *context, pos_t *poss, pos_t *pose)
+visit_res_t visit_imag(char *node, pos_t *poss, pos_t *pose)
 {
     visit_res_t res;
     res.has_error = 0;
@@ -130,7 +134,7 @@ visit_res_t visit_imag(char *node, context_t *context, pos_t *poss, pos_t *pose)
     return res;
 }
 
-visit_res_t visit_bool(void *node, context_t *context, pos_t *poss, pos_t *pose)
+visit_res_t visit_bool(void *node, pos_t *poss, pos_t *pose)
 {
     visit_res_t res;
     res.has_error = 0;
@@ -139,23 +143,64 @@ visit_res_t visit_bool(void *node, context_t *context, pos_t *poss, pos_t *pose)
     return res;
 }
 
+visit_res_t visit_list(list_node_t *node, context_t *context, pos_t *poss, pos_t *pose)
+{
+    visit_res_t res;
+    res.has_error = 0;
+
+    if (!node)
+    {
+        set_value(LIST_V, NULL);
+        return res;
+    }
+
+    list_value_t *value = list_set(node->size);
+    for (uint64_t i = 0; i < node->size; i++)
+    {
+        res = visit_node(node->elements + i, context);
+        if (res.has_error)
+        {
+            i++;
+            while (node->size > i)
+                node_free(node->elements + node->size);
+            i--;
+
+            while (i)
+                value_free(value->elements + --i);
+            mr_free(value->elements);
+            mr_free(value);
+
+            goto ret;
+        }
+
+        value->elements[i] = res.value;
+    }
+
+    set_value(LIST_V, value);
+
+ret:
+    mr_free(node->elements);
+    mr_free(node);
+    return res;
+}
+
 visit_res_t visit_bin_operation(bin_operation_node_t *node, context_t *context, pos_t *poss, pos_t *pose)
 {
     visit_res_t res = visit_node(&node->left, context);
     if (res.has_error)
     {
-        free_node(&node->right);
+        node_free(&node->right);
         goto ret;
     }
 
     if (node->operator == AND_T || node->operator == AND_KT)
     {
-        if (!value_istrue(&res.value))
+        if (value_isfalse(&res.value))
         {
             res.value.type = BOOL_V;
             res.value.value = NULL;
 
-            free_node(&node->right);
+            node_free(&node->right);
             goto rets;
         }
 
@@ -174,7 +219,7 @@ visit_res_t visit_bin_operation(bin_operation_node_t *node, context_t *context, 
             res.value.type = BOOL_V;
             res.value.value = (void*)1;
 
-            free_node(&node->right);
+            node_free(&node->right);
             goto rets;
         }
 
@@ -192,7 +237,7 @@ visit_res_t visit_bin_operation(bin_operation_node_t *node, context_t *context, 
     res = visit_node(&node->right, context);
     if (res.has_error)
     {
-        free_value(&left);
+        value_free(&left);
         goto ret;
     }
 
@@ -329,6 +374,9 @@ visit_res_t visit_var_assign(var_assign_node_t *node, context_t *context, pos_t 
 
     var_set(context, node->name, &res.value);
 
+    res.value.poss = *poss;
+    res.value.pose = *pose;
+
 ret:
     mr_free(node);
     return res;
@@ -348,6 +396,9 @@ visit_res_t visit_var_access(char *node, context_t *context, pos_t *poss, pos_t 
         res.error = set_invalid_semantic(detail, NOT_DEF_E, *poss, *pose);
         goto ret;
     }
+
+    res.value.poss = *poss;
+    res.value.pose = *pose;
 
 ret:
     mr_free(node);

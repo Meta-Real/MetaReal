@@ -209,6 +209,13 @@ char *int_get_str(const int_value_t *num)
     return mpz_get_str(NULL, 10, num->num);
 }
 
+uint64_t int_get_ull(const int_value_t *num)
+{
+    uint64_t dst = 0;
+    mpz_export(&dst, 0, -1, sizeof(uint64_t), 0, 0, num->num);
+    return dst;
+}
+
 void int_print(const int_value_t *num)
 {
     gmp_printf("%Zd", num->num);
@@ -439,7 +446,25 @@ uint8_t int_iszero(const int_value_t *num)
     return !mpz_sgn(num->num);
 }
 
+uint8_t int_isnzero(const int_value_t *num)
+{
+    return mpz_sgn(num->num) != 0;
+}
+
 uint8_t int_isneg(const int_value_t *num)
 {
     return mpz_sgn(num->num) < 0;
+}
+
+uint8_t int_gt_ull(const int_value_t *left, uint64_t right)
+{
+    if (mpz_size(left->num) > 1)
+        return 1;
+
+    return mpz_getlimbn(left->num, 0) > right;
+}
+
+uint8_t int_nfit_ull(const int_value_t *num)
+{
+    return mpz_size(num->num) > 1;
 }

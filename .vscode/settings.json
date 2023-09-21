@@ -1,20 +1,26 @@
 {
     "files.associations": {
         "*.h": "c",
+        "xiosbase": "c",
+        "complex": "c",
+        "functional": "c",
         "type_traits": "c",
         "xtr1common": "c",
         "xutility": "c",
-        "utility": "c",
-        "cmath": "c",
-        "complex": "c",
-        "functional": "c",
-        "optional": "c",
-        "system_error": "c",
         "array": "c",
         "tuple": "c",
-        "xiosbase": "c",
-        "sstream": "c",
-        "iosfwd": "c",
-        "ios": "c"
+        "utility": "c",
+        "compare": "c",
+        "deque": "c",
+        "initializer_list": "c",
+        "list": "c",
+        "queue": "c",
+        "random": "c",
+        "ranges": "c",
+        "span": "c",
+        "vector": "c",
+        "xhash": "c",
+        "xstring": "c",
+        "string_view": "c"
     }
 }

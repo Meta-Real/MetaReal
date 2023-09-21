@@ -42,4 +42,8 @@ visit_res_t compute_b_not(value_t *operand, pos_t *poss);
 
 visit_res_t compute_not(value_t *operand, pos_t *poss);
 
+/* helper operations */
+
+uint8_t compute_vneq(const value_t *left, const value_t *right);
+
 #endif /* __MR_OPERATION__ */

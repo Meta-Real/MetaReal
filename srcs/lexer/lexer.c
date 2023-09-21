@@ -180,6 +180,15 @@ lex_res_t lex(const char *code)
         case ')':
             set_token(RPAREN_T);
             break;
+        case '[':
+            set_token(LSQUARE_T);
+            break;
+        case ']':
+            set_token(RSQUARE_T);
+            break;
+        case ',':
+            set_token(COMMA_T);
+            break;
         default:
             while (size)
                 mr_free(res.tokens[--size].value);

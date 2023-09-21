@@ -11,7 +11,7 @@ void context_free(context_t *context)
 {
     while (context->size)
     {
-        free_value(&context->vars[--context->size].value);
+        value_free(&context->vars[--context->size].value);
         mr_free(context->vars[context->size].name);
     }
 
@@ -36,7 +36,7 @@ void var_set(context_t *context, char *name, value_t *value)
     for (uint64_t i = 0; i < context->size; i++)
         if (!strcmp(name, context->vars[i].name))
         {
-            free_value(&context->vars[i].value);
+            value_free(&context->vars[i].value);
             mr_free(name);
 
             context->vars[i].value = *value;

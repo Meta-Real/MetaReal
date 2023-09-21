@@ -7,25 +7,27 @@
 #include <alloc.h>
 #include <stdio.h>
 
-void print_node(const node_t *node);
+void node_print(const node_t *node);
 
-void free_bin_operation_node(bin_operation_node_t *node);
-void print_bin_operation_node(const bin_operation_node_t *node);
+void list_node_print(const list_node_t *node);
 
-void free_unary_operation_node(unary_operation_node_t *node);
-void print_unary_operation_node(const unary_operation_node_t *node);
+void bin_operation_node_free(bin_operation_node_t *node);
+void bin_operation_node_print(const bin_operation_node_t *node);
 
-void free_var_assign_node(var_assign_node_t *node);
-void print_var_assign_node(const var_assign_node_t *node);
+void unary_operation_node_free(unary_operation_node_t *node);
+void unary_operation_node_print(const unary_operation_node_t *node);
 
-const char *node_labels[9] =
+void var_assign_node_free(var_assign_node_t *node);
+void var_assign_node_print(const var_assign_node_t *node);
+
+const char *node_labels[10] =
 {
-    "NONE", "INT", "FLOAT", "IMAG", "BOOL",
+    "NONE", "INT", "FLOAT", "IMAG", "BOOL", "LIST",
     "BIN_OPERATION", "UNARY_OPERATION",
     "VAR_ASSIGN", "VAR_ACCESS"
 };
 
-void free_nodes(node_t *nodes, uint64_t size)
+void nodes_free(node_t *nodes, uint64_t size)
 {
     if (!size)
     {
@@ -34,21 +36,21 @@ void free_nodes(node_t *nodes, uint64_t size)
     }
 
     do
-        free_node(nodes + --size);
+        node_free(nodes + --size);
     while (size);
     mr_free(nodes);
 }
 
-void print_nodes(const node_t *nodes, uint64_t size)
+void nodes_print(const node_t *nodes, uint64_t size)
 {
     for (uint64_t i = 0; i < size; i++)
     {
-        print_node(nodes + i);
+        node_print(nodes + i);
         putchar('\n');
     }
 }
 
-void free_node(const node_t *node)
+void node_free(const node_t *node)
 {
     switch (node->type)
     {
@@ -61,19 +63,22 @@ void free_node(const node_t *node)
     case VAR_ACCESS_N:
         mr_free(node->value);
         break;
+    case LIST_N:
+        list_node_free(node->value);
+        break;
     case BIN_OPERATION_N:
-        free_bin_operation_node(node->value);
+        bin_operation_node_free(node->value);
         break;
     case UNARY_OPERATION_N:
-        free_unary_operation_node(node->value);
+        unary_operation_node_free(node->value);
         break;
     case VAR_ASSIGN_N:
-        free_var_assign_node(node->value);
+        var_assign_node_free(node->value);
         break;
     }
 }
 
-void print_node(const node_t *node)
+void node_print(const node_t *node)
 {
     if (!node->type)
     {
@@ -93,56 +98,88 @@ void print_node(const node_t *node)
         break;
     case BOOL_N:
         printf("%hu", (uint8_t)(uintptr_t)node->value);
+        break;
+    case LIST_N:
+        list_node_print(node->value);
+        break;
     case BIN_OPERATION_N:
-        print_bin_operation_node(node->value);
+        bin_operation_node_print(node->value);
         break;
     case UNARY_OPERATION_N:
-        print_unary_operation_node(node->value);
+        unary_operation_node_print(node->value);
         break;
     case VAR_ASSIGN_N:
-        print_var_assign_node(node->value);
+        var_assign_node_print(node->value);
         break;
     }
 
     putchar(')');
 }
 
-void free_bin_operation_node(bin_operation_node_t *node)
+void list_node_free(list_node_t *node)
 {
-    free_node(&node->right);
-    free_node(&node->left);
+    if (!node)
+        return;
+
+    while (node->size)
+        node_free(node->elements + --node->size);
+    mr_free(node->elements);
     mr_free(node);
 }
 
-void print_bin_operation_node(const bin_operation_node_t *node)
+void list_node_print(const list_node_t *node)
+{
+    if (!node)
+    {
+        fputs("NULL", stdout);
+        return;
+    }
+
+    node_print(node->elements);
+
+    for (uint64_t i = 1; i < node->size; i++)
+    {
+        fputs(", ", stdout);
+        node_print(node->elements + i);
+    }
+}
+
+void bin_operation_node_free(bin_operation_node_t *node)
+{
+    node_free(&node->right);
+    node_free(&node->left);
+    mr_free(node);
+}
+
+void bin_operation_node_print(const bin_operation_node_t *node)
 {
     printf("%s, ", token_labels[node->operator]);
-    print_node(&node->left);
+    node_print(&node->left);
     fputs(", ", stdout);
-    print_node(&node->right);
+    node_print(&node->right);
 }
 
-void free_unary_operation_node(unary_operation_node_t *node)
+void unary_operation_node_free(unary_operation_node_t *node)
 {
-    free_node(&node->operand);
+    node_free(&node->operand);
     mr_free(node);
 }
 
-void print_unary_operation_node(const unary_operation_node_t *node)
+void unary_operation_node_print(const unary_operation_node_t *node)
 {
     printf("%s, ", token_labels[node->operator]);
-    print_node(&node->operand);
+    node_print(&node->operand);
 }
 
-void free_var_assign_node(var_assign_node_t *node)
+void var_assign_node_free(var_assign_node_t *node)
 {
-    free_node(&node->value);
+    node_free(&node->value);
     mr_free(node->name);
     mr_free(node);
 }
 
-void print_var_assign_node(const var_assign_node_t *node)
+void var_assign_node_print(const var_assign_node_t *node)
 {
     printf("%s, ", node->name);
-    print_node(&node->value);
+    node_print(&node->value);
 }

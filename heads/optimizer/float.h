@@ -92,6 +92,7 @@ uint8_t float_lte_ui(const float_value_t *left, uint32_t right);
 uint8_t float_gte_ui(const float_value_t *left, uint32_t right);
 
 uint8_t float_iszero(const float_value_t *num);
+uint8_t float_isnzero(const float_value_t *num);
 uint8_t float_isneg(const float_value_t *num);
 
 #endif /* __MR_FLOAT__ */

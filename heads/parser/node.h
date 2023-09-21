@@ -14,6 +14,7 @@ enum __NODE_TYPES
     FLOAT_N,
     IMAG_N,
     BOOL_N,
+    LIST_N,
 
     BIN_OPERATION_N,
     UNARY_OPERATION_N,
@@ -31,6 +32,13 @@ struct __NODE_T
     pos_t pose;
 };
 typedef struct __NODE_T node_t;
+
+struct __LIST_NODE_T
+{
+    node_t *elements;
+    uint64_t size;
+};
+typedef struct __LIST_NODE_T list_node_t;
 
 struct __BIN_OPERATION_NODE_T
 {
@@ -56,9 +64,11 @@ struct __VAR_ASSIGN_NODE_T
 };
 typedef struct __VAR_ASSIGN_NODE_T var_assign_node_t;
 
-void free_nodes(node_t *nodes, uint64_t size);
-void print_nodes(const node_t *nodes, uint64_t size);
+void nodes_free(node_t *nodes, uint64_t size);
+void nodes_print(const node_t *nodes, uint64_t size);
 
-void free_node(const node_t *node);
+void node_free(const node_t *node);
+
+void list_node_free(list_node_t *node);
 
 #endif /* __MR_NODE__ */

@@ -6,7 +6,6 @@
 #include <alloc.h>
 #include <stddef.h>
 #include <consts.h>
-#include <stdio.h>
 
 #define set_node(t, v, ps, pe)           \
     do                                   \
@@ -30,7 +29,7 @@
     {                                      \
         res->error = e;                    \
                                            \
-        free_nodes(res->nodes, res->size); \
+        nodes_free(res->nodes, res->size); \
         res->nodes = NULL;                 \
     } while (0)
 
@@ -53,7 +52,7 @@
             tokens = f2(res, tokens);                       \
             if (!res->nodes)                                \
             {                                               \
-                free_node(&left);                           \
+                node_free(&left);                           \
                 mr_free(value);                             \
                 return tokens;                              \
             }                                               \
@@ -83,6 +82,7 @@ token_t *factor(parse_res_t *res, token_t *tokens);
 token_t *power(parse_res_t *res, token_t *tokens);
 token_t *core(parse_res_t *res, token_t *tokens);
 
+token_t *handle_list(parse_res_t *res, token_t *tokens);
 token_t *handle_var(parse_res_t *res, token_t *tokens);
 
 parse_res_t parse(token_t *tokens)
@@ -106,7 +106,7 @@ parse_res_t parse(token_t *tokens)
         tokens = or(&res, tokens);
         if (!res.nodes)
         {
-            free_tokens(tokens);
+            tokens_free(tokens);
             mr_free(ptr);
             return res;
         }
@@ -118,10 +118,10 @@ parse_res_t parse(token_t *tokens)
     {
         res.error = set_invalid_syntax("Expected EOF", tokens->poss, tokens->pose);
 
-        free_nodes(res.nodes, res.size);
+        nodes_free(res.nodes, res.size);
         res.nodes = NULL;
 
-        free_tokens(tokens);
+        tokens_free(tokens);
         mr_free(ptr);
         return res;
     }
@@ -226,7 +226,7 @@ token_t *core(parse_res_t *res, token_t *tokens)
 
         if (tokens->type != RPAREN_T)
         {
-            free_node(res->nodes + res->size);
+            node_free(res->nodes + res->size);
             set_error(set_invalid_syntax("Expected ')'", tokens->poss, tokens->pose));
             return tokens;
         }
@@ -239,28 +239,82 @@ token_t *core(parse_res_t *res, token_t *tokens)
     switch (tokens->type)
     {
     case ID_T:
-        set_node(VAR_ACCESS_N, tokens->value, tokens->poss, tokens->pose);
-        return ++tokens;
+        set_node(VAR_ACCESS_N, tokens->value, tokens->poss, tokens++->pose);
+        return tokens;
     case INT_T:
-        set_node(INT_N, tokens->value, tokens->poss, tokens->pose);
-        return ++tokens;
+        set_node(INT_N, tokens->value, tokens->poss, tokens++->pose);
+        return tokens;
     case FLOAT_T:
-        set_node(FLOAT_N, tokens->value, tokens->poss, tokens->pose);
-        return ++tokens;
+        set_node(FLOAT_N, tokens->value, tokens->poss, tokens++->pose);
+        return tokens;
     case IMAG_T:
-        set_node(IMAG_N, tokens->value, tokens->poss, tokens->pose);
-        return ++tokens;
+        set_node(IMAG_N, tokens->value, tokens->poss, tokens++->pose);
+        return tokens;
     case TRUE_KT:
-        set_node(BOOL_N, (void*)1, tokens->poss, tokens->pose);
-        return ++tokens;
+        set_node(BOOL_N, (void*)1, tokens->poss, tokens++->pose);
+        return tokens;
     case FALSE_KT:
-        set_node(BOOL_N, NULL, tokens->poss, tokens->pose);
-        return ++tokens;
+        set_node(BOOL_N, NULL, tokens->poss, tokens++->pose);
+        return tokens;
+    case LSQUARE_T:
+        return handle_list(res, tokens);
     case VAR_KT:
         return handle_var(res, tokens);
     }
 
     set_error(set_invalid_syntax(NULL, tokens->poss, tokens->pose));
+    return tokens;
+}
+
+token_t *handle_list(parse_res_t *res, token_t *tokens)
+{
+    pos_t poss = tokens++->poss;
+
+    if (tokens->type == RSQUARE_T)
+    {
+        set_node(LIST_N, NULL, poss, tokens++->pose);
+        return tokens;
+    }
+
+    tokens = or(res, tokens);
+    if (!res->nodes)
+        return tokens;
+
+    list_node_t *node = mr_alloc(sizeof(list_node_t));
+    node->elements = mr_alloc(PARSE_LIST_LEN * sizeof(node_t));
+    *node->elements = res->nodes[res->size];
+
+    node->size = 1;
+    uint64_t alloc = PARSE_LIST_LEN;
+
+    while (tokens->type == COMMA_T)
+    {
+        if (tokens++->type == RSQUARE_T)
+            goto ret;
+
+        tokens = or(res, tokens);
+        if (!res->nodes)
+        {
+            list_node_free(node);
+            return tokens;
+        }
+
+        if (node->size == alloc)
+            node->elements = mr_realloc(node->elements, (alloc += PARSE_LIST_LEN) * sizeof(node_t));
+
+        node->elements[node->size++] = res->nodes[res->size];
+    }
+
+    if (tokens->type != RSQUARE_T)
+    {
+        list_node_free(node);
+        set_error(set_invalid_syntax("Expected ',' or ']'", tokens->poss, tokens->pose));
+        return tokens;
+    }
+
+ret:
+    node->elements = mr_realloc(node->elements, node->size * sizeof(node_t));
+    set_node(LIST_N, node, poss, tokens++->pose);
     return tokens;
 }
 

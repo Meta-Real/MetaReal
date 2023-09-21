@@ -48,6 +48,11 @@ enum __TOKEN_TYPES
     LPAREN_T,
     RPAREN_T,
 
+    LSQUARE_T,
+    RSQUARE_T,
+
+    COMMA_T,
+
     ADD_T,
     SUB_T,
     B_NOT_T,
@@ -73,9 +78,9 @@ struct __TOKEN_T
 };
 typedef struct __TOKEN_T token_t;
 
-extern const char *token_labels[39];
+extern const char *token_labels[42];
 
-void free_tokens(token_t *tokens);
-void print_tokens(const token_t *tokens);
+void tokens_free(token_t *tokens);
+void tokens_print(const token_t *tokens);
 
 #endif /* __MR_TOKEN__ */

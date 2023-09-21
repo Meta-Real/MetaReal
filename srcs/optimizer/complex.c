@@ -547,5 +547,10 @@ uint8_t complex_neq_ui(const complex_value_t *left, uint32_t right)
 
 uint8_t complex_iszero(const complex_value_t *num)
 {
-    return !(mpfr_zero_p(mpc_realref(num->num)) || mpfr_zero_p(mpc_imagref(num->num)));
+    return mpfr_zero_p(mpc_realref(num->num)) && mpfr_zero_p(mpc_imagref(num->num));
+}
+
+uint8_t complex_isnzero(const complex_value_t *num)
+{
+    return !(mpfr_zero_p(mpc_realref(num->num)) && mpfr_zero_p(mpc_imagref(num->num)));
 }

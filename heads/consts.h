@@ -12,12 +12,15 @@
 /* lexer */
 
 #define LEX_TOKEN_LIST_LEN 128
+
 #define LEX_ID_SIZE 16
 #define LEX_NUM_SIZE 8
 
 /* parser */
 
 #define PARSE_NODE_LIST_LEN 64
+
+#define PARSE_LIST_LEN 16
 
 /* optimizer */
 

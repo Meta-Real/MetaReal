@@ -4,29 +4,31 @@
 
 #include <optimizer/value.h>
 #include <optimizer/complex.h>
+#include <optimizer/list.h>
+#include <lexer/token.h>
 #include <alloc.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-void print_value(const value_t *value);
-
-const char *value_names[5] =
+const char *value_names[6] =
 {
     "none",
     "int", "float", "complex",
-    "bool"
+    "bool",
+    "list"
 };
 
-uint8_t value_name_lens[5] = {4, 3, 5, 7, 4};
+uint8_t value_name_lens[6] = {4, 3, 5, 7, 4, 4};
 
-const char *value_labels[5] =
+const char *value_labels[6] =
 {
     "NONE",
     "INT", "FLOAT", "COMPLEX",
-    "BOOL"
+    "BOOL",
+    "LIST"
 };
 
-void free_values(value_t *values, uint64_t size)
+void values_free(value_t *values, uint64_t size)
 {
     if (!size)
     {
@@ -35,21 +37,21 @@ void free_values(value_t *values, uint64_t size)
     }
 
     do
-        free_value(values + --size);
+        value_free(values + --size);
     while (size);
     mr_free(values);
 }
 
-void print_values(const value_t *values, uint64_t size)
+void values_print(const value_t *values, uint64_t size)
 {
     for (uint64_t i = 0; i < size; i++)
     {
-        print_value(values + i);
+        value_print(values + i);
         putchar('\n');
     }
 }
 
-void free_value(value_t *value)
+void value_free(value_t *value)
 {
     switch (value->type)
     {
@@ -64,6 +66,9 @@ void free_value(value_t *value)
         break;
     case COMPLEX_V:
         complex_free(value->value);
+        break;
+    case LIST_V:
+        list_free(value->value);
         break;
     }
 }
@@ -77,25 +82,66 @@ uint8_t value_istrue(value_t *value)
     case NONE_V:
         return 0;
     case INT_V:
-        res = !int_iszero(value->value);
+        res = int_isnzero(value->value);
 
         int_free(value->value);
         return res;
     case FLOAT_V:
-        res = !float_iszero(value->value);
+        res = float_isnzero(value->value);
 
         float_free(value->value);
         return res;
     case COMPLEX_V:
-        res = !complex_iszero(value->value);
+        res = complex_isnzero(value->value);
 
         complex_free(value->value);
         return res;
     case BOOL_V:
         return (uint8_t)(uintptr_t)value->value;
+    case LIST_V:
+        res = list_isnempty(value->value);
+
+        list_free(value->value);
+        return res;
     }
 
     fprintf(stderr, "Internal Error: Invalid value type #%hu (value_istrue function)\n", value->type);
+    abort();
+}
+
+uint8_t value_isfalse(value_t *value)
+{
+    uint8_t res;
+
+    switch (value->type)
+    {
+    case NONE_V:
+        return 0;
+    case INT_V:
+        res = int_iszero(value->value);
+
+        int_free(value->value);
+        return res;
+    case FLOAT_V:
+        res = float_iszero(value->value);
+
+        float_free(value->value);
+        return res;
+    case COMPLEX_V:
+        res = complex_iszero(value->value);
+
+        complex_free(value->value);
+        return res;
+    case BOOL_V:
+        return (uint8_t)(uintptr_t)!value->value;
+    case LIST_V:
+        res = list_isempty(value->value);
+
+        list_free(value->value);
+        return res;
+    }
+
+    fprintf(stderr, "Internal Error: Invalid value type #%hu (value_isfalse function)\n", value->type);
     abort();
 }
 
@@ -112,10 +158,13 @@ void value_addref(value_t *value)
     case COMPLEX_V:
         ((complex_value_t*)value->value)->ref++;
         break;
+    case LIST_V:
+        ((list_value_t*)value->value)->ref++;
+        break;
     }
 }
 
-void print_value(const value_t *value)
+void value_print(const value_t *value)
 {
     if (!value->type)
     {
@@ -138,6 +187,9 @@ void print_value(const value_t *value)
         break;
     case BOOL_V:
         printf(value->value ? "true" : "false");
+        break;
+    case LIST_V:
+        list_print(value->value);
         break;
     }
 

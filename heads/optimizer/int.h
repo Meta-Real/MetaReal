@@ -23,6 +23,7 @@ int_value_t *int_set_ui(uint32_t ui);
 void int_free(int_value_t *num);
 
 char *int_get_str(const int_value_t *num);
+uint64_t int_get_ull(const int_value_t *num);
 
 void int_print(const int_value_t *num);
 
@@ -74,6 +75,10 @@ uint8_t int_lte_ui(const int_value_t *left, uint32_t right);
 uint8_t int_gte_ui(const int_value_t *left, uint32_t right);
 
 uint8_t int_iszero(const int_value_t *num);
+uint8_t int_isnzero(const int_value_t *num);
 uint8_t int_isneg(const int_value_t *num);
+
+uint8_t int_gt_ull(const int_value_t *left, uint64_t right);
+uint8_t int_nfit_ull(const int_value_t *num);
 
 #endif /* __MR_INT__ */
