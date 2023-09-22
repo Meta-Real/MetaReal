@@ -17,7 +17,8 @@ enum __VALUE_TYPES
 
     BOOL_V,
 
-    LIST_V
+    LIST_V,
+    TUPLE_V
 };
 
 struct __VALUE_T
@@ -30,8 +31,8 @@ struct __VALUE_T
 };
 typedef struct __VALUE_T value_t;
 
-extern const char *value_names[6];
-extern uint8_t value_name_lens[6];
+extern const char *value_names[7];
+extern uint8_t value_name_lens[7];
 
 void values_free(value_t *values, uint64_t size);
 void values_print(const value_t *values, uint64_t size);

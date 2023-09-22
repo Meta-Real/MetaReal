@@ -7,6 +7,8 @@
 #include <stddef.h>
 #include <consts.h>
 
+#include <stdio.h>
+
 #define set_node(t, v, ps, pe)           \
     do                                   \
     {                                    \
@@ -68,6 +70,7 @@
         return tokens;                                      \
     } while (0)
 
+token_t *tuple(parse_res_t *res, token_t *tokens);
 token_t *or(parse_res_t *res, token_t *tokens);
 token_t *and(parse_res_t *res, token_t *tokens);
 token_t *cmp1(parse_res_t *res, token_t *tokens);
@@ -103,7 +106,7 @@ parse_res_t parse(token_t *tokens)
         if (res.size == alloc)
             res.nodes = mr_realloc(res.nodes, (alloc += PARSE_NODE_LIST_LEN) * sizeof(node_t));
 
-        tokens = or(&res, tokens);
+        tokens = tuple(&res, tokens);
         if (!res.nodes)
         {
             tokens_free(tokens);
@@ -133,6 +136,55 @@ parse_res_t parse(token_t *tokens)
 
     mr_free(ptr);
     return res;
+}
+
+token_t *tuple(parse_res_t *res, token_t *tokens)
+{
+    tokens = or(res, tokens);
+    if (!res->nodes)
+        return tokens;
+
+    if (tokens->type == COMMA_T)
+    {
+        list_node_t *node = mr_alloc(sizeof(list_node_t));
+        node->elements = mr_alloc(PARSE_TUPLE_LEN * sizeof(node_t));
+        *node->elements = res->nodes[res->size];
+        node->size = 1;
+
+        uint64_t alloc = PARSE_TUPLE_LEN;
+
+        pos_t pose;
+        pose.ln = 0;
+        do
+        {
+            if ((++tokens)->type == RPAREN_T || tokens->type == SEMICOLON_T || tokens->type == EOF_T)
+            {
+                pose = tokens[-1].pose;
+                break;
+            }
+
+            tokens = or(res, tokens);
+            if (!res->nodes)
+            {
+                list_node_free(node);
+                return tokens;
+            }
+
+            if (node->size == alloc)
+                node->elements = mr_realloc(node->elements, (alloc += PARSE_TUPLE_LEN) * sizeof(node_t));
+
+            node->elements[node->size++] = res->nodes[res->size];
+        } while (tokens->type == COMMA_T);
+
+        if (!pose.ln)
+            pose = node->elements[node->size - 1].pose;
+
+        node->elements = mr_realloc(node->elements, node->size * sizeof(node_t));
+        set_node(TUPLE_N, node, node->elements->poss, pose);
+        return tokens;
+    }
+
+    return tokens;
 }
 
 token_t *or(parse_res_t *res, token_t *tokens)
@@ -220,7 +272,7 @@ token_t *core(parse_res_t *res, token_t *tokens)
     {
         pos_t poss = tokens++->poss;
 
-        tokens = or(res, tokens);
+        tokens = tuple(res, tokens);
         if (!res->nodes)
             return tokens;
 
@@ -289,7 +341,7 @@ token_t *handle_list(parse_res_t *res, token_t *tokens)
 
     while (tokens->type == COMMA_T)
     {
-        if (tokens++->type == RSQUARE_T)
+        if ((++tokens)->type == RSQUARE_T)
             goto ret;
 
         tokens = or(res, tokens);
@@ -338,7 +390,7 @@ token_t *handle_var(parse_res_t *res, token_t *tokens)
         return tokens;
     }
 
-    tokens = or(res, ++tokens);
+    tokens = tuple(res, ++tokens);
     if (!res->nodes)
     {
         mr_free(value->name);

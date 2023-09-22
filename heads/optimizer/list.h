@@ -25,7 +25,7 @@ list_value_t *list_set(uint64_t size);
 
 void list_free(list_value_t *list);
 
-void list_print(const list_value_t *list);
+void list_print(const list_value_t *list, char lbrace, char rbrace);
 
 list_value_t *list_append(list_value_t *list, value_t *value);
 list_value_t *list_concat(list_value_t *left, list_value_t *right);
@@ -34,8 +34,5 @@ list_value_t *list_repeat(list_value_t *list, uint64_t count);
 
 uint8_t list_eq(const list_value_t *left, const list_value_t *right);
 uint8_t list_neq(const list_value_t *left, const list_value_t *right);
-
-uint8_t list_isempty(const list_value_t *list);
-uint8_t list_isnempty(const list_value_t *list);
 
 #endif /* __MR_LIST__ */

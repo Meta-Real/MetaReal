@@ -33,15 +33,15 @@ void list_free(list_value_t *list)
     mr_free(list);
 }
 
-void list_print(const list_value_t *list)
+void list_print(const list_value_t *list, char lbrace, char rbrace)
 {
     if (!list)
     {
-        fputs("[]", stdout);
+        printf("%c%c", lbrace, rbrace);
         return;
     }
 
-    putchar('[');
+    putchar(lbrace);
     value_print(list->elements);
 
     for (uint64_t i = 1; i < list->size; i++)
@@ -50,7 +50,7 @@ void list_print(const list_value_t *list)
         value_print(list->elements + i);
     }
 
-    putchar(']');
+    putchar(rbrace);
 }
 
 list_value_t *list_append(list_value_t *list, value_t *value)
@@ -269,14 +269,4 @@ uint8_t list_neq(const list_value_t *left, const list_value_t *right)
         if (compute_vneq(left->elements + i, right->elements + i))
             return 1;
     return 0;
-}
-
-uint8_t list_isempty(const list_value_t *list)
-{
-    return !list->size;
-}
-
-uint8_t list_isnempty(const list_value_t *list)
-{
-    return list->size != 0;
 }

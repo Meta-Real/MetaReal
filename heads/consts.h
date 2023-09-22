@@ -21,6 +21,7 @@
 #define PARSE_NODE_LIST_LEN 64
 
 #define PARSE_LIST_LEN 16
+#define PARSE_TUPLE_LEN 16
 
 /* optimizer */
 

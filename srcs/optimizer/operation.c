@@ -1587,9 +1587,11 @@ visit_res_t compute_eq(value_t *left, value_t *right)
         complex_free(left->value);
         goto ret;
     case LIST_V:
+    case TUPLE_V:
         switch (right->type)
         {
         case LIST_V:
+        case TUPLE_V:
             bin_operation_cmp(list_eq, list_free, list_free);
         }
 
@@ -1680,9 +1682,11 @@ visit_res_t compute_neq(value_t *left, value_t *right)
         complex_free(left->value);
         goto ret;
     case LIST_V:
+    case TUPLE_V:
         switch (right->type)
         {
         case LIST_V:
+        case TUPLE_V:
             bin_operation_cmp(list_neq, list_free, list_free);
         }
 
@@ -1718,6 +1722,7 @@ visit_res_t compute_ex_eq(value_t *left, value_t *right)
             res.value.value = (void*)(uintptr_t)(left->value == right->value);
             return res;
         case LIST_V:
+        case TUPLE_V:
             bin_operation_cmp(list_eq, list_free, list_free);
         }
 
@@ -1747,6 +1752,7 @@ visit_res_t compute_ex_neq(value_t *left, value_t *right)
             res.value.value = (void*)(uintptr_t)(left->value == right->value);
             return res;
         case LIST_V:
+        case TUPLE_V:
             bin_operation_cmp(list_eq, list_free, list_free);
         }
 
@@ -2136,9 +2142,11 @@ uint8_t compute_vneq(const value_t *left, const value_t *right)
 
         break;
     case LIST_V:
+    case TUPLE_V:
         switch (right->type)
         {
         case LIST_V:
+        case TUPLE_V:
             return list_neq(left->value, right->value);
         }
 

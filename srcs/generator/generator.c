@@ -74,10 +74,10 @@ void generate_int(gen_adv_res_t *res, data_t *data, int_value_t *value);
 void generate_float(gen_adv_res_t *res, data_t *data, float_value_t *value);
 void generate_complex(gen_adv_res_t *res, data_t *data, complex_value_t *value);
 void generate_bool(gen_adv_res_t *res, data_t *data, uint8_t value);
-void generate_list(gen_adv_res_t *res, data_t *data, list_value_t *value);
+void generate_list(gen_adv_res_t *res, data_t *data, list_value_t *value, char lbrace, char rbrace);
 
 char *value_sprint(char *consts, uint64_t *csize, uint64_t *calloc, value_t *value);
-char *list_sprint(char *consts, uint64_t *csize, uint64_t *calloc, list_value_t *value);
+char *list_sprint(char *consts, uint64_t *csize, uint64_t *calloc, list_value_t *value, char lbrace, char rbrace);
 
 uint64_t value_set_id(uint8_t *new, const char *consts, const data_t *data, const char *value, uint64_t size);
 uint8_t uint64_len(uint64_t num);
@@ -140,7 +140,10 @@ void generate_value(gen_adv_res_t *res, data_t *data, value_t *value)
         generate_bool(res, data, (uintptr_t)value->value);
         return;
     case LIST_V:
-        generate_list(res, data, value->value);
+        generate_list(res, data, value->value, '[', ']');
+        return;
+    case TUPLE_V:
+        generate_list(res, data, value->value, '(', ')');
         return;
     }
 
@@ -249,7 +252,7 @@ void generate_bool(gen_adv_res_t *res, data_t *data, uint8_t value)
     generate_datatype_main;
 }
 
-void generate_list(gen_adv_res_t *res, data_t *data, list_value_t *value)
+void generate_list(gen_adv_res_t *res, data_t *data, list_value_t *value, char lbrace, char rbrace)
 {
     uint64_t off = res->csize;
 
@@ -261,7 +264,7 @@ void generate_list(gen_adv_res_t *res, data_t *data, list_value_t *value)
     sprintf(res->consts + off, ".LC%llu:\n\t.ascii\t\"", data->csize);
     res->csize += len;
 
-    res->consts = list_sprint(res->consts, &res->csize, &res->calloc, value);
+    res->consts = list_sprint(res->consts, &res->csize, &res->calloc, value, lbrace, rbrace);
     uint64_t id = off + len;
 
     uint8_t new = 0;
@@ -327,7 +330,9 @@ char *value_sprint(char *consts, uint64_t *csize, uint64_t *calloc, value_t *val
 
         break;
     case LIST_V:
-        return list_sprint(consts, csize, calloc, value->value);
+        return list_sprint(consts, csize, calloc, value->value, '[', ']');
+    case TUPLE_V:
+        return list_sprint(consts, csize, calloc, value->value, '(', ')');
     }
 
     if (*csize + len > *calloc)
@@ -348,23 +353,22 @@ sfree:
     return consts;
 }
 
-char *list_sprint(char *consts, uint64_t *csize, uint64_t *calloc, list_value_t *value)
+char *list_sprint(char *consts, uint64_t *csize, uint64_t *calloc, list_value_t *value, char lbrace, char rbrace)
 {
     if (!value)
     {
         if (*csize + 2 > *calloc)
             consts = mr_realloc(consts, *calloc += GEN_CONSTS_LEN);
 
-        memcpy(consts + *csize, "[]", 2);
-        *csize += 2;
-
+        consts[*csize++] = lbrace;
+        consts[*csize++] = rbrace;
         return consts;
     }
 
     if (*csize == *calloc)
         consts = mr_realloc(consts, *calloc += GEN_CONSTS_LEN);
 
-    consts[(*csize)++] = '[';
+    consts[(*csize)++] = lbrace;
     consts = value_sprint(consts, csize, calloc, value->elements);
 
     for (uint64_t i = 1; i < value->size; i++)
@@ -381,7 +385,7 @@ char *list_sprint(char *consts, uint64_t *csize, uint64_t *calloc, list_value_t 
     if (*csize == *calloc)
         consts = mr_realloc(consts, *calloc += GEN_CONSTS_LEN);
 
-    consts[(*csize)++] = ']';
+    consts[(*csize)++] = rbrace;
 
     mr_free(value->elements);
     mr_free(value);

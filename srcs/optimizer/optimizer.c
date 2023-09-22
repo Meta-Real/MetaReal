@@ -29,6 +29,7 @@ visit_res_t visit_float(char *node, pos_t *poss, pos_t *pose);
 visit_res_t visit_imag(char *node, pos_t *poss, pos_t *pose);
 visit_res_t visit_bool(void *node, pos_t *poss, pos_t *pose);
 visit_res_t visit_list(list_node_t *node, context_t *context, pos_t *poss, pos_t *pose);
+visit_res_t visit_tuple(list_node_t *node, context_t *context, pos_t *poss, pos_t *pose);
 visit_res_t visit_bin_operation(bin_operation_node_t *node, context_t *context, pos_t *poss, pos_t *pose);
 visit_res_t visit_unary_operation(unary_operation_node_t *node, context_t *context, pos_t *poss, pos_t *pose);
 visit_res_t visit_var_assign(var_assign_node_t *node, context_t *context, pos_t *poss, pos_t *pose);
@@ -90,6 +91,8 @@ visit_res_t visit_node(node_t *node, context_t *context)
         return visit_bool(node->value, &node->poss, &node->pose);
     case LIST_N:
         return visit_list(node->value, context, &node->poss, &node->pose);
+    case TUPLE_N:
+        return visit_tuple(node->value, context, &node->poss, &node->pose);
     case BIN_OPERATION_N:
         return visit_bin_operation(node->value, context, &node->poss, &node->pose);
     case UNARY_OPERATION_N:
@@ -177,6 +180,41 @@ visit_res_t visit_list(list_node_t *node, context_t *context, pos_t *poss, pos_t
     }
 
     set_value(LIST_V, value);
+
+ret:
+    mr_free(node->elements);
+    mr_free(node);
+    return res;
+}
+
+visit_res_t visit_tuple(list_node_t *node, context_t *context, pos_t *poss, pos_t *pose)
+{
+    visit_res_t res;
+    res.has_error = 0;
+
+    list_value_t *value = list_set(node->size);
+    for (uint64_t i = 0; i < node->size; i++)
+    {
+        res = visit_node(node->elements + i, context);
+        if (res.has_error)
+        {
+            i++;
+            while (node->size > i)
+                node_free(node->elements + node->size);
+            i--;
+
+            while (i)
+                value_free(value->elements + --i);
+            mr_free(value->elements);
+            mr_free(value);
+
+            goto ret;
+        }
+
+        value->elements[i] = res.value;
+    }
+
+    set_value(TUPLE_V, value);
 
 ret:
     mr_free(node->elements);

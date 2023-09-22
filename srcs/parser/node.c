@@ -64,6 +64,7 @@ void node_free(const node_t *node)
         mr_free(node->value);
         break;
     case LIST_N:
+    case TUPLE_N:
         list_node_free(node->value);
         break;
     case BIN_OPERATION_N:
@@ -100,6 +101,7 @@ void node_print(const node_t *node)
         printf("%hu", (uint8_t)(uintptr_t)node->value);
         break;
     case LIST_N:
+    case TUPLE_N:
         list_node_print(node->value);
         break;
     case BIN_OPERATION_N:

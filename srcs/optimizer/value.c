@@ -10,22 +10,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-const char *value_names[6] =
+const char *value_names[7] =
 {
     "none",
     "int", "float", "complex",
     "bool",
-    "list"
+    "list", "tuple"
 };
 
-uint8_t value_name_lens[6] = {4, 3, 5, 7, 4, 4};
+uint8_t value_name_lens[7] = {4, 3, 5, 7, 4, 4, 5};
 
-const char *value_labels[6] =
+const char *value_labels[7] =
 {
     "NONE",
     "INT", "FLOAT", "COMPLEX",
     "BOOL",
-    "LIST"
+    "LIST", "TUPLE"
 };
 
 void values_free(value_t *values, uint64_t size)
@@ -68,6 +68,7 @@ void value_free(value_t *value)
         complex_free(value->value);
         break;
     case LIST_V:
+    case TUPLE_V:
         list_free(value->value);
         break;
     }
@@ -99,7 +100,8 @@ uint8_t value_istrue(value_t *value)
     case BOOL_V:
         return (uint8_t)(uintptr_t)value->value;
     case LIST_V:
-        res = list_isnempty(value->value);
+    case TUPLE_V:
+        res = value->value != NULL;
 
         list_free(value->value);
         return res;
@@ -135,7 +137,8 @@ uint8_t value_isfalse(value_t *value)
     case BOOL_V:
         return (uint8_t)(uintptr_t)!value->value;
     case LIST_V:
-        res = list_isempty(value->value);
+    case TUPLE_V:
+        res = !value->value;
 
         list_free(value->value);
         return res;
@@ -159,6 +162,10 @@ void value_addref(value_t *value)
         ((complex_value_t*)value->value)->ref++;
         break;
     case LIST_V:
+    case TUPLE_V:
+        if (!value->value)
+            break;
+
         ((list_value_t*)value->value)->ref++;
         break;
     }
@@ -189,7 +196,10 @@ void value_print(const value_t *value)
         printf(value->value ? "true" : "false");
         break;
     case LIST_V:
-        list_print(value->value);
+        list_print(value->value, '[', ']');
+        break;
+    case TUPLE_V:
+        list_print(value->value, '(', ')');
         break;
     }
 

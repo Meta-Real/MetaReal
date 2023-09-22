@@ -15,6 +15,7 @@ enum __NODE_TYPES
     IMAG_N,
     BOOL_N,
     LIST_N,
+    TUPLE_N,
 
     BIN_OPERATION_N,
     UNARY_OPERATION_N,
