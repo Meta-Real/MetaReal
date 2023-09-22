@@ -6,17 +6,18 @@
 #include <stdio.h>
 #include <alloc.h>
 
-const char *invalid_semantic_labels[6] =
+const char *invalid_semantic_labels[7] =
 {
     "IllegalOpError",
     "ValueError",
     "NotDefError",
+    "AccessError",
     "MemOverflowError",
     "IndexError",
     "DivByZeroError"
 };
 
-void print_illegal_char(const illegal_char_t *error, const char *fname, const char *code)
+void illegal_char_print(const illegal_char_t *error, const char *fname, const char *code)
 {
     if (error->expected)
         fputs("\nExpected Character Error: ", stderr);
@@ -44,7 +45,7 @@ void print_illegal_char(const illegal_char_t *error, const char *fname, const ch
     fputs("^\n\n", stderr);
 }
 
-void print_invalid_syntax(const invalid_syntax_t *error, const char *fname, const char *code)
+void invalid_syntax_print(const invalid_syntax_t *error, const char *fname, const char *code)
 {
     fputs("\nInvalid Syntax Error", stderr);
 
@@ -83,7 +84,7 @@ void print_invalid_syntax(const invalid_syntax_t *error, const char *fname, cons
     fputs("\n\n", stderr);
 }
 
-void print_invalid_semantic(invalid_semantic_t *error, const char *fname, const char *code)
+void invalid_semantic_print(invalid_semantic_t *error, const char *fname, const char *code)
 {
     fprintf(stderr, "\nInvalid Semantic Error: %s\nFile \"%s\", line %llu\nError Type: %s\n\n",
         error->detail, fname, error->poss.ln, invalid_semantic_labels[error->type]);

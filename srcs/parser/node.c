@@ -20,11 +20,11 @@ void unary_operation_node_print(const unary_operation_node_t *node);
 void var_assign_node_free(var_assign_node_t *node);
 void var_assign_node_print(const var_assign_node_t *node);
 
-const char *node_labels[10] =
+const char *node_labels[13] =
 {
-    "NONE", "INT", "FLOAT", "IMAG", "BOOL", "LIST",
+    "NONE", "INT", "FLOAT", "IMAG", "BOOL", "LIST", "TUPLE",
     "BIN_OPERATION", "UNARY_OPERATION",
-    "VAR_ASSIGN", "VAR_ACCESS"
+    "VAR_ASSIGN", "VAR_MODIFY", "VAR_FMODIFY", "VAR_ACCESS"
 };
 
 void nodes_free(node_t *nodes, uint64_t size)
@@ -68,9 +68,11 @@ void node_free(const node_t *node)
         list_node_free(node->value);
         break;
     case BIN_OPERATION_N:
+    case VAR_MODIFY_N:
         bin_operation_node_free(node->value);
         break;
     case UNARY_OPERATION_N:
+    case VAR_FMODIFY_N:
         unary_operation_node_free(node->value);
         break;
     case VAR_ASSIGN_N:
@@ -105,9 +107,11 @@ void node_print(const node_t *node)
         list_node_print(node->value);
         break;
     case BIN_OPERATION_N:
+    case VAR_MODIFY_N:
         bin_operation_node_print(node->value);
         break;
     case UNARY_OPERATION_N:
+    case VAR_FMODIFY_N:
         unary_operation_node_print(node->value);
         break;
     case VAR_ASSIGN_N:

@@ -30,6 +30,7 @@ enum __INVALID_SEMANTIC_TYPES
     ILLEGAL_OP_E,
     VALUE_E,
     NOT_DEF_E,
+    ACCESS_E,
     MEM_OVERFLOW_E,
     INDEX_E,
     DIV_BY_ZERO_E
@@ -45,12 +46,12 @@ struct __INVALID_SEMANTIC_T
 };
 typedef struct __INVALID_SEMANTIC_T invalid_semantic_t;
 
-#define set_illegal_char(c, e, p) ((illegal_char_t){c, e, p})
-#define set_invalid_syntax(d, ps, pe) ((invalid_syntax_t){d, ps, pe})
-#define set_invalid_semantic(d, t, ps, pe) ((invalid_semantic_t){d, t, ps, pe})
+#define illegal_char_set(c, e, p) ((illegal_char_t){c, e, p})
+#define invalid_syntax_set(d, ps, pe) ((invalid_syntax_t){d, ps, pe})
+#define invalid_semantic_set(d, t, ps, pe) ((invalid_semantic_t){d, t, ps, pe})
 
-void print_illegal_char(const illegal_char_t *error, const char *fname, const char *code);
-void print_invalid_syntax(const invalid_syntax_t *error, const char *fname, const char *code);
-void print_invalid_semantic(invalid_semantic_t *error, const char *fname, const char *code);
+void illegal_char_print(const illegal_char_t *error, const char *fname, const char *code);
+void invalid_syntax_print(const invalid_syntax_t *error, const char *fname, const char *code);
+void invalid_semantic_print(invalid_semantic_t *error, const char *fname, const char *code);
 
 #endif /* __MR_ERROR__ */

@@ -41,18 +41,20 @@
         res.tokens[size].value = NULL;   \
         res.tokens[size].poss = pos;     \
                                          \
-        if (code[++pos.idx] == d1)       \
+        switch (code[++pos.idx])         \
         {                                \
+        case d1:                         \
             res.tokens[size].type = t1;  \
             pos.idx++;                   \
-        }                                \
-        else if (code[pos.idx] == d2)    \
-        {                                \
+            break;                       \
+        case d2:                         \
             res.tokens[size].type = t2;  \
             pos.idx++;                   \
-        }                                \
-        else                             \
+            break;                       \
+        default:                         \
             res.tokens[size].type = t3;  \
+            break;                       \
+        }                                \
                                          \
         res.tokens[size++].pose = pos;   \
     } while (0)
@@ -79,8 +81,39 @@
         res.tokens[size++].pose = pos;      \
     } while (0)
 
-token_t handle_id(const char *code, pos_t *pos);
-token_t handle_num(const char *code, pos_t *pos);
+#define set_token_q(t1, t2, t3, t4, d1, d2, d3) \
+    do                                          \
+    {                                           \
+        res.tokens[size].value = NULL;          \
+        res.tokens[size].poss = pos;            \
+                                                \
+        switch (code[++pos.idx])                \
+        {                                       \
+        case d1:                                \
+            if (code[++pos.idx] == d2)          \
+            {                                   \
+                res.tokens[size].type = t1;     \
+                pos.idx++;                      \
+                break;                          \
+            }                                   \
+                                                \
+            res.tokens[size].type = t2;         \
+            break;                              \
+        case d3:                                \
+            res.tokens[size].type = t3;         \
+            pos.idx++;                          \
+            break;                              \
+        default:                                \
+            res.tokens[size].type = t4;         \
+            break;                              \
+        }                                       \
+                                                \
+        res.tokens[size++].pose = pos;          \
+    } while (0)
+
+token_t process_id(const char *code, pos_t *pos);
+token_t process_num(const char *code, pos_t *pos);
+token_t process_sub(const char *code, pos_t *pos);
 
 uint8_t check_id(const char *id, uint64_t len);
 
@@ -121,12 +154,12 @@ lex_res_t lex(const char *code)
         if ((code[pos.idx] >= 'a' && code[pos.idx] <= 'z') || (code[pos.idx] >= 'A' && code[pos.idx] <= 'Z')
             || code[pos.idx] == '_')
         {
-            res.tokens[size++] = handle_id(code, &pos);
+            res.tokens[size++] = process_id(code, &pos);
             continue;
         }
         if ((code[pos.idx] >= '0' && code[pos.idx] <= '9') || code[pos.idx] == '.')
         {
-            res.tokens[size++] = handle_num(code, &pos);
+            res.tokens[size++] = process_num(code, &pos);
             continue;
         }
 
@@ -136,34 +169,34 @@ lex_res_t lex(const char *code)
             set_token(SEMICOLON_T);
             break;
         case '+':
-            set_token(ADD_T);
+            set_token_t1(INC_T, ADD_EQ_T, ADD_T, '+', '=');
             break;
         case '-':
-            set_token(SUB_T);
+            res.tokens[size++] = process_sub(code, &pos);
             break;
         case '*':
-            set_token_d(POW_T, MUL_T, '*');
+            set_token_q(POW_EQ_T, POW_T, MUL_EQ_T, MUL_T, '*', '=', '=');
             break;
         case '/':
-            set_token_d(QUOT_T, DIV_T, '/');
+            set_token_q(QUOT_EQ_T, QUOT_T, DIV_EQ_T, DIV_T, '/', '=', '=');
             break;
         case '%':
-            set_token(MOD_T);
+            set_token_d(MOD_EQ_T, MOD_T, '=');
             break;
         case '&':
-            set_token_d(AND_T, B_AND_T, '&');
+            set_token_t1(AND_KT, B_AND_T, B_AND_T, '&', '=');
             break;
         case '|':
-            set_token_d(OR_T, B_OR_T, '|');
+            set_token_t1(AND_KT, B_OR_EQ_T, B_OR_T, '|', '=');
             break;
         case '^':
-            set_token(B_XOR_T);
+            set_token_d(B_XOR_EQ_T, B_XOR_T, '=');
             break;
         case '<':
-            set_token_t1(LSHIFT_T, LTE_T, LT_T, '<', '=');
+            set_token_q(LSHIFT_EQ_T, LSHIFT_T, LTE_T, LT_T, '<', '=', '=');
             break;
         case '>':
-            set_token_t1(RSHIFT_T, GTE_T, GT_T, '>', '=');
+            set_token_q(RSHIFT_EQ_T, RSHIFT_T, GTE_T, GT_T, '<', '=', '=');
             break;
         case '~':
             set_token(B_NOT_T);
@@ -172,7 +205,7 @@ lex_res_t lex(const char *code)
             set_token_t2(EX_EQ_T, EQ_T, ASSIGN_T, '=', '=');
             break;
         case '!':
-            set_token_t2(EX_NEQ_T, NEQ_T, NOT_T, '=', '=');
+            set_token_t2(EX_NEQ_T, NEQ_T, NOT_KT, '=', '=');
             break;
         case '(':
             set_token(LPAREN_T);
@@ -195,7 +228,7 @@ lex_res_t lex(const char *code)
             mr_free(res.tokens);
             res.tokens = NULL;
 
-            res.error = set_illegal_char(code[pos.idx], 0, pos);
+            res.error = illegal_char_set(code[pos.idx], 0, pos);
             return res;
         }
     }
@@ -210,7 +243,7 @@ lex_res_t lex(const char *code)
     return res;
 }
 
-token_t handle_id(const char *code, pos_t *pos)
+token_t process_id(const char *code, pos_t *pos)
 {
     token_t res;
     res.value = mr_alloc(LEX_ID_SIZE);
@@ -244,7 +277,7 @@ token_t handle_id(const char *code, pos_t *pos)
     return res;
 }
 
-token_t handle_num(const char *code, pos_t *pos)
+token_t process_num(const char *code, pos_t *pos)
 {
     token_t res;
     res.type = INT_T;
@@ -276,6 +309,34 @@ token_t handle_num(const char *code, pos_t *pos)
 
     res.value = mr_realloc(res.value, size + 1);
     res.value[size] = '\0';
+    res.pose = *pos;
+    return res;
+}
+
+token_t process_sub(const char *code, pos_t *pos)
+{
+    token_t res;
+    res.value = NULL;
+    res.poss = *pos;
+
+    switch (code[++pos->idx])
+    {
+    case '-':
+        res.type = DEC_T;
+        break;
+    case '>':
+        res.type = LINK_T;
+        break;
+    case '=':
+        res.type = SUB_EQ_T;
+        break;
+    default:
+        res.type = SUB_T;
+        res.pose = *pos;
+        return res;
+    }
+
+    pos->idx++;
     res.pose = *pos;
     return res;
 }

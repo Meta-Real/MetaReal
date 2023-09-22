@@ -38,14 +38,14 @@ int main()
         lex_res = lex(code);
         if (!lex_res.tokens)
         {
-            print_illegal_char(&lex_res.error, DEF_FILE_NAME, code);
+            illegal_char_print(&lex_res.error, DEF_FILE_NAME, code);
             continue;
         }
 
         parse_res = parse(lex_res.tokens);
         if (!parse_res.nodes)
         {
-            print_invalid_syntax(&parse_res.error, DEF_FILE_NAME, code);
+            invalid_syntax_print(&parse_res.error, DEF_FILE_NAME, code);
             continue;
         }
 
@@ -55,7 +55,7 @@ int main()
         opt_res = optimize(parse_res.nodes, parse_res.size);
         if (!opt_res.values)
         {
-            print_invalid_semantic(&opt_res.error, DEF_FILE_NAME, code);
+            invalid_semantic_print(&opt_res.error, DEF_FILE_NAME, code);
             continue;
         }
 

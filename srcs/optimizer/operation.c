@@ -92,7 +92,7 @@
             value_names[left->type], value_names[right->type]);                                        \
                                                                                                        \
         res.has_error = 1;                                                                             \
-        res.error = set_invalid_semantic(detail, ILLEGAL_OP_E, left->poss, right->pose);               \
+        res.error = invalid_semantic_set(detail, ILLEGAL_OP_E, left->poss, right->pose);               \
         return res;                                                                                    \
     } while (0)
 
@@ -104,8 +104,19 @@
             value_names[operand->type]);                                              \
                                                                                       \
         res.has_error = 1;                                                            \
-        res.error = set_invalid_semantic(detail, ILLEGAL_OP_E, *poss, operand->pose); \
+        res.error = invalid_semantic_set(detail, ILLEGAL_OP_E, *poss, operand->pose); \
         return res;                                                                   \
+    } while (0)
+
+#define ill_inc_dec_op_error(o)                                               \
+    do                                                                        \
+    {                                                                         \
+        char *detail = mr_alloc(26 + value_name_lens[operand->type]);         \
+        sprintf(detail, "<%s> can not be " o, value_names[operand->type]);    \
+                                                                              \
+        res.has_error = 1;                                                    \
+        res.error = invalid_semantic_set(detail, ILLEGAL_OP_E, *poss, *pose); \
+        return res;                                                           \
     } while (0)
 
 #define index_out_error                                                              \
@@ -115,7 +126,7 @@
         strcpy(detail, "Index out of range");                                        \
                                                                                      \
         res.has_error = 1;                                                           \
-        res.error = set_invalid_semantic(detail, INDEX_E, right->poss, right->pose); \
+        res.error = invalid_semantic_set(detail, INDEX_E, right->poss, right->pose); \
         return res;                                                                  \
     } while (0)
 
@@ -126,7 +137,7 @@
         strcpy(detail, "Memory overflow");                                                  \
                                                                                             \
         res.has_error = 1;                                                                  \
-        res.error = set_invalid_semantic(detail, MEM_OVERFLOW_E, right->poss, right->pose); \
+        res.error = invalid_semantic_set(detail, MEM_OVERFLOW_E, right->poss, right->pose); \
         return res;                                                                         \
     } while (0)
 
@@ -137,7 +148,7 @@
         strcpy(detail, "Division by zero");                                                \
                                                                                            \
         res.has_error = 1;                                                                 \
-        res.error = set_invalid_semantic(detail, DIV_BY_ZERO_E, right->poss, right->pose); \
+        res.error = invalid_semantic_set(detail, DIV_BY_ZERO_E, right->poss, right->pose); \
         return res;                                                                        \
     } while (0)
 
@@ -148,7 +159,7 @@
         strcpy(detail, "Modulo by zero");                                                  \
                                                                                            \
         res.has_error = 1;                                                                 \
-        res.error = set_invalid_semantic(detail, DIV_BY_ZERO_E, right->poss, right->pose); \
+        res.error = invalid_semantic_set(detail, DIV_BY_ZERO_E, right->poss, right->pose); \
         return res;                                                                        \
     } while (0)
 
@@ -159,7 +170,7 @@
         strcpy(detail, "Zero raised to the power of a negative number");                   \
                                                                                            \
         res.has_error = 1;                                                                 \
-        res.error = set_invalid_semantic(detail, DIV_BY_ZERO_E, right->poss, right->pose); \
+        res.error = invalid_semantic_set(detail, DIV_BY_ZERO_E, right->poss, right->pose); \
         return res;                                                                        \
     } while (0)
 
@@ -170,7 +181,7 @@
         strcpy(detail, "Zero raised to the power of a complex number");              \
                                                                                      \
         res.has_error = 1;                                                           \
-        res.error = set_invalid_semantic(detail, VALUE_E, right->poss, right->pose); \
+        res.error = invalid_semantic_set(detail, VALUE_E, right->poss, right->pose); \
         return res;                                                                  \
     } while (0)
 
@@ -181,7 +192,7 @@
         strcpy(detail, "Negative shift count");                                      \
                                                                                      \
         res.has_error = 1;                                                           \
-        res.error = set_invalid_semantic(detail, VALUE_E, right->poss, right->pose); \
+        res.error = invalid_semantic_set(detail, VALUE_E, right->poss, right->pose); \
         return res;                                                                  \
     } while (0)
 
@@ -192,7 +203,7 @@
         strcpy(detail, "Negative multiplier");                                       \
                                                                                      \
         res.has_error = 1;                                                           \
-        res.error = set_invalid_semantic(detail, VALUE_E, right->poss, right->pose); \
+        res.error = invalid_semantic_set(detail, VALUE_E, right->poss, right->pose); \
         return res;                                                                  \
     } while (0)
 
@@ -2079,6 +2090,62 @@ visit_res_t compute_not(value_t *operand, pos_t *poss)
     res.value.value = (void*)(uintptr_t)value_isfalse(operand);
     res.has_error = 0;
     return res;
+}
+
+visit_res_t compute_inc(value_t *operand, pos_t *poss, pos_t *pose)
+{
+    visit_res_t res;
+    res.has_error = 0;
+
+    switch (operand->type)
+    {
+    case INT_V:
+        res.value.type = INT_V;
+        res.value.value = int_add_ui(operand->value, 1);
+        return res;
+    case FLOAT_V:
+        res.value.type = FLOAT_V;
+        res.value.value = float_add_ui(operand->value, 1);
+        return res;
+    case COMPLEX_V:
+        res.value.type = COMPLEX_V;
+        res.value.value = complex_add_ui(operand->value, 1);
+        return res;
+    case BOOL_V:
+        res.value.type = INT_V;
+        res.value.value = int_set_ui((uintptr_t)operand->value + 1);
+        return res;
+    }
+
+    ill_inc_dec_op_error("incremented");
+}
+
+visit_res_t compute_dec(value_t *operand, pos_t *poss, pos_t *pose)
+{
+    visit_res_t res;
+    res.has_error = 0;
+
+    switch (operand->type)
+    {
+    case INT_V:
+        res.value.type = INT_V;
+        res.value.value = int_sub_ui(operand->value, 1);
+        return res;
+    case FLOAT_V:
+        res.value.type = FLOAT_V;
+        res.value.value = float_sub_ui(operand->value, 1);
+        return res;
+    case COMPLEX_V:
+        res.value.type = COMPLEX_V;
+        res.value.value = complex_sub_ui(operand->value, 1);
+        return res;
+    case BOOL_V:
+        res.value.type = INT_V;
+        res.value.value = int_set_ui((uintptr_t)operand->value - 1);
+        return res;
+    }
+
+    ill_inc_dec_op_error("decremented");
 }
 
 uint8_t compute_vneq(const value_t *left, const value_t *right)

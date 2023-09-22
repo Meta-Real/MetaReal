@@ -21,6 +21,8 @@ enum __NODE_TYPES
     UNARY_OPERATION_N,
 
     VAR_ASSIGN_N,
+    VAR_MODIFY_N,
+    VAR_FMODIFY_N,
     VAR_ACCESS_N
 };
 

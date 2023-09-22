@@ -18,6 +18,14 @@
         res->nodes[res->size].pose = pe; \
     } while (0)
 
+#define set_node_pso(t, v, pe)           \
+    do                                   \
+    {                                    \
+        res->nodes[res->size].type = t;  \
+        res->nodes[res->size].value = v; \
+        res->nodes[res->size].pose = pe; \
+    } while (0)
+
 #define set_node_peo(t, v, ps)           \
     do                                   \
     {                                    \
@@ -71,6 +79,7 @@
     } while (0)
 
 token_t *tuple(parse_res_t *res, token_t *tokens);
+token_t *modify(parse_res_t *res, token_t *tokens);
 token_t *or(parse_res_t *res, token_t *tokens);
 token_t *and(parse_res_t *res, token_t *tokens);
 token_t *cmp1(parse_res_t *res, token_t *tokens);
@@ -83,6 +92,8 @@ token_t *expr(parse_res_t *res, token_t *tokens);
 token_t *term(parse_res_t *res, token_t *tokens);
 token_t *factor(parse_res_t *res, token_t *tokens);
 token_t *power(parse_res_t *res, token_t *tokens);
+token_t *prefix(parse_res_t *res, token_t *tokens);
+token_t *postfix(parse_res_t *res, token_t *tokens);
 token_t *core(parse_res_t *res, token_t *tokens);
 
 token_t *handle_list(parse_res_t *res, token_t *tokens);
@@ -119,7 +130,7 @@ parse_res_t parse(token_t *tokens)
 
     if (tokens->type)
     {
-        res.error = set_invalid_syntax("Expected EOF", tokens->poss, tokens->pose);
+        res.error = invalid_syntax_set("Expected EOF", tokens->poss, tokens->pose);
 
         nodes_free(res.nodes, res.size);
         res.nodes = NULL;
@@ -140,7 +151,7 @@ parse_res_t parse(token_t *tokens)
 
 token_t *tuple(parse_res_t *res, token_t *tokens)
 {
-    tokens = or(res, tokens);
+    tokens = modify(res, tokens);
     if (!res->nodes)
         return tokens;
 
@@ -163,7 +174,7 @@ token_t *tuple(parse_res_t *res, token_t *tokens)
                 break;
             }
 
-            tokens = or(res, tokens);
+            tokens = modify(res, tokens);
             if (!res->nodes)
             {
                 list_node_free(node);
@@ -187,14 +198,42 @@ token_t *tuple(parse_res_t *res, token_t *tokens)
     return tokens;
 }
 
+token_t *modify(parse_res_t *res, token_t *tokens)
+{
+    tokens = or(res, tokens);
+    if (!res->nodes)
+        return tokens;
+
+    if (tokens->type >= ASSIGN_T && tokens->type <= RSHIFT_EQ_T)
+    {
+        bin_operation_node_t *node = mr_alloc(sizeof(bin_operation_node_t));
+        node->operator = tokens++->type;
+        node->left = res->nodes[res->size];
+
+        tokens = tuple(res, tokens);
+        if (!res->nodes)
+        {
+            node_free(&node->left);
+            mr_free(node);
+            return tokens;
+        }
+
+        node->right = res->nodes[res->size];
+        set_node_peo(VAR_MODIFY_N, node, node->left.poss);
+        return tokens;
+    }
+
+    return tokens;
+}
+
 token_t *or(parse_res_t *res, token_t *tokens)
 {
-    bin_operation(and, and, tokens->type == OR_T || tokens->type == OR_KT);
+    bin_operation(and, and, tokens->type == OR_KT);
 }
 
 token_t *and(parse_res_t *res, token_t *tokens)
 {
-    bin_operation(cmp1, cmp1, tokens->type == AND_T || tokens->type == AND_KT);
+    bin_operation(cmp1, cmp1, tokens->type == AND_KT);
 }
 
 token_t *cmp1(parse_res_t *res, token_t *tokens)
@@ -263,7 +302,50 @@ token_t *factor(parse_res_t *res, token_t *tokens)
 
 token_t *power(parse_res_t *res, token_t *tokens)
 {
-    bin_operation(core, factor, tokens->type == POW_T);
+    bin_operation(prefix, factor, tokens->type == POW_T);
+}
+
+token_t *prefix(parse_res_t *res, token_t *tokens)
+{
+    if (tokens->type == INC_T || tokens->type == DEC_T)
+    {
+        unary_operation_node_t *value = mr_alloc(sizeof(unary_operation_node_t));
+        value->operator = tokens->type;
+
+        pos_t poss = tokens++->poss;
+
+        tokens = prefix(res, tokens);
+        if (!res->nodes)
+        {
+            mr_free(value);
+            return tokens;
+        }
+
+        value->operand = res->nodes[res->size];
+        set_node_peo(VAR_FMODIFY_N, value, poss);
+        return tokens;
+    }
+
+    return postfix(res, tokens);
+}
+
+token_t *postfix(parse_res_t *res, token_t *tokens)
+{
+    tokens = core(res, tokens);
+    if (!res->nodes)
+        return tokens;
+
+    unary_operation_node_t *value;
+    while (tokens->type == INC_T || tokens->type == DEC_T)
+    {
+        value = mr_alloc(sizeof(unary_operation_node_t));
+        value->operator = tokens->type + ADD_T - INC_T;
+
+        value->operand = res->nodes[res->size];
+        set_node_pso(VAR_FMODIFY_N, value, tokens++->pose);
+    }
+
+    return tokens;
 }
 
 token_t *core(parse_res_t *res, token_t *tokens)
@@ -279,7 +361,7 @@ token_t *core(parse_res_t *res, token_t *tokens)
         if (tokens->type != RPAREN_T)
         {
             node_free(res->nodes + res->size);
-            set_error(set_invalid_syntax("Expected ')'", tokens->poss, tokens->pose));
+            set_error(invalid_syntax_set("Expected ')'", tokens->poss, tokens->pose));
             return tokens;
         }
 
@@ -314,7 +396,7 @@ token_t *core(parse_res_t *res, token_t *tokens)
         return handle_var(res, tokens);
     }
 
-    set_error(set_invalid_syntax(NULL, tokens->poss, tokens->pose));
+    set_error(invalid_syntax_set(NULL, tokens->poss, tokens->pose));
     return tokens;
 }
 
@@ -328,7 +410,7 @@ token_t *handle_list(parse_res_t *res, token_t *tokens)
         return tokens;
     }
 
-    tokens = or(res, tokens);
+    tokens = modify(res, tokens);
     if (!res->nodes)
         return tokens;
 
@@ -344,7 +426,7 @@ token_t *handle_list(parse_res_t *res, token_t *tokens)
         if ((++tokens)->type == RSQUARE_T)
             goto ret;
 
-        tokens = or(res, tokens);
+        tokens = modify(res, tokens);
         if (!res->nodes)
         {
             list_node_free(node);
@@ -360,7 +442,7 @@ token_t *handle_list(parse_res_t *res, token_t *tokens)
     if (tokens->type != RSQUARE_T)
     {
         list_node_free(node);
-        set_error(set_invalid_syntax("Expected ',' or ']'", tokens->poss, tokens->pose));
+        set_error(invalid_syntax_set("Expected ',' or ']'", tokens->poss, tokens->pose));
         return tokens;
     }
 
@@ -376,7 +458,7 @@ token_t *handle_var(parse_res_t *res, token_t *tokens)
 
     if (tokens->type != ID_T)
     {
-        set_error(set_invalid_syntax("Expected identifier", tokens->poss, tokens->pose));
+        set_error(invalid_syntax_set("Expected identifier", tokens->poss, tokens->pose));
         return tokens;
     }
 

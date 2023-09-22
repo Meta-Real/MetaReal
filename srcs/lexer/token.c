@@ -6,7 +6,7 @@
 #include <alloc.h>
 #include <stdio.h>
 
-const char *token_labels[42] =
+const char *token_labels[54] =
 {
     "EOF",
     "SEMICOLON",
@@ -15,12 +15,13 @@ const char *token_labels[42] =
     "B_AND", "B_OR", "B_XOR", "LSHIFT", "RSHIFT",
     "EQ", "NEQ", "EX_EQ", "EX_NEQ",
     "LT", "GT", "LTE", "GTE",
-    "AND", "OR",
-    "ASSIGN",
+    "INC", "DEC", "ASSIGN", "LINK",
+    "ADD_EQ", "SUB_EQ", "MUL_EQ", "DIV_EQ", "MOD_EQ", "QUOT_EQ", "POW_EQ",
+    "B_AND_EQ", "B_OR_EQ", "B_XOR_EQ", "LSHIFT_EQ", "RSHIFT_EQ",
     "LPAREN", "RPAREN",
     "LSQUARE", "RSQUARE",
     "COMMA",
-    "ADD", "SUB", "B_NOT", "NOT",
+    "ADD", "SUB", "B_NOT",
     "NOT_K", "OR_K", "NOT_K",
     "VAR_K",
     "TRUE_K", "FALSE_K"

@@ -18,7 +18,9 @@ enum __VALUE_TYPES
     BOOL_V,
 
     LIST_V,
-    TUPLE_V
+    TUPLE_V,
+
+    PTR_V
 };
 
 struct __VALUE_T
