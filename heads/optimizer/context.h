@@ -10,7 +10,7 @@
 struct __VAR_T
 {
     char *name;
-    value_t value;
+    value_t *value;
 };
 typedef struct __VAR_T var_t;
 
@@ -24,7 +24,7 @@ typedef struct __CONTEXT_T context_t;
 
 void context_free(context_t *context);
 
-value_t var_get(uint8_t *error, const context_t *context, const char *name);
+value_t *var_get(const context_t *context, const char *name);
 void var_set(context_t *context, char *name, value_t *value);
 
 uint64_t var_getp(uint8_t *error, const context_t *context, const char *name);

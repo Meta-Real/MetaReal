@@ -12,14 +12,12 @@
 
 struct __LIST_VALUE_T
 {
-    value_t *elements;
+    value_t **elements;
     uint64_t size;
-
-    uint64_t ref;
 };
 typedef struct __LIST_VALUE_T list_value_t;
 
-#define list_size(l) ((list_value_t*)l)->size
+#define LIST_CAST(v) ((list_value_t*)v->value)
 
 list_value_t *list_set(uint64_t size);
 
@@ -27,10 +25,10 @@ void list_free(list_value_t *list);
 
 void list_print(const list_value_t *list, char lbrace, char rbrace);
 
-list_value_t *list_append(list_value_t *list, value_t *value);
-list_value_t *list_concat(list_value_t *left, list_value_t *right);
-list_value_t *list_remove(list_value_t *list, uint64_t index);
-list_value_t *list_repeat(list_value_t *list, uint64_t count);
+value_t *list_append(value_t *list, value_t *element);
+value_t *list_concat(value_t *left, value_t *right);
+value_t *list_remove(value_t *list, uint64_t index);
+value_t *list_repeat(value_t *list, uint64_t count);
 
 uint8_t list_eq(const list_value_t *left, const list_value_t *right);
 uint8_t list_neq(const list_value_t *left, const list_value_t *right);

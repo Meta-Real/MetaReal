@@ -11,6 +11,8 @@
 #include <string.h>
 #include <consts.h>
 
+#include <time.h>
+
 int main()
 {
     puts("MetaReal Compiler version " MR_VERSION "\n");
@@ -52,6 +54,8 @@ int main()
         if (!parse_res.size)
             continue;
 
+        clock_t s = clock();
+
         opt_res = optimize(parse_res.nodes, parse_res.size);
         if (!opt_res.values)
         {
@@ -62,6 +66,11 @@ int main()
         if (!opt_res.size)
             continue;
 
+        printf_s("%ld msc\n", clock() - s);
+
+        values_free(opt_res.values, opt_res.size);
+
+        /*
         gen_res = generate(opt_res.values, opt_res.size);
 
         file = fopen("test.s", "w");
@@ -73,6 +82,7 @@ int main()
 
         mr_free(gen_res.main);
         mr_free(gen_res.consts);
+        */
     }
 
     mr_free(code);

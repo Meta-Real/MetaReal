@@ -5,15 +5,17 @@
 #ifndef __MR_INT__
 #define __MR_INT__
 
+#include <optimizer/value.h>
 #include <gmp.h>
 #include <stdint.h>
 
 struct __INT_VALUE_T
 {
     mpz_t num;
-    uint64_t ref;
 };
 typedef struct __INT_VALUE_T int_value_t;
+
+#define INT_CAST(v) ((int_value_t*)v->value)->num
 
 int_value_t *int_init();
 
@@ -27,20 +29,20 @@ uint64_t int_get_ull(const int_value_t *num);
 
 void int_print(const int_value_t *num);
 
-int_value_t *int_add(int_value_t *left, int_value_t *right);
-int_value_t *int_sub(int_value_t *left, int_value_t *right);
-int_value_t *int_mul(int_value_t *left, int_value_t *right);
-int_value_t *int_mod(int_value_t *left, int_value_t *right);
-int_value_t *int_quot(int_value_t *left, int_value_t *right);
-int_value_t *int_pow(int_value_t *left, int_value_t *right);
-int_value_t *int_and(int_value_t *left, int_value_t *right);
-int_value_t *int_or(int_value_t *left, int_value_t *right);
-int_value_t *int_xor(int_value_t *left, int_value_t *right);
-int_value_t *int_lshift(int_value_t *left, int_value_t *right);
-int_value_t *int_rshift(int_value_t *left, int_value_t *right);
+value_t *int_add(value_t *left, value_t *right);
+value_t *int_sub(value_t *left, value_t *right);
+value_t *int_mul(value_t *left, value_t *right);
+value_t *int_mod(value_t *left, value_t *right);
+value_t *int_quot(value_t *left, value_t *right);
+value_t *int_pow(value_t *left, value_t *right);
+value_t *int_and(value_t *left, value_t *right);
+value_t *int_or(value_t *left, value_t *right);
+value_t *int_xor(value_t *left, value_t *right);
+value_t *int_lshift(value_t *left, value_t *right);
+value_t *int_rshift(value_t *left, value_t *right);
 
-int_value_t *int_neg(int_value_t *num);
-int_value_t *int_not(int_value_t *num);
+value_t *int_neg(value_t *num);
+value_t *int_not(value_t *num);
 
 uint8_t int_eq(const int_value_t *left, const int_value_t *right);
 uint8_t int_neq(const int_value_t *left, const int_value_t *right);
@@ -49,23 +51,23 @@ uint8_t int_gt(const int_value_t *left, const int_value_t *right);
 uint8_t int_lte(const int_value_t *left, const int_value_t *right);
 uint8_t int_gte(const int_value_t *left, const int_value_t *right);
 
-int_value_t *int_add_ui(int_value_t *left, uint32_t right);
-int_value_t *int_sub_ui(int_value_t *left, uint32_t right);
-int_value_t *int_ui_sub(uint32_t left, int_value_t *right);
-int_value_t *int_mul_ui(int_value_t *left, uint32_t right);
-int_value_t *int_mod_ui(int_value_t *left, uint32_t right);
-int_value_t *int_ui_mod(uint32_t left, int_value_t *right);
-int_value_t *int_quot_ui(int_value_t *left, uint32_t right);
-int_value_t *int_ui_quot(uint32_t left, int_value_t *right);
-int_value_t *int_pow_ui(int_value_t *left, uint32_t right);
-int_value_t *int_ui_pow(uint32_t left, int_value_t *right);
-int_value_t *int_and_ui(int_value_t *left, uint32_t right);
-int_value_t *int_or_ui(int_value_t *left, uint32_t right);
-int_value_t *int_xor_ui(int_value_t *left, uint32_t right);
-int_value_t *int_lshift_ui(int_value_t *left, uint32_t right);
-int_value_t *int_ui_lshift(uint32_t left, int_value_t *right);
-int_value_t *int_rshift_ui(int_value_t *left, uint32_t right);
-int_value_t *int_ui_rshift(uint32_t left, int_value_t *right);
+value_t *int_add_ui(value_t *left, uint32_t right);
+value_t *int_sub_ui(value_t *left, uint32_t right);
+value_t *int_ui_sub(uint32_t left, value_t *right);
+value_t *int_mul_ui(value_t *left, uint32_t right);
+value_t *int_mod_ui(value_t *left, uint32_t right);
+value_t *int_ui_mod(uint32_t left, value_t *right);
+value_t *int_quot_ui(value_t *left, uint32_t right);
+value_t *int_ui_quot(uint32_t left, value_t *right);
+value_t *int_pow_ui(value_t *left, uint32_t right);
+value_t *int_ui_pow(uint32_t left, value_t *right);
+value_t *int_and_ui(value_t *left, uint32_t right);
+value_t *int_or_ui(value_t *left, uint32_t right);
+value_t *int_xor_ui(value_t *left, uint32_t right);
+value_t *int_lshift_ui(value_t *left, uint32_t right);
+value_t *int_ui_lshift(uint32_t left, value_t *right);
+value_t *int_rshift_ui(value_t *left, uint32_t right);
+value_t *int_ui_rshift(uint32_t left, value_t *right);
 
 uint8_t int_eq_ui(const int_value_t *left, uint32_t right);
 uint8_t int_neq_ui(const int_value_t *left, uint32_t right);

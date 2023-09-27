@@ -28,7 +28,7 @@ const char *value_labels[7] =
     "LIST", "TUPLE"
 };
 
-void values_free(value_t *values, uint64_t size)
+void values_free(value_t **values, uint64_t size)
 {
     if (!size)
     {
@@ -37,16 +37,16 @@ void values_free(value_t *values, uint64_t size)
     }
 
     do
-        value_free(values + --size);
+        value_free(values[--size]);
     while (size);
     mr_free(values);
 }
 
-void values_print(const value_t *values, uint64_t size)
+void values_print(const value_t **values, uint64_t size)
 {
     for (uint64_t i = 0; i < size; i++)
     {
-        value_print(values + i);
+        value_print(values[i]);
         putchar('\n');
     }
 }
@@ -57,19 +57,20 @@ void value_free(value_t *value)
     {
     case NONE_V:
     case BOOL_V:
+        value_free_vo(value);
         break;
     case INT_V:
-        int_free(value->value);
+        value_free_ts(value, int_free);
         break;
     case FLOAT_V:
-        float_free(value->value);
+        value_free_ts(value, float_free);
         break;
     case COMPLEX_V:
-        complex_free(value->value);
+        value_free_ts(value, complex_free);
         break;
     case LIST_V:
     case TUPLE_V:
-        list_free(value->value);
+        value_free_ts(value, list_free);
         break;
     }
 }
@@ -81,29 +82,33 @@ uint8_t value_istrue(value_t *value)
     switch (value->type)
     {
     case NONE_V:
+        value_free_vo(value);
         return 0;
     case INT_V:
         res = int_isnzero(value->value);
 
-        int_free(value->value);
+        value_free_ts(value, int_free);
         return res;
     case FLOAT_V:
         res = float_isnzero(value->value);
 
-        float_free(value->value);
+        value_free_ts(value, float_free);
         return res;
     case COMPLEX_V:
         res = complex_isnzero(value->value);
 
-        complex_free(value->value);
+        value_free_ts(value, complex_free);
         return res;
     case BOOL_V:
-        return (uint8_t)(uintptr_t)value->value;
+        res = (uint8_t)(uintptr_t)value->value;
+
+        value_free_vo(value);
+        return res;
     case LIST_V:
     case TUPLE_V:
         res = value->value != NULL;
 
-        list_free(value->value);
+        value_free_ts(value, list_free);
         return res;
     }
 
@@ -118,57 +123,38 @@ uint8_t value_isfalse(value_t *value)
     switch (value->type)
     {
     case NONE_V:
-        return 0;
+        value_free_vo(value);
+        return 1;
     case INT_V:
         res = int_iszero(value->value);
 
-        int_free(value->value);
+        value_free_ts(value, int_free);
         return res;
     case FLOAT_V:
         res = float_iszero(value->value);
 
-        float_free(value->value);
+        value_free_ts(value, float_free);
         return res;
     case COMPLEX_V:
         res = complex_iszero(value->value);
 
-        complex_free(value->value);
+        value_free_ts(value, complex_free);
         return res;
     case BOOL_V:
-        return (uint8_t)(uintptr_t)!value->value;
+        res = (uint8_t)(uintptr_t)!value->value;
+
+        value_free_vo(value);
+        return res;
     case LIST_V:
     case TUPLE_V:
         res = !value->value;
 
-        list_free(value->value);
+        value_free_ts(value, list_free);
         return res;
     }
 
     fprintf(stderr, "Internal Error: Invalid value type #%hu (value_isfalse function)\n", value->type);
     abort();
-}
-
-void value_addref(value_t *value)
-{
-    switch (value->type)
-    {
-    case INT_V:
-        ((int_value_t*)value->value)->ref++;
-        break;
-    case FLOAT_V:
-        ((float_value_t*)value->value)->ref++;
-        break;
-    case COMPLEX_V:
-        ((complex_value_t*)value->value)->ref++;
-        break;
-    case LIST_V:
-    case TUPLE_V:
-        if (!value->value)
-            break;
-
-        ((list_value_t*)value->value)->ref++;
-        break;
-    }
 }
 
 void value_print(const value_t *value)

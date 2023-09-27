@@ -21,6 +21,9 @@
         "vector": "c",
         "xhash": "c",
         "xstring": "c",
-        "string_view": "c"
+        "string_view": "c",
+        "ios": "c",
+        "optional": "c",
+        "system_error": "c"
     }
 }
