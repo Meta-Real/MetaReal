@@ -23,6 +23,7 @@ void list_free(list_value_t *list)
 
     while (list->size)
         value_free(list->elements[--list->size]);
+    mr_free(list->elements);
     mr_free(list);
 }
 
@@ -249,7 +250,7 @@ value_t *list_repeat(value_t *list, uint64_t count)
         for (i = 0; i < LIST_CAST(list)->size; i++)
         {
             value->elements[i] = LIST_CAST(list)->elements[i];
-            value_addref(value->elements[i], count - 1);
+            value_addref(value->elements[i], count);
         }
         for (; i < value->size;)
             for (j = 0; j < LIST_CAST(list)->size; i++, j++)

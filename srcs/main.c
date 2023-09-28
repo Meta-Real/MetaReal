@@ -68,9 +68,8 @@ int main()
 
         printf_s("%ld msc\n", clock() - s);
 
-        values_free(opt_res.values, opt_res.size);
+        //values_free(opt_res.values, opt_res.size);
 
-        /*
         gen_res = generate(opt_res.values, opt_res.size);
 
         file = fopen("test.s", "w");
@@ -82,7 +81,6 @@ int main()
 
         mr_free(gen_res.main);
         mr_free(gen_res.consts);
-        */
     }
 
     mr_free(code);

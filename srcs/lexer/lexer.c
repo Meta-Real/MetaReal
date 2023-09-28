@@ -196,7 +196,7 @@ lex_res_t lex(const char *code)
             set_token_q(LSHIFT_EQ_T, LSHIFT_T, LTE_T, LT_T, '<', '=', '=');
             break;
         case '>':
-            set_token_q(RSHIFT_EQ_T, RSHIFT_T, GTE_T, GT_T, '<', '=', '=');
+            set_token_q(RSHIFT_EQ_T, RSHIFT_T, GTE_T, GT_T, '>', '=', '=');
             break;
         case '~':
             set_token(B_NOT_T);

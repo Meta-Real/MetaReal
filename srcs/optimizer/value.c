@@ -53,10 +53,14 @@ void values_print(const value_t **values, uint64_t size)
 
 void value_free(value_t *value)
 {
+    if (!value)
+        return;
+
     switch (value->type)
     {
     case NONE_V:
     case BOOL_V:
+    case PTR_V:
         value_free_vo(value);
         break;
     case INT_V:

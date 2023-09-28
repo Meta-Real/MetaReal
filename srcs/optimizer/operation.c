@@ -235,7 +235,7 @@
         sprintf(detail, "Invalid binary operation (" o ") between <%s> and <%s>",                      \
             value_names[left->type], value_names[right->type]);                                        \
                                                                                                        \
-        res.has_error = 1;                                                                             \
+        res.value = NULL;                                                                              \
         res.error = invalid_semantic_set(detail, ILLEGAL_OP_E, left->poss, right->pose);               \
         return res;                                                                                    \
     } while (0)
@@ -247,7 +247,7 @@
         sprintf(detail, "Invalid unary operation (" o ") for <%s>",                   \
             value_names[operand->type]);                                              \
                                                                                       \
-        res.has_error = 1;                                                            \
+        res.value = NULL;                                                             \
         res.error = invalid_semantic_set(detail, ILLEGAL_OP_E, *poss, operand->pose); \
         return res;                                                                   \
     } while (0)
@@ -258,7 +258,7 @@
         char *detail = mr_alloc(26 + value_name_lens[operand->type]);         \
         sprintf(detail, "<%s> can not be " o, value_names[operand->type]);    \
                                                                               \
-        res.has_error = 1;                                                    \
+        res.value = NULL;                                                     \
         res.error = invalid_semantic_set(detail, ILLEGAL_OP_E, *poss, *pose); \
         return res;                                                           \
     } while (0)
@@ -269,7 +269,7 @@
         char *detail = mr_alloc(19);                                                 \
         strcpy(detail, "Index out of range");                                        \
                                                                                      \
-        res.has_error = 1;                                                           \
+        res.value = NULL;                                                            \
         res.error = invalid_semantic_set(detail, INDEX_E, right->poss, right->pose); \
         return res;                                                                  \
     } while (0)
@@ -280,7 +280,7 @@
         char *detail = mr_alloc(16);                                                        \
         strcpy(detail, "Memory overflow");                                                  \
                                                                                             \
-        res.has_error = 1;                                                                  \
+        res.value = NULL;                                                                   \
         res.error = invalid_semantic_set(detail, MEM_OVERFLOW_E, right->poss, right->pose); \
         return res;                                                                         \
     } while (0)
@@ -291,7 +291,7 @@
         char *detail = mr_alloc(17);                                                       \
         strcpy(detail, "Division by zero");                                                \
                                                                                            \
-        res.has_error = 1;                                                                 \
+        res.value = NULL;                                                                  \
         res.error = invalid_semantic_set(detail, DIV_BY_ZERO_E, right->poss, right->pose); \
         return res;                                                                        \
     } while (0)
@@ -302,7 +302,7 @@
         char *detail = mr_alloc(15);                                                       \
         strcpy(detail, "Modulo by zero");                                                  \
                                                                                            \
-        res.has_error = 1;                                                                 \
+        res.value = NULL;                                                                  \
         res.error = invalid_semantic_set(detail, DIV_BY_ZERO_E, right->poss, right->pose); \
         return res;                                                                        \
     } while (0)
@@ -313,7 +313,7 @@
         char *detail = mr_alloc(46);                                                       \
         strcpy(detail, "Zero raised to the power of a negative number");                   \
                                                                                            \
-        res.has_error = 1;                                                                 \
+        res.value = NULL;                                                                  \
         res.error = invalid_semantic_set(detail, DIV_BY_ZERO_E, right->poss, right->pose); \
         return res;                                                                        \
     } while (0)
@@ -324,7 +324,7 @@
         char *detail = mr_alloc(45);                                                 \
         strcpy(detail, "Zero raised to the power of a complex number");              \
                                                                                      \
-        res.has_error = 1;                                                           \
+        res.value = NULL;                                                            \
         res.error = invalid_semantic_set(detail, VALUE_E, right->poss, right->pose); \
         return res;                                                                  \
     } while (0)
@@ -335,7 +335,7 @@
         char *detail = mr_alloc(21);                                                 \
         strcpy(detail, "Negative shift count");                                      \
                                                                                      \
-        res.has_error = 1;                                                           \
+        res.value = NULL;                                                            \
         res.error = invalid_semantic_set(detail, VALUE_E, right->poss, right->pose); \
         return res;                                                                  \
     } while (0)
@@ -346,7 +346,7 @@
         char *detail = mr_alloc(20);                                                 \
         strcpy(detail, "Negative multiplier");                                       \
                                                                                      \
-        res.has_error = 1;                                                           \
+        res.value = NULL;                                                            \
         res.error = invalid_semantic_set(detail, VALUE_E, right->poss, right->pose); \
         return res;                                                                  \
     } while (0)
@@ -354,7 +354,6 @@
 visit_res_t compute_add(value_t *left, value_t *right)
 {
     visit_res_t res;
-    res.has_error = 0;
 
     switch (left->type)
     {
@@ -443,7 +442,6 @@ ret:
 visit_res_t compute_sub(value_t *left, value_t *right)
 {
     visit_res_t res;
-    res.has_error = 0;
 
     switch (left->type)
     {
@@ -563,7 +561,6 @@ ret:
 visit_res_t compute_mul(value_t *left, value_t *right)
 {
     visit_res_t res;
-    res.has_error = 0;
 
     switch (left->type)
     {
@@ -695,7 +692,6 @@ ret:
 visit_res_t compute_div(value_t *left, value_t *right)
 {
     visit_res_t res;
-    res.has_error = 0;
 
     switch (left->type)
     {
@@ -911,7 +907,6 @@ ret:
 visit_res_t compute_mod(value_t *left, value_t *right)
 {
     visit_res_t res;
-    res.has_error = 0;
 
     switch (left->type)
     {
@@ -1036,7 +1031,6 @@ ret:
 visit_res_t compute_quot(value_t *left, value_t *right)
 {
     visit_res_t res;
-    res.has_error = 0;
 
     switch (left->type)
     {
@@ -1186,7 +1180,6 @@ ret:
 visit_res_t compute_pow(value_t *left, value_t *right)
 {
     visit_res_t res;
-    res.has_error = 0;
 
     switch (left->type)
     {
@@ -1402,7 +1395,6 @@ ret:
 visit_res_t compute_b_and(value_t *left, value_t *right)
 {
     visit_res_t res;
-    res.has_error = 0;
 
     switch (left->type)
     {
@@ -1442,7 +1434,6 @@ ret:
 visit_res_t compute_b_or(value_t *left, value_t *right)
 {
     visit_res_t res;
-    res.has_error = 0;
 
     switch (left->type)
     {
@@ -1482,7 +1473,6 @@ ret:
 visit_res_t compute_b_xor(value_t *left, value_t *right)
 {
     visit_res_t res;
-    res.has_error = 0;
 
     switch (left->type)
     {
@@ -1522,7 +1512,6 @@ ret:
 visit_res_t compute_lshift(value_t *left, value_t *right)
 {
     visit_res_t res;
-    res.has_error = 0;
 
     switch (left->type)
     {
@@ -1530,6 +1519,13 @@ visit_res_t compute_lshift(value_t *left, value_t *right)
         switch (right->type)
         {
         case INT_V:
+            if (int_isnzero(left->value) && int_nfit_ull(right->value))
+            {
+                value_free_ts(right, int_free);
+                value_free_ts(left, int_free);
+                mem_overflow_error;
+            }
+
             if (int_isneg(right->value))
             {
                 value_free_ts(right, int_free);
@@ -1549,6 +1545,13 @@ visit_res_t compute_lshift(value_t *left, value_t *right)
         switch (right->type)
         {
         case INT_V:
+            if (left->value && int_nfit_ull(right->value))
+            {
+                value_free_ts(right, int_free);
+                value_free_vo(left);
+                mem_overflow_error;
+            }
+
             if (int_isneg(right->value))
             {
                 value_free_ts(right, int_free);
@@ -1576,7 +1579,6 @@ ret:
 visit_res_t compute_rshift(value_t *left, value_t *right)
 {
     visit_res_t res;
-    res.has_error = 0;
 
     switch (left->type)
     {
@@ -1584,6 +1586,34 @@ visit_res_t compute_rshift(value_t *left, value_t *right)
         switch (right->type)
         {
         case INT_V:
+            if (int_nfit_ull(right->value))
+            {
+                if (left->ref)
+                {
+                    left->ref--;
+
+                    if (right->ref)
+                    {
+                        right->ref--;
+
+                        value_set(res.value, INT_V, int_set_ui(0));
+                        return res;
+                    }
+
+                    int_free(right->value);
+                    right->value = int_set_ui(0);
+                    res.value = right;
+                    return res;
+                }
+
+                int_free(left->value);
+                left->value = int_set_ui(0);
+                res.value = left;
+
+                value_free_ts(right, int_free);
+                return res;
+            }
+
             if (int_isneg(right->value))
             {
                 value_free_ts(right, int_free);
@@ -1610,7 +1640,14 @@ visit_res_t compute_rshift(value_t *left, value_t *right)
                 neg_shift_error;
             }
 
-            bin_operation_b1_rev(left, right, int_ui_rshift);
+            if (int_isnzero(right->value))
+                value_set(res.value, INT_V, int_set_ui(0));
+            else
+                value_set(res.value, INT_V, int_set_ui((uintptr_t)left->value));
+
+            value_free_ts(right, int_free);
+            value_free_vo(left);
+            return res;
         case BOOL_V:
             bin_operation_b3((uintptr_t)left->value & !right->value, INT_V, int_set_ui);
         }
@@ -1630,7 +1667,6 @@ ret:
 visit_res_t compute_eq(value_t *left, value_t *right)
 {
     visit_res_t res;
-    res.has_error = 0;
 
     switch (left->type)
     {
@@ -1723,7 +1759,6 @@ ret:
 visit_res_t compute_neq(value_t *left, value_t *right)
 {
     visit_res_t res;
-    res.has_error = 0;
 
     switch (left->type)
     {
@@ -1816,7 +1851,6 @@ ret:
 visit_res_t compute_ex_eq(value_t *left, value_t *right)
 {
     visit_res_t res;
-    res.has_error = 0;
 
     if (left->type == right->type)
         switch (left->type)
@@ -1844,7 +1878,6 @@ visit_res_t compute_ex_eq(value_t *left, value_t *right)
 visit_res_t compute_ex_neq(value_t *left, value_t *right)
 {
     visit_res_t res;
-    res.has_error = 0;
 
     if (left->type == right->type)
         switch (left->type)
@@ -1872,7 +1905,6 @@ visit_res_t compute_ex_neq(value_t *left, value_t *right)
 visit_res_t compute_lt(value_t *left, value_t *right)
 {
     visit_res_t res;
-    res.has_error = 0;
 
     switch (left->type)
     {
@@ -1930,7 +1962,6 @@ ret:
 visit_res_t compute_gt(value_t *left, value_t *right)
 {
     visit_res_t res;
-    res.has_error = 0;
 
     switch (left->type)
     {
@@ -1988,7 +2019,6 @@ ret:
 visit_res_t compute_lte(value_t *left, value_t *right)
 {
     visit_res_t res;
-    res.has_error = 0;
 
     switch (left->type)
     {
@@ -2046,7 +2076,6 @@ ret:
 visit_res_t compute_gte(value_t *left, value_t *right)
 {
     visit_res_t res;
-    res.has_error = 0;
 
     switch (left->type)
     {
@@ -2104,7 +2133,6 @@ ret:
 visit_res_t compute_pos(value_t *operand, pos_t *poss)
 {
     visit_res_t res;
-    res.has_error = 0;
 
     switch (operand->type)
     {
@@ -2136,7 +2164,6 @@ visit_res_t compute_pos(value_t *operand, pos_t *poss)
 visit_res_t compute_neg(value_t *operand, pos_t *poss)
 {
     visit_res_t res;
-    res.has_error = 0;
 
     switch (operand->type)
     {
@@ -2169,7 +2196,6 @@ visit_res_t compute_neg(value_t *operand, pos_t *poss)
 visit_res_t compute_b_not(value_t *operand, pos_t *poss)
 {
     visit_res_t res;
-    res.has_error = 0;
 
     switch (operand->type)
     {
@@ -2198,14 +2224,12 @@ visit_res_t compute_not(value_t *operand, pos_t *poss)
 {
     visit_res_t res;
     value_set(res.value, BOOL_V, (void*)(uintptr_t)value_isfalse(operand));
-    res.has_error = 0;
     return res;
 }
 
 visit_res_t compute_inc(value_t *operand, pos_t *poss, pos_t *pose)
 {
     visit_res_t res;
-    res.has_error = 0;
 
     switch (operand->type)
     {
@@ -2237,7 +2261,6 @@ visit_res_t compute_inc(value_t *operand, pos_t *poss, pos_t *pose)
 visit_res_t compute_dec(value_t *operand, pos_t *poss, pos_t *pose)
 {
     visit_res_t res;
-    res.has_error = 0;
 
     switch (operand->type)
     {

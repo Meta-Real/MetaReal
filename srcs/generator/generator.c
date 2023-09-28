@@ -410,14 +410,9 @@ char *list_sprint(char *consts, uint64_t *csize, uint64_t *calloc, value_t *valu
 
     if (sfree)
     {
-        if (value->ref)
-        {
-            mr_free(LIST_CAST(value)->elements);
-            mr_free(value->value);
-            mr_free(value);
-        }
-        else
-            value->ref--;
+        mr_free(LIST_CAST(value)->elements);
+        mr_free(value->value);
+        mr_free(value);
     }
     return consts;
 }
