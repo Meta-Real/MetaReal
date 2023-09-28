@@ -1670,6 +1670,38 @@ visit_res_t compute_eq(value_t *left, value_t *right)
 
     switch (left->type)
     {
+    case NONE_V:
+        if (right->type == NONE_V)
+        {
+            if (left->ref)
+            {
+                left->ref--;
+
+                if (right->ref)
+                {
+                    right->ref--;
+
+                    value_set(res.value, BOOL_V, (void*)1);
+                    return res;
+                }
+
+                right->type = BOOL_V;
+                right->value = (void*)1;
+                res.value = right;
+                return res;
+            }
+
+            left->type = BOOL_V;
+            left->value = (void*)1;
+            res.value = left;
+
+            value_free_vo(right);
+            return res;
+        }
+
+        value_free(right);
+        value_free_vo(left);
+        goto ret;
     case INT_V:
         switch (right->type)
         {
@@ -1762,6 +1794,38 @@ visit_res_t compute_neq(value_t *left, value_t *right)
 
     switch (left->type)
     {
+    case NONE_V:
+        if (right->type == NONE_V)
+        {
+            if (left->ref)
+            {
+                left->ref--;
+
+                if (right->ref)
+                {
+                    right->ref--;
+
+                    value_set(res.value, BOOL_V, NULL);
+                    return res;
+                }
+
+                right->type = BOOL_V;
+                right->value = NULL;
+                res.value = right;
+                return res;
+            }
+
+            left->type = BOOL_V;
+            left->value = NULL;
+            res.value = left;
+
+            value_free_vo(right);
+            return res;
+        }
+
+        value_free(right);
+        value_free_vo(left);
+        goto ret;
     case INT_V:
         switch (right->type)
         {
@@ -1855,6 +1919,12 @@ visit_res_t compute_ex_eq(value_t *left, value_t *right)
     if (left->type == right->type)
         switch (left->type)
         {
+        case NONE_V:
+            value_set(res.value, BOOL_V, (void*)1);
+
+            value_free_vo(right);
+            value_free_vo(left);
+            return res;
         case INT_V:
             bin_operation_cmp(left, right, int_eq, int_free, int_free);
         case FLOAT_V:
@@ -1882,6 +1952,12 @@ visit_res_t compute_ex_neq(value_t *left, value_t *right)
     if (left->type == right->type)
         switch (left->type)
         {
+        case NONE_V:
+            value_set(res.value, BOOL_V, NULL);
+
+            value_free_vo(right);
+            value_free_vo(left);
+            return res;
         case INT_V:
             bin_operation_cmp(left, right, int_neq, int_free, int_free);
         case FLOAT_V:
@@ -2293,6 +2369,8 @@ uint8_t compute_vneq(const value_t *left, const value_t *right)
 {
     switch (left->type)
     {
+    case NONE_V:
+        return right->type != NONE_V;
     case INT_V:
         switch (right->type)
         {

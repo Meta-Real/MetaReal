@@ -494,6 +494,8 @@ visit_res_t visit_var_assign(var_assign_node_t *node, context_t *context, pos_t 
     else
     {
         var_set(context, node->name, res.value);
+        value_addref(res.value, 1);
+
         res.value->poss = *poss;
         res.value->pose = *pose;
     }
