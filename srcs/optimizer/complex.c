@@ -169,42 +169,83 @@
         return right;                                                             \
     } while (0)
 
-#define complex_binary_ui(f)                                         \
-    do                                                               \
-    {                                                                \
-        if (left->ref)                                               \
-        {                                                            \
-            left->ref--;                                             \
-                                                                     \
-            complex_value_t *value = complex_init();                 \
-            f(value->num, COMPLEX_CAST(left), right, MPC_RNDNN);     \
-                                                                     \
-            value_t *res;                                            \
-            value_set(res, COMPLEX_V, value);                        \
-            return res;                                              \
-        }                                                            \
-                                                                     \
-        f(COMPLEX_CAST(left), COMPLEX_CAST(left), right, MPC_RNDNN); \
-        return left;                                                 \
+#define complex_binary_ui(f)                                                           \
+    do                                                                                 \
+    {                                                                                  \
+        if (left->ref)                                                                 \
+        {                                                                              \
+            left->ref--;                                                               \
+                                                                                       \
+            complex_value_t *value = complex_init();                                   \
+            f(value->num, COMPLEX_CAST(left), (uintptr_t)right->value, MPC_RNDNN);     \
+                                                                                       \
+            if (right->ref)                                                            \
+            {                                                                          \
+                right->ref--;                                                          \
+                                                                                       \
+                value_t *res;                                                          \
+                value_set(res, COMPLEX_V, value);                                      \
+                return res;                                                            \
+            }                                                                          \
+                                                                                       \
+            right->type = COMPLEX_V;                                                   \
+            right->value = value;                                                      \
+            return right;                                                              \
+        }                                                                              \
+                                                                                       \
+        f(COMPLEX_CAST(left), COMPLEX_CAST(left), (uintptr_t)right->value, MPC_RNDNN); \
+                                                                                       \
+        value_free_vo(right);                                                          \
+        return left;                                                                   \
     } while (0)
 
-#define complex_binary_ui_rev(f)                                      \
-    do                                                                \
-    {                                                                 \
-        if (right->ref)                                               \
-        {                                                             \
-            right->ref--;                                             \
-                                                                      \
-            complex_value_t *value = complex_init();                  \
-            f(value->num, left, COMPLEX_CAST(right), MPC_RNDNN);      \
-                                                                      \
-            value_t *res;                                             \
-            value_set(res, COMPLEX_V, value);                         \
-            return res;                                               \
-        }                                                             \
-                                                                      \
-        f(COMPLEX_CAST(right), left, COMPLEX_CAST(right), MPC_RNDNN); \
-        return right;                                                 \
+#define complex_binary_ui_rev(f)                                                        \
+    do                                                                                  \
+    {                                                                                   \
+        if (right->ref)                                                                 \
+        {                                                                               \
+            right->ref--;                                                               \
+                                                                                        \
+            complex_value_t *value = complex_init();                                    \
+            f(value->num, (uintptr_t)left->value, COMPLEX_CAST(right), MPC_RNDNN);      \
+                                                                                        \
+            if (left->ref)                                                              \
+            {                                                                           \
+                left->ref--;                                                            \
+                                                                                        \
+                value_t *res;                                                           \
+                value_set(res, COMPLEX_V, value);                                       \
+                return res;                                                             \
+            }                                                                           \
+                                                                                        \
+            left->type = COMPLEX_V;                                                     \
+            left->value = value;                                                        \
+            return left;                                                                \
+        }                                                                               \
+                                                                                        \
+        f(COMPLEX_CAST(right), (uintptr_t)left->value, COMPLEX_CAST(right), MPC_RNDNN); \
+                                                                                        \
+        value_free_vo(left);                                                            \
+        return right;                                                                   \
+    } while (0)
+
+#define complex_unary(f)                                       \
+    do                                                         \
+    {                                                          \
+        if (num->ref)                                          \
+        {                                                      \
+            num->ref--;                                        \
+                                                               \
+            complex_value_t *value = complex_init();           \
+            f(value->num, COMPLEX_CAST(num), 1, MPC_RNDNN);    \
+                                                               \
+            value_t *res;                                      \
+            value_set(res, COMPLEX_V, value);                  \
+            return res;                                        \
+        }                                                      \
+                                                               \
+        f(COMPLEX_CAST(num), COMPLEX_CAST(num), 1, MPC_RNDNN); \
+        return num;                                            \
     } while (0)
 
 complex_value_t *complex_init()
@@ -321,6 +362,17 @@ value_t *complex_neg(value_t *num)
     mpc_neg(COMPLEX_CAST(num), COMPLEX_CAST(num), MPC_RNDNN);
     return num;
 }
+
+value_t *complex_inc(value_t *num)
+{
+    complex_unary(mpc_add_ui);
+}
+
+value_t *complex_dec(value_t *num)
+{
+    complex_unary(mpc_sub_ui);
+}
+
 
 uint8_t complex_eq(const complex_value_t *left, const complex_value_t *right)
 {
@@ -563,62 +615,72 @@ uint8_t complex_neq_float(const complex_value_t *left, const float_value_t *righ
     return !mpfr_equal_p(mpc_realref(left->num), right->num);
 }
 
-value_t *complex_add_ui(value_t *left, uint32_t right)
+value_t *complex_add_ui(value_t *left, value_t *right)
 {
     complex_binary_ui(mpc_add_ui);
 }
 
-value_t *complex_sub_ui(value_t *left, uint32_t right)
+value_t *complex_sub_ui(value_t *left, value_t *right)
 {
     complex_binary_ui(mpc_sub_ui);
 }
 
-value_t *complex_ui_sub(uint32_t left, value_t *right)
+value_t *complex_ui_sub(value_t *left, value_t *right)
 {
     complex_binary_ui_rev(mpc_ui_sub);
 }
 
-value_t *complex_mul_ui(value_t *left, uint32_t right)
+value_t *complex_mul_ui(value_t *left, value_t *right)
 {
     complex_binary_ui(mpc_mul_ui);
 }
 
-value_t *complex_div_ui(value_t *left, uint32_t right)
+value_t *complex_div_ui(value_t *left, value_t *right)
 {
     complex_binary_ui(mpc_div_ui);
 }
 
-value_t *complex_ui_div(uint32_t left, value_t *right)
+value_t *complex_ui_div(value_t *left, value_t *right)
 {
     complex_binary_ui_rev(mpc_ui_div);
 }
 
-value_t *complex_pow_ui(value_t *left, uint32_t right)
+value_t *complex_pow_ui(value_t *left, value_t *right)
 {
     complex_binary_ui(mpc_pow_ui);
 }
 
-value_t *complex_ui_pow(uint32_t left, value_t *right)
+value_t *complex_ui_pow(value_t *left, value_t *right)
 {
     if (right->ref)
     {
         right->ref--;
 
-        complex_value_t *value = complex_set_ui(left);
+        complex_value_t *value = complex_set_ui((uintptr_t)left->value);
         mpc_pow(value->num, value->num, COMPLEX_CAST(right), MPC_RNDNN);
 
-        value_t *res;
-        value_set(res, COMPLEX_V, value);
-        return res;
+        if (left->ref)
+        {
+            left->ref--;
+
+            value_t *res;
+            value_set(res, COMPLEX_V, value);
+            return res;
+        }
+
+        left->type = COMPLEX_V;
+        left->value = value;
+        return left;
     }
 
     mpc_t lcomplex;
     mpc_init2(lcomplex, 64);
-    mpc_set_ui(lcomplex, left, MPC_RNDNN);
+    mpc_set_ui(lcomplex, (uintptr_t)left->value, MPC_RNDNN);
 
     mpc_pow(COMPLEX_CAST(right), lcomplex, COMPLEX_CAST(right), MPC_RNDNN);
 
     mpc_clear(lcomplex);
+    value_free_vo(left);
     return right;
 }
 

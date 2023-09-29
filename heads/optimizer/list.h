@@ -27,8 +27,10 @@ void list_print(const list_value_t *list, char lbrace, char rbrace);
 
 value_t *list_append(value_t *list, value_t *element);
 value_t *list_concat(value_t *left, value_t *right);
-value_t *list_remove(value_t *list, uint64_t index);
-value_t *list_repeat(value_t *list, uint64_t count);
+value_t *list_remove_int(value_t *list, value_t *ptr, uint64_t index);
+value_t *list_remove_ui(value_t *list, value_t *index);
+value_t *list_repeat_int(value_t *list, value_t *ptr);
+value_t *list_repeat_ui(value_t *list, value_t *count);
 
 uint8_t list_eq(const list_value_t *left, const list_value_t *right);
 uint8_t list_neq(const list_value_t *left, const list_value_t *right);

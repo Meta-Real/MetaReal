@@ -36,6 +36,8 @@ value_t *complex_div(value_t *left, value_t *right);
 value_t *complex_pow(value_t *left, value_t *right);
 
 value_t *complex_neg(value_t *num);
+value_t *complex_inc(value_t *num);
+value_t *complex_dec(value_t *num);
 
 uint8_t complex_eq(const complex_value_t *left, const complex_value_t *right);
 uint8_t complex_neq(const complex_value_t *left, const complex_value_t *right);
@@ -64,14 +66,14 @@ uint8_t complex_neq_int(const complex_value_t *left, const int_value_t *right);
 uint8_t complex_eq_float(const complex_value_t *left, const float_value_t *right);
 uint8_t complex_neq_float(const complex_value_t *left, const float_value_t *right);
 
-value_t *complex_add_ui(value_t *left, uint32_t right);
-value_t *complex_sub_ui(value_t *left, uint32_t right);
-value_t *complex_ui_sub(uint32_t left, value_t *right);
-value_t *complex_mul_ui(value_t *left, uint32_t right);
-value_t *complex_div_ui(value_t *left, uint32_t right);
-value_t *complex_ui_div(uint32_t left, value_t *right);
-value_t *complex_pow_ui(value_t *left, uint32_t right);
-value_t *complex_ui_pow(uint32_t left, value_t *right);
+value_t *complex_add_ui(value_t *left, value_t *right);
+value_t *complex_sub_ui(value_t *left, value_t *right);
+value_t *complex_ui_sub(value_t *left, value_t *right);
+value_t *complex_mul_ui(value_t *left, value_t *right);
+value_t *complex_div_ui(value_t *left, value_t *right);
+value_t *complex_ui_div(value_t *left, value_t *right);
+value_t *complex_pow_ui(value_t *left, value_t *right);
+value_t *complex_ui_pow(value_t *left, value_t *right);
 
 uint8_t complex_eq_ui(const complex_value_t *left, uint32_t right);
 uint8_t complex_neq_ui(const complex_value_t *left, uint32_t right);

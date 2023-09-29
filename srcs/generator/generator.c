@@ -370,20 +370,23 @@ dynamic:
 
 char *list_sprint(char *consts, uint64_t *csize, uint64_t *calloc, value_t *value, char lbrace, char rbrace, uint8_t sfree)
 {
+    if (sfree && value->ref)
+    {
+        value->ref--;
+        sfree = 0;
+    }
+
     if (!value->value)
     {
         if (*csize + 2 > *calloc)
             consts = mr_realloc(consts, *calloc += GEN_CONSTS_LEN);
 
-        consts[*csize++] = lbrace;
-        consts[*csize++] = rbrace;
-        return consts;
-    }
+        consts[(*csize)++] = lbrace;
+        consts[(*csize)++] = rbrace;
 
-    if (sfree && value->ref)
-    {
-        value->ref--;
-        sfree = 0;
+        if (sfree)
+            mr_free(value);
+        return consts;
     }
 
     if (*csize == *calloc)

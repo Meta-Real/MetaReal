@@ -24,6 +24,7 @@
         "string_view": "c",
         "ios": "c",
         "optional": "c",
-        "system_error": "c"
+        "system_error": "c",
+        "xmemory": "c"
     }
 }

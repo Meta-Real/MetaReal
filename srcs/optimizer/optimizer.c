@@ -565,10 +565,14 @@ visit_res_t visit_var_modify(bin_operation_node_t *node, context_t *context, pos
             return res;
         }
 
-        if (context->vars[ptr].value)
-            value_free(context->vars[ptr].value);
+        if ((uintptr_t)res.value->value != ptr)
+        {
+            if (context->vars[ptr].value)
+                value_free(context->vars[ptr].value);
 
-        context->vars[ptr].value = res.value;
+            context->vars[ptr].value = res.value;
+        }
+
         if (!prop)
         {
             res.value = context->vars[(uintptr_t)res.value->value].value;

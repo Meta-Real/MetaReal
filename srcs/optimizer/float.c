@@ -135,42 +135,115 @@
         return left;                                           \
     } while (0)
 
-#define float_binary_ui(f)                                       \
-    do                                                           \
-    {                                                            \
-        if (left->ref)                                           \
-        {                                                        \
-            left->ref--;                                         \
-                                                                 \
-            float_value_t *value = float_init();                 \
-            f(value->num, FLOAT_CAST(left), right, MPFR_RNDN);   \
-                                                                 \
-            value_t *res;                                        \
-            value_set(res, FLOAT_V, value);                      \
-            return res;                                          \
-        }                                                        \
-                                                                 \
-        f(FLOAT_CAST(left), FLOAT_CAST(left), right, MPFR_RNDN); \
-        return left;                                             \
+#define float_binary_ui(f)                                                         \
+    do                                                                             \
+    {                                                                              \
+        if (left->ref)                                                             \
+        {                                                                          \
+            left->ref--;                                                           \
+                                                                                   \
+            float_value_t *value = float_init();                                   \
+            f(value->num, FLOAT_CAST(left), (uintptr_t)right->value, MPFR_RNDN);   \
+                                                                                   \
+            if (right->ref)                                                        \
+            {                                                                      \
+                right->ref--;                                                      \
+                                                                                   \
+                value_t *res;                                                      \
+                value_set(res, FLOAT_V, value);                                    \
+                return res;                                                        \
+            }                                                                      \
+                                                                                   \
+            right->type = FLOAT_V;                                                 \
+            right->value = value;                                                  \
+            return right;                                                          \
+        }                                                                          \
+                                                                                   \
+        f(FLOAT_CAST(left), FLOAT_CAST(left), (uintptr_t)right->value, MPFR_RNDN); \
+                                                                                   \
+        value_free_vo(right);                                                      \
+        return left;                                                               \
     } while (0)
 
-#define float_binary_ui_rev(f)                                    \
-    do                                                            \
-    {                                                             \
-        if (right->ref)                                           \
-        {                                                         \
-            right->ref--;                                         \
-                                                                  \
-            float_value_t *value = float_init();                  \
-            f(value->num, left, FLOAT_CAST(right), MPFR_RNDN);    \
-                                                                  \
-            value_t *res;                                         \
-            value_set(res, FLOAT_V, value);                       \
-            return res;                                           \
-        }                                                         \
-                                                                  \
-        f(FLOAT_CAST(right), left, FLOAT_CAST(right), MPFR_RNDN); \
-        return right;                                             \
+#define float_binary_ui_rev(f)                                                      \
+    do                                                                              \
+    {                                                                               \
+        if (right->ref)                                                             \
+        {                                                                           \
+            right->ref--;                                                           \
+                                                                                    \
+            float_value_t *value = float_init();                                    \
+            f(value->num, (uintptr_t)right->value, FLOAT_CAST(left), MPFR_RNDN);    \
+                                                                                    \
+            if (left->ref)                                                          \
+            {                                                                       \
+                left->ref--;                                                        \
+                                                                                    \
+                value_t *res;                                                       \
+                value_set(res, FLOAT_V, value);                                     \
+                return res;                                                         \
+            }                                                                       \
+                                                                                    \
+            left->type = FLOAT_V;                                                   \
+            left->value = value;                                                    \
+            return left;                                                            \
+        }                                                                           \
+                                                                                    \
+        f(FLOAT_CAST(right), (uintptr_t)left->value, FLOAT_CAST(right), MPFR_RNDN); \
+                                                                                    \
+        value_free_vo(left);                                                        \
+        return right;                                                               \
+    } while (0)
+
+#define float_binary_ui2(f)                                          \
+    do                                                               \
+    {                                                                \
+        float_value_t *value = float_set_ui((uintptr_t)left->value); \
+        f(value->num, value->num, INT_CAST(right), MPFR_RNDN);       \
+                                                                     \
+        if (right->ref)                                              \
+        {                                                            \
+            right->ref--;                                            \
+                                                                     \
+            if (left->ref)                                           \
+            {                                                        \
+                left->ref--;                                         \
+                                                                     \
+                value_t *res;                                        \
+                value_set(res, FLOAT_V, value);                      \
+                return res;                                          \
+            }                                                        \
+                                                                     \
+            left->type = FLOAT_V;                                    \
+            left->value = value;                                     \
+            return left;                                             \
+        }                                                            \
+                                                                     \
+        int_free(right->value);                                      \
+        right->type = FLOAT_V;                                       \
+        right->value = value;                                        \
+                                                                     \
+        value_free_vo(left);                                         \
+        return right;                                                \
+    } while (0)
+
+#define float_unary(f)                                     \
+    do                                                     \
+    {                                                      \
+        if (num->ref)                                      \
+        {                                                  \
+            num->ref--;                                    \
+                                                           \
+            float_value_t *value = float_init();           \
+            f(value->num, FLOAT_CAST(num), 1, MPFR_RNDN);  \
+                                                           \
+            value_t *res;                                  \
+            value_set(res, FLOAT_V, value);                \
+            return res;                                    \
+        }                                                  \
+                                                           \
+        f(FLOAT_CAST(num), FLOAT_CAST(num), 1, MPFR_RNDN); \
+        return num;                                        \
     } while (0)
 
 float_value_t *float_init()
@@ -321,6 +394,16 @@ value_t *float_neg(value_t *num)
 
     mpfr_neg(FLOAT_CAST(num), FLOAT_CAST(num), MPFR_RNDN);
     return num;
+}
+
+value_t *float_inc(value_t *num)
+{
+    float_unary(mpfr_add_ui);
+}
+
+value_t *float_dec(value_t *num)
+{
+    float_unary(mpfr_sub_ui);
 }
 
 uint8_t float_eq(const float_value_t *left, const float_value_t *right)
@@ -591,135 +674,171 @@ uint8_t float_gte_int(const float_value_t *left, const int_value_t *right)
     return mpfr_cmp_z(left->num, right->num) >= 0;
 }
 
-value_t *float_add_ui(value_t *left, uint32_t right)
+value_t *float_add_ui(value_t *left, value_t *right)
 {
     float_binary_ui(mpfr_add_ui);
 }
 
-value_t *float_sub_ui(value_t *left, uint32_t right)
+value_t *float_sub_ui(value_t *left, value_t *right)
 {
     float_binary_ui(mpfr_sub_ui);
 }
 
-value_t *float_ui_sub(uint32_t left, value_t *right)
+value_t *float_ui_sub(value_t *left, value_t *right)
 {
     float_binary_ui_rev(mpfr_ui_sub);
 }
 
-value_t *float_mul_ui(value_t *left, uint32_t right)
+value_t *float_mul_ui(value_t *left, value_t *right)
 {
     float_binary_ui(mpfr_mul_ui);
 }
 
-value_t *float_div_ui(value_t *left, uint32_t right)
+value_t *float_div_ui(value_t *left, value_t *right)
 {
     float_binary_ui(mpfr_div_ui);
 }
 
-value_t *float_ui_div(uint32_t left, value_t *right)
+value_t *float_ui_div(value_t *left, value_t *right)
 {
     float_binary_ui_rev(mpfr_ui_div);
 }
 
-value_t *float_int_div_ui(value_t *left, uint32_t right)
+value_t *float_int_div_ui(value_t *left, value_t *right)
 {
     float_value_t *value = float_set_int(left->value);
-    mpfr_div_ui(value->num, value->num, right, MPFR_RNDN);
+    mpfr_div_ui(value->num, value->num, (uintptr_t)right->value, MPFR_RNDN);
 
     if (left->ref)
     {
         left->ref--;
 
-        value_t *res;
-        value_set(res, FLOAT_V, value);
-        return res;
+        if (right->ref)
+        {
+            right->ref--;
+
+            value_t *res;
+            value_set(res, FLOAT_V, value);
+            return res;
+        }
+
+        right->type = FLOAT_V;
+        right->value = value;
+        return right;
     }
 
     int_free(left->value);
     left->type = FLOAT_V;
     left->value = value;
+
+    value_free_vo(right);
     return left;
 }
 
-value_t *float_ui_div_int(uint32_t left, value_t *right)
+value_t *float_ui_div_int(value_t *left, value_t *right)
 {
-    float_value_t *value = float_set_ui(left);
-    mpfr_div_z(value->num, value->num, INT_CAST(right), MPFR_RNDN);
+    float_binary_ui2(mpfr_div_z);
+}
 
-    if (right->ref)
+value_t *float_ui_div_ui(value_t *left, value_t *right)
+{
+    float_value_t *value = float_set_ui((uintptr_t)left->value);
+    mpfr_div_ui(value->num, value->num, (uintptr_t)right->value, MPFR_RNDN);
+
+    if (left->ref)
     {
-        right->ref--;
+        left->ref--;
 
-        value_t *res;
-        value_set(res, FLOAT_V, value);
-        return res;
+        if (right->ref)
+        {
+            right->ref--;
+
+            value_t *res;
+            value_set(res, FLOAT_V, value);
+            return res;
+        }
+
+        right->type = FLOAT_V;
+        right->value = value;
+        return right;
     }
 
-    int_free(right->value);
-    right->type = FLOAT_V;
-    right->value = value;
-    return right;
+    left->type = FLOAT_V;
+    left->value = value;
+
+    value_free_vo(right);
+    return left;
 }
 
-value_t *float_ui_div_ui(uint32_t left, uint32_t right)
-{
-    float_value_t *value = float_set_ui(left);
-    mpfr_div_ui(value->num, value->num, right, MPFR_RNDN);
-
-    value_t *res;
-    value_set(res, FLOAT_V, value);
-    return res;
-}
-
-value_t *float_mod_ui(value_t *left, uint32_t right)
+value_t *float_mod_ui(value_t *left, value_t *right)
 {
     if (left->ref)
     {
         left->ref--;
 
-        float_value_t *value = float_set_ui(right);
+        float_value_t *value = float_set_ui((uintptr_t)right->value);
         mpfr_remainder(value->num, FLOAT_CAST(left), value->num, MPFR_RNDN);
 
-        value_t *res;
-        value_set(res, FLOAT_V, value);
-        return res;
+        if (right->ref)
+        {
+            right->ref--;
+
+            value_t *res;
+            value_set(res, FLOAT_V, value);
+            return res;
+        }
+
+        right->type = FLOAT_V;
+        right->value = value;
+        return right;
     }
 
     mpfr_t rfloat;
     mpfr_init2(rfloat, 64);
-    mpfr_set_ui(rfloat, right, MPFR_RNDN);
+    mpfr_set_ui(rfloat, (uintptr_t)right->value, MPFR_RNDN);
 
     mpfr_remainder(FLOAT_CAST(left), FLOAT_CAST(left), rfloat, MPFR_RNDN);
 
     mpfr_clear(rfloat);
+    value_free_vo(right);
     return left;
 }
 
-value_t *float_ui_mod(uint32_t left, value_t *right)
+value_t *float_ui_mod(value_t *left, value_t *right)
 {
     if (right->ref)
     {
         right->ref--;
 
-        float_value_t *value = float_set_ui(left);
+        float_value_t *value = float_set_ui((uintptr_t)left->value);
         mpfr_remainder(value->num, value->num, FLOAT_CAST(right), MPFR_RNDN);
 
-        value_t *res;
-        value_set(res, FLOAT_V, value);
-        return res;
+        if (left->ref)
+        {
+            left->ref--;
+
+            value_t *res;
+            value_set(res, FLOAT_V, value);
+            return res;
+        }
+
+        left->type = FLOAT_V;
+        left->value = value;
+        return left;
     }
 
     mpfr_t lfloat;
     mpfr_init2(lfloat, 64);
-    mpfr_set_ui(lfloat, left, MPFR_RNDN);
+    mpfr_set_ui(lfloat, (uintptr_t)left->value, MPFR_RNDN);
 
     mpfr_remainder(FLOAT_CAST(right), lfloat, FLOAT_CAST(right), MPFR_RNDN);
 
     mpfr_clear(lfloat);
+    value_free_vo(left);
     return right;
 }
 
-value_t *float_quot_ui(value_t *left, uint32_t right)
+value_t *float_quot_ui(value_t *left, value_t *right)
 {
     int_value_t *value = int_init();
 
@@ -729,26 +848,39 @@ value_t *float_quot_ui(value_t *left, uint32_t right)
 
         mpfr_t tmp;
         mpfr_init2(tmp, 64);
-        mpfr_div_ui(tmp, FLOAT_CAST(left), right, MPFR_RNDN);
+        mpfr_div_ui(tmp, FLOAT_CAST(left), (uintptr_t)right->value, MPFR_RNDN);
         mpfr_get_z(value->num, tmp, MPFR_RNDZ);
 
-        value_t *res;
-        value_set(res, INT_V, value);
+        if (right->ref)
+        {
+            right->ref--;
+
+            value_t *res;
+            value_set(res, INT_V, value);
+
+            mpfr_clear(tmp);
+            return res;
+        }
+
+        right->type = INT_V;
+        right->value = value;
 
         mpfr_clear(tmp);
-        return res;
+        return right;
     }
 
-    mpfr_div_ui(FLOAT_CAST(left), FLOAT_CAST(left), right, MPFR_RNDN);
+    mpfr_div_ui(FLOAT_CAST(left), FLOAT_CAST(left), (uintptr_t)right->value, MPFR_RNDN);
     mpfr_get_z(value->num, FLOAT_CAST(left), MPFR_RNDZ);
 
     float_free(left->value);
     left->type = INT_V;
     left->value = value;
+
+    value_free_vo(right);
     return left;
 }
 
-value_t *float_ui_quot(uint32_t left, value_t *right)
+value_t *float_ui_quot(value_t *left, value_t *right)
 {
     int_value_t *value = int_init();
 
@@ -758,53 +890,51 @@ value_t *float_ui_quot(uint32_t left, value_t *right)
 
         mpfr_t tmp;
         mpfr_init2(tmp, 64);
-        mpfr_ui_div(tmp, left, FLOAT_CAST(right), MPFR_RNDN);
+        mpfr_ui_div(tmp, (uintptr_t)left->value, FLOAT_CAST(right), MPFR_RNDN);
         mpfr_get_z(value->num, tmp, MPFR_RNDZ);
 
-        value_t *res;
-        value_set(res, INT_V, value);
+        if (left->ref)
+        {
+            left->ref--;
+
+            value_t *res;
+            value_set(res, INT_V, value);
+
+            mpfr_clear(tmp);
+            return res;
+        }
+
+        left->type = INT_V;
+        left->value = value;
 
         mpfr_clear(tmp);
-        return res;
+        return left;
     }
 
-    mpfr_ui_div(FLOAT_CAST(right), left, FLOAT_CAST(right), MPFR_RNDN);
+    mpfr_ui_div(FLOAT_CAST(right), (uintptr_t)left->value, FLOAT_CAST(right), MPFR_RNDN);
     mpfr_get_z(value->num, FLOAT_CAST(right), MPFR_RNDZ);
 
     float_free(right->value);
     right->type = INT_V;
     right->value = value;
+
+    value_free_vo(left);
     return right;
 }
 
-value_t *float_pow_ui(value_t *left, uint32_t right)
+value_t *float_pow_ui(value_t *left, value_t *right)
 {
     float_binary_ui(mpfr_pow_ui);
 }
 
-value_t *float_ui_pow(uint32_t left, value_t *right)
+value_t *float_ui_pow(value_t *left, value_t *right)
 {
     float_binary_ui_rev(mpfr_ui_pow);
 }
 
-value_t *float_ui_pow_int(uint32_t left, value_t *right)
+value_t *float_ui_pow_int(value_t *left, value_t *right)
 {
-    float_value_t *value = float_set_ui(left);
-    mpfr_pow_z(value->num, value->num, INT_CAST(right), MPFR_RNDN);
-
-    if (right->ref)
-    {
-        right->ref--;
-
-        value_t *res;
-        value_set(res, FLOAT_V, value);
-        return res;
-    }
-
-    int_free(right->value);
-    right->type = FLOAT_V;
-    right->value = value;
-    return right;
+    float_binary_ui2(mpfr_pow_z);
 }
 
 uint8_t float_eq_ui(const float_value_t *left, uint32_t right)

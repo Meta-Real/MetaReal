@@ -347,7 +347,7 @@ uint8_t check_id(const char *id, uint64_t len)
         return ID_T;
 
     uint8_t j;
-    for (uint8_t i = 0; i < 5; i++)
+    for (uint8_t i = 0; i < 6; i++)
     {
         if (len != keyword_lens[i])
             continue;

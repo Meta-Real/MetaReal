@@ -164,7 +164,7 @@ value_t *list_concat(value_t *left, value_t *right)
     return left;
 }
 
-value_t *list_remove(value_t *list, uint64_t index)
+value_t *list_remove_int(value_t *list, value_t *ptr, uint64_t index)
 {
     if (LIST_CAST(list)->size == 1)
     {
@@ -172,15 +172,27 @@ value_t *list_remove(value_t *list, uint64_t index)
         {
             list->ref--;
 
-            value_t *res;
-            value_set(res, LIST_V, NULL);
-            return res;
+            if (ptr->ref)
+            {
+                ptr->ref--;
+
+                value_t *res;
+                value_set(res, LIST_V, NULL);
+                return res;
+            }
+
+            int_free(ptr->value);
+            ptr->type = LIST_V;
+            ptr->value = NULL;
+            return ptr;
         }
 
         value_free(*LIST_CAST(list)->elements);
         mr_free(LIST_CAST(list)->elements);
         mr_free(list->value);
         list->value = NULL;
+
+        value_free_ts(ptr, int_free);
         return list;
     }
 
@@ -202,9 +214,19 @@ value_t *list_remove(value_t *list, uint64_t index)
             value_addref(value->elements[i], 1);
         }
 
-        value_t *res;
-        value_set(res, LIST_V, value);
-        return res;
+        if (ptr->ref)
+        {
+            ptr->ref--;
+
+            value_t *res;
+            value_set(res, LIST_V, value);
+            return res;
+        }
+
+        int_free(ptr->value);
+        ptr->type = LIST_V;
+        ptr->value = value;
+        return ptr;
     }
 
     value_free(LIST_CAST(list)->elements[index]);
@@ -214,22 +236,114 @@ value_t *list_remove(value_t *list, uint64_t index)
         LIST_CAST(list)->elements[i] = LIST_CAST(list)->elements[index];
 
     LIST_CAST(list)->elements = mr_realloc(LIST_CAST(list)->elements, LIST_CAST(list)->size * sizeof(value_t));
+
+    value_free_ts(ptr, int_free);
     return list;
 }
 
-value_t *list_repeat(value_t *list, uint64_t count)
+value_t *list_remove_ui(value_t *list, value_t *index)
 {
-    if (!list->value || count == 1)
+    if (LIST_CAST(list)->size == 1)
+    {
+        if (list->ref)
+        {
+            list->ref--;
+
+            if (index->ref)
+            {
+                index->ref--;
+
+                value_t *res;
+                value_set(res, LIST_V, NULL);
+                return res;
+            }
+
+            index->type = LIST_V;
+            index->value = NULL;
+            return index;
+        }
+
+        value_free(*LIST_CAST(list)->elements);
+        mr_free(LIST_CAST(list)->elements);
+        mr_free(list->value);
+        list->value = NULL;
+
+        value_free_vo(index);
         return list;
+    }
+
+    if (list->ref)
+    {
+        list->ref--;
+
+        list_value_t *value = list_set(LIST_CAST(list)->size - 1);
+
+        uint64_t i;
+        for (i = 0; i < (uintptr_t)index->value; i++)
+        {
+            value->elements[i] = LIST_CAST(list)->elements[i];
+            value_addref(value->elements[i], 1);
+        }
+        for (; i < value->size; i++)
+        {
+            value->elements[i] = LIST_CAST(list)->elements[i + 1];
+            value_addref(value->elements[i], 1);
+        }
+
+        if (index->ref)
+        {
+            index->ref--;
+
+            value_t *res;
+            value_set(res, LIST_V, value);
+            return res;
+        }
+
+        index->type = LIST_V;
+        index->value = value;
+        return index;
+    }
+
+    value_free(LIST_CAST(list)->elements[(uintptr_t)index->value]);
+    LIST_CAST(list)->size--;
+
+    for (uint64_t i = (uintptr_t)index->value; i < LIST_CAST(list)->size; i++)
+        LIST_CAST(list)->elements[i] = LIST_CAST(list)->elements[i + 1];
+
+    LIST_CAST(list)->elements = mr_realloc(LIST_CAST(list)->elements, LIST_CAST(list)->size * sizeof(value_t));
+
+    value_free_vo(index);
+    return list;
+}
+
+value_t *list_repeat_int(value_t *list, value_t *ptr)
+{
+    uint64_t count = int_get_ull(ptr->value);
+
+    if (count == 1)
+    {
+        value_free_ts(ptr, int_free);
+        return list;
+    }
     if (!count)
     {
         if (list->ref)
         {
             list->ref--;
 
-            value_t *res;
-            value_set(res, LIST_V, NULL);
-            return res;
+            if (ptr->ref)
+            {
+                ptr->ref--;
+
+                value_t *res;
+                value_set(res, LIST_V, NULL);
+                return res;
+            }
+
+            int_free(ptr->value);
+            ptr->type = LIST_V;
+            ptr->value = NULL;
+            return ptr;
         }
 
         while (LIST_CAST(list)->size)
@@ -237,6 +351,8 @@ value_t *list_repeat(value_t *list, uint64_t count)
         mr_free(LIST_CAST(list)->elements);
         mr_free(list->value);
         list->value = NULL;
+
+        value_free_ts(ptr, int_free);
         return list;
     }
 
@@ -256,9 +372,19 @@ value_t *list_repeat(value_t *list, uint64_t count)
             for (j = 0; j < LIST_CAST(list)->size; i++, j++)
                 value->elements[i] = value->elements[j];
 
-        value_t *res;
-        value_set(res, LIST_V, value);
-        return res;
+        if (ptr->ref)
+        {
+            ptr->ref--;
+
+            value_t *res;
+            value_set(res, LIST_V, value);
+            return res;
+        }
+
+        int_free(ptr->value);
+        ptr->type = LIST_V;
+        ptr->value = value;
+        return ptr;
     }
 
     uint64_t size = LIST_CAST(list)->size * count;
@@ -272,6 +398,91 @@ value_t *list_repeat(value_t *list, uint64_t count)
             LIST_CAST(list)->elements[i] = LIST_CAST(list)->elements[j];
 
     LIST_CAST(list)->size = size;
+
+    value_free_ts(ptr, int_free);
+    return list;
+}
+
+value_t *list_repeat_ui(value_t *list, value_t *count)
+{
+    if ((uintptr_t)count->value == 1)
+    {
+        value_free_vo(count);
+        return list;
+    }
+    if (!(uintptr_t)count->value)
+    {
+        if (list->ref)
+        {
+            list->ref--;
+
+            if (count->ref)
+            {
+                count->ref--;
+
+                value_t *res;
+                value_set(res, LIST_V, NULL);
+                return res;
+            }
+
+            count->type = LIST_V;
+            count->value = NULL;
+            return count;
+        }
+
+        while (LIST_CAST(list)->size)
+            value_free(LIST_CAST(list)->elements[--LIST_CAST(list)->size]);
+        mr_free(LIST_CAST(list)->elements);
+        mr_free(list->value);
+        list->value = NULL;
+
+        value_free_vo(count);
+        return list;
+    }
+
+    if (list->ref)
+    {
+        list->ref--;
+
+        list_value_t *value = list_set(LIST_CAST(list)->size * (uintptr_t)count->value);
+
+        uint64_t i, j;
+        for (i = 0; i < LIST_CAST(list)->size; i++)
+        {
+            value->elements[i] = LIST_CAST(list)->elements[i];
+            value_addref(value->elements[i], (uintptr_t)count->value);
+        }
+        for (; i < value->size;)
+            for (j = 0; j < LIST_CAST(list)->size; i++, j++)
+                value->elements[i] = value->elements[j];
+
+        if (count->ref)
+        {
+            count->ref--;
+
+            value_t *res;
+            value_set(res, LIST_V, value);
+            return res;
+        }
+
+        count->type = LIST_V;
+        count->value = value;
+        return count;
+    }
+
+    uint64_t size = LIST_CAST(list)->size * (uintptr_t)count->value;
+    LIST_CAST(list)->elements = mr_realloc(LIST_CAST(list)->elements, size * sizeof(value_t*));
+
+    uint64_t i, j;
+    for (i = 0; i < LIST_CAST(list)->size; i++)
+        value_addref(LIST_CAST(list)->elements[i], (uintptr_t)count->value - 1);
+    for (; i < size;)
+        for (j = 0; j < LIST_CAST(list)->size; i++, j++)
+            LIST_CAST(list)->elements[i] = LIST_CAST(list)->elements[j];
+
+    LIST_CAST(list)->size = size;
+
+    value_free_vo(count);
     return list;
 }
 

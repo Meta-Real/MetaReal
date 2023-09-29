@@ -38,6 +38,8 @@ value_t *float_quot(value_t *left, value_t *right);
 value_t *float_pow(value_t *left, value_t *right);
 
 value_t *float_neg(value_t *num);
+value_t *float_inc(value_t *num);
+value_t *float_dec(value_t *num);
 
 uint8_t float_eq(const float_value_t *left, const float_value_t *right);
 uint8_t float_neq(const float_value_t *left, const float_value_t *right);
@@ -68,22 +70,22 @@ uint8_t float_gt_int(const float_value_t *left, const int_value_t *right);
 uint8_t float_lte_int(const float_value_t *left, const int_value_t *right);
 uint8_t float_gte_int(const float_value_t *left, const int_value_t *right);
 
-value_t *float_add_ui(value_t *left, uint32_t right);
-value_t *float_sub_ui(value_t *left, uint32_t right);
-value_t *float_ui_sub(uint32_t left, value_t *right);
-value_t *float_mul_ui(value_t *left, uint32_t right);
-value_t *float_div_ui(value_t *left, uint32_t right);
-value_t *float_ui_div(uint32_t left, value_t *right);
-value_t *float_int_div_ui(value_t *left, uint32_t right);
-value_t *float_ui_div_int(uint32_t left, value_t *right);
-value_t *float_ui_div_ui(uint32_t left, uint32_t right);
-value_t *float_mod_ui(value_t *left, uint32_t right);
-value_t *float_ui_mod(uint32_t left, value_t *right);
-value_t *float_quot_ui(value_t *left, uint32_t right);
-value_t *float_ui_quot(uint32_t left, value_t *right);
-value_t *float_pow_ui(value_t *left, uint32_t right);
-value_t *float_ui_pow(uint32_t left, value_t *right);
-value_t *float_ui_pow_int(uint32_t left, value_t *right);
+value_t *float_add_ui(value_t *left, value_t *right);
+value_t *float_sub_ui(value_t *left, value_t *right);
+value_t *float_ui_sub(value_t *left, value_t *right);
+value_t *float_mul_ui(value_t *left, value_t *right);
+value_t *float_div_ui(value_t *left, value_t *right);
+value_t *float_ui_div(value_t *left, value_t *right);
+value_t *float_int_div_ui(value_t *left, value_t *right);
+value_t *float_ui_div_int(value_t *left, value_t *right);
+value_t *float_ui_div_ui(value_t *left, value_t *right);
+value_t *float_mod_ui(value_t *left, value_t *right);
+value_t *float_ui_mod(value_t *left, value_t *right);
+value_t *float_quot_ui(value_t *left, value_t *right);
+value_t *float_ui_quot(value_t *left, value_t *right);
+value_t *float_pow_ui(value_t *left, value_t *right);
+value_t *float_ui_pow(value_t *left, value_t *right);
+value_t *float_ui_pow_int(value_t *left, value_t *right);
 
 uint8_t float_eq_ui(const float_value_t *left, uint32_t right);
 uint8_t float_neq_ui(const float_value_t *left, uint32_t right);
