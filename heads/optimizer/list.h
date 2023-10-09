@@ -8,7 +8,7 @@
 #include <optimizer/value.h>
 #include <optimizer/int.h>
 
-#define LIST_MAX_SIZE ((uint64_t)-1 / sizeof(value_t))
+#define LIST_MAX_SIZE ((uint64_t)-1 / sizeof(value_t*))
 
 struct __LIST_VALUE_T
 {

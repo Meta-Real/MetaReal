@@ -87,7 +87,7 @@ value_t *list_append(value_t *list, value_t *element)
         return res;
     }
 
-    LIST_CAST(list)->elements = mr_realloc(LIST_CAST(list)->elements, (LIST_CAST(list)->size + 1) * sizeof(value_t));
+    LIST_CAST(list)->elements = mr_realloc(LIST_CAST(list)->elements, (LIST_CAST(list)->size + 1) * sizeof(value_t*));
     LIST_CAST(list)->elements[LIST_CAST(list)->size++] = element;
     return list;
 }
@@ -235,7 +235,7 @@ value_t *list_remove_int(value_t *list, value_t *ptr, uint64_t index)
     for (uint64_t i = index++; i < LIST_CAST(list)->size; i++, index++)
         LIST_CAST(list)->elements[i] = LIST_CAST(list)->elements[index];
 
-    LIST_CAST(list)->elements = mr_realloc(LIST_CAST(list)->elements, LIST_CAST(list)->size * sizeof(value_t));
+    LIST_CAST(list)->elements = mr_realloc(LIST_CAST(list)->elements, LIST_CAST(list)->size * sizeof(value_t*));
 
     value_free_ts(ptr, int_free);
     return list;
@@ -310,7 +310,7 @@ value_t *list_remove_ui(value_t *list, value_t *index)
     for (uint64_t i = (uintptr_t)index->value; i < LIST_CAST(list)->size; i++)
         LIST_CAST(list)->elements[i] = LIST_CAST(list)->elements[i + 1];
 
-    LIST_CAST(list)->elements = mr_realloc(LIST_CAST(list)->elements, LIST_CAST(list)->size * sizeof(value_t));
+    LIST_CAST(list)->elements = mr_realloc(LIST_CAST(list)->elements, LIST_CAST(list)->size * sizeof(value_t*));
 
     value_free_vo(index);
     return list;

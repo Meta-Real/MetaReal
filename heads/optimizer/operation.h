@@ -9,41 +9,39 @@
 
 /* binary operations */
 
-visit_res_t compute_add(value_t *left, value_t *right);
-visit_res_t compute_sub(value_t *left, value_t *right);
-visit_res_t compute_mul(value_t *left, value_t *right);
-visit_res_t compute_div(value_t *left, value_t *right);
-visit_res_t compute_mod(value_t *left, value_t *right);
-visit_res_t compute_quot(value_t *left, value_t *right);
-visit_res_t compute_pow(value_t *left, value_t *right);
+void compute_add(visit_res_t *res, value_t *left, value_t *right);
+void compute_sub(visit_res_t *res, value_t *left, value_t *right);
+void compute_mul(visit_res_t *res, value_t *left, value_t *right);
+void compute_div(visit_res_t *res, value_t *left, value_t *right);
+void compute_mod(visit_res_t *res, value_t *left, value_t *right);
+void compute_quot(visit_res_t *res, value_t *left, value_t *right);
+void compute_pow(visit_res_t *res, value_t *left, value_t *right);
 
-visit_res_t compute_b_and(value_t *left, value_t *right);
-visit_res_t compute_b_or(value_t *left, value_t *right);
-visit_res_t compute_b_xor(value_t *left, value_t *right);
-visit_res_t compute_lshift(value_t *left, value_t *right);
-visit_res_t compute_rshift(value_t *left, value_t *right);
+void compute_b_and(visit_res_t *res, value_t *left, value_t *right);
+void compute_b_or(visit_res_t *res, value_t *left, value_t *right);
+void compute_b_xor(visit_res_t *res, value_t *left, value_t *right);
+void compute_lshift(visit_res_t *res, value_t *left, value_t *right);
+void compute_rshift(visit_res_t *res, value_t *left, value_t *right);
 
-visit_res_t compute_eq(value_t *left, value_t *right);
-visit_res_t compute_neq(value_t *left, value_t *right);
-visit_res_t compute_ex_eq(value_t *left, value_t *right);
-visit_res_t compute_ex_neq(value_t *left, value_t *right);
+void compute_eq(visit_res_t *res, value_t *left, value_t *right);
+void compute_neq(visit_res_t *res, value_t *left, value_t *right);
+void compute_ex_eq(visit_res_t *res, value_t *left, value_t *right);
+void compute_ex_neq(visit_res_t *res, value_t *left, value_t *right);
 
-visit_res_t compute_lt(value_t *left, value_t *right);
-visit_res_t compute_gt(value_t *left, value_t *right);
-visit_res_t compute_lte(value_t *left, value_t *right);
-visit_res_t compute_gte(value_t *left, value_t *right);
+void compute_lt(visit_res_t *res, value_t *left, value_t *right);
+void compute_gt(visit_res_t *res, value_t *left, value_t *right);
+void compute_lte(visit_res_t *res, value_t *left, value_t *right);
+void compute_gte(visit_res_t *res, value_t *left, value_t *right);
 
 /* unary operations */
 
-visit_res_t compute_pos(value_t *operand, pos_t *poss);
-visit_res_t compute_neg(value_t *operand, pos_t *poss);
+void compute_pos(visit_res_t *res, value_t *operand, pos_t *poss);
+void compute_neg(visit_res_t *res, value_t *operand, pos_t *poss);
 
-visit_res_t compute_b_not(value_t *operand, pos_t *poss);
+void compute_b_not(visit_res_t *res, value_t *operand, pos_t *poss);
 
-visit_res_t compute_not(value_t *operand, pos_t *poss);
-
-visit_res_t compute_inc(value_t *operand, pos_t *poss, pos_t *pose);
-visit_res_t compute_dec(value_t *operand, pos_t *poss, pos_t *pose);
+void compute_inc(visit_res_t *res, value_t *operand, pos_t *poss, pos_t *pose);
+void compute_dec(visit_res_t *res, value_t *operand, pos_t *poss, pos_t *pose);
 
 /* helper operations */
 

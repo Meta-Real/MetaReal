@@ -66,7 +66,7 @@ int main()
         if (!opt_res.size)
             continue;
 
-        printf_s("%ld msc\n", clock() - s);
+        printf("%ld msc\n", clock() - s);
 
         //values_free(opt_res.values, opt_res.size);
 

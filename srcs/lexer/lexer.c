@@ -111,9 +111,9 @@
         res.tokens[size++].pose = pos;          \
     } while (0)
 
-token_t process_id(const char *code, pos_t *pos);
-token_t process_num(const char *code, pos_t *pos);
-token_t process_sub(const char *code, pos_t *pos);
+void process_id(token_t *token, const char *code, pos_t *pos);
+void process_num(token_t *token, const char *code, pos_t *pos);
+void process_sub(token_t *token, const char *code, pos_t *pos);
 
 uint8_t check_id(const char *id, uint64_t len);
 
@@ -154,12 +154,12 @@ lex_res_t lex(const char *code)
         if ((code[pos.idx] >= 'a' && code[pos.idx] <= 'z') || (code[pos.idx] >= 'A' && code[pos.idx] <= 'Z')
             || code[pos.idx] == '_')
         {
-            res.tokens[size++] = process_id(code, &pos);
+            process_id(res.tokens + size++, code, &pos);
             continue;
         }
         if ((code[pos.idx] >= '0' && code[pos.idx] <= '9') || code[pos.idx] == '.')
         {
-            res.tokens[size++] = process_num(code, &pos);
+            process_num(res.tokens + size++, code, &pos);
             continue;
         }
 
@@ -172,7 +172,7 @@ lex_res_t lex(const char *code)
             set_token_t1(INC_T, ADD_EQ_T, ADD_T, '+', '=');
             break;
         case '-':
-            res.tokens[size++] = process_sub(code, &pos);
+            process_sub(res.tokens + size++, code, &pos);
             break;
         case '*':
             set_token_q(POW_EQ_T, POW_T, MUL_EQ_T, MUL_T, '*', '=', '=');
@@ -234,55 +234,50 @@ lex_res_t lex(const char *code)
     }
 
     res.tokens = mr_realloc(res.tokens, (size + 1) * sizeof(token_t));
-
     res.tokens[size].type = EOF_T;
     res.tokens[size].poss = pos;
     pos.idx++;
     res.tokens[size].pose = pos;
-
     return res;
 }
 
-token_t process_id(const char *code, pos_t *pos)
+void process_id(token_t *token, const char *code, pos_t *pos)
 {
-    token_t res;
-    res.value = mr_alloc(LEX_ID_SIZE);
-    res.poss = *pos;
+    token->value = mr_alloc(LEX_ID_SIZE);
+    token->poss = *pos;
 
     uint64_t size = 0;
     uint64_t alloc = LEX_ID_SIZE;
     do
     {
         if (size == alloc)
-            res.value = mr_realloc(res.value, alloc += LEX_ID_SIZE);
+            token->value = mr_realloc(token->value, alloc += LEX_ID_SIZE);
 
-        res.value[size++] = code[pos->idx++];
+        token->value[size++] = code[pos->idx++];
     } while ((code[pos->idx] >= 'a' && code[pos->idx] <= 'z') ||
         (code[pos->idx] >= 'A' && code[pos->idx] <= 'Z') ||
         (code[pos->idx] >= '0' && code[pos->idx] <= '9') || code[pos->idx] == '_');
 
-    res.type = check_id(res.value, size);
-    if (res.type != ID_T)
+    token->type = check_id(token->value, size);
+    if (token->type != ID_T)
     {
-        mr_free(res.value);
-        res.value = NULL;
+        mr_free(token->value);
+        token->value = NULL;
     }
     else
     {
-        res.value = mr_realloc(res.value, size + 1);
-        res.value[size] = '\0';
+        token->value = mr_realloc(token->value, size + 1);
+        token->value[size] = '\0';
     }
 
-    res.pose = *pos;
-    return res;
+    token->pose = *pos;
 }
 
-token_t process_num(const char *code, pos_t *pos)
+void process_num(token_t *token, const char *code, pos_t *pos)
 {
-    token_t res;
-    res.type = INT_T;
-    res.value = mr_alloc(LEX_NUM_SIZE);
-    res.poss = *pos;
+    token->type = INT_T;
+    token->value = mr_alloc(LEX_NUM_SIZE);
+    token->poss = *pos;
 
     uint64_t size = 0;
     uint64_t alloc = LEX_NUM_SIZE;
@@ -290,55 +285,52 @@ token_t process_num(const char *code, pos_t *pos)
     {
         if (code[pos->idx] == '.')
         {
-            if (res.type == FLOAT_T)
+            if (token->type == FLOAT_T)
                 break;
-            res.type = FLOAT_T;
+            token->type = FLOAT_T;
         }
 
         if (size == alloc)
-            res.value = mr_realloc(res.value, alloc += LEX_NUM_SIZE);
+            token->value = mr_realloc(token->value, alloc += LEX_NUM_SIZE);
 
-        res.value[size++] = code[pos->idx++];
+        token->value[size++] = code[pos->idx++];
     } while ((code[pos->idx] >= '0' && code[pos->idx] <= '9') || code[pos->idx] == '.');
 
     if (code[pos->idx] == 'i')
     {
-        res.type = IMAG_T;
+        token->type = IMAG_T;
         pos->idx++;
     }
 
-    res.value = mr_realloc(res.value, size + 1);
-    res.value[size] = '\0';
-    res.pose = *pos;
-    return res;
+    token->value = mr_realloc(token->value, size + 1);
+    token->value[size] = '\0';
+    token->pose = *pos;
 }
 
-token_t process_sub(const char *code, pos_t *pos)
+void process_sub(token_t *token, const char *code, pos_t *pos)
 {
-    token_t res;
-    res.value = NULL;
-    res.poss = *pos;
+    token->value = NULL;
+    token->poss = *pos;
 
     switch (code[++pos->idx])
     {
     case '-':
-        res.type = DEC_T;
+        token->type = DEC_T;
         break;
     case '>':
-        res.type = LINK_T;
+        token->type = LINK_T;
         break;
     case '=':
-        res.type = SUB_EQ_T;
+        token->type = SUB_EQ_T;
         break;
     default:
-        res.type = SUB_T;
-        res.pose = *pos;
-        return res;
+        token->type = SUB_T;
+        token->pose = *pos;
+        return;
     }
 
     pos->idx++;
-    res.pose = *pos;
-    return res;
+    token->pose = *pos;
 }
 
 uint8_t check_id(const char *id, uint64_t len)

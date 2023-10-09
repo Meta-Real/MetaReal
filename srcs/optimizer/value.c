@@ -74,6 +74,7 @@ void value_free(value_t *value)
         break;
     case LIST_V:
     case TUPLE_V:
+    case PTRS_V:
         value_free_ts(value, list_free);
         break;
     }

@@ -5,73 +5,71 @@
 #include <optimizer/operation.h>
 #include <optimizer/complex.h>
 #include <optimizer/list.h>
-#include <alloc.h>
-#include <stdio.h>
-#include <string.h>
+#include <error/semantic.h>
 
 #define bin_operation(l, r, f) \
     do                         \
     {                          \
-        res.value = f(l, r);   \
-        return res;            \
+        res->value = f(l, r);  \
+        return;                \
     } while (0)
 
-#define bin_operation_b(o)                          \
-    do                                              \
-    {                                               \
-        int_value_t *value = int_set_ui(o);         \
-                                                    \
-        if (left->ref)                              \
-        {                                           \
-            left->ref--;                            \
-                                                    \
-            if (right->ref)                         \
-            {                                       \
-                right->ref--;                       \
-                                                    \
-                value_set(res.value, INT_V, value); \
-                return res;                         \
-            }                                       \
-                                                    \
-            right->type = INT_V;                    \
-            right->value = value;                   \
-            res.value = right;                      \
-            return res;                             \
-        }                                           \
-                                                    \
-        left->type = INT_V;                         \
-        left->value = value;                        \
-        res.value = left;                           \
-                                                    \
-        value_free_vo(right);                       \
-        return res;                                 \
+#define bin_operation_b(o)                           \
+    do                                               \
+    {                                                \
+        int_value_t *value = int_set_ui(o);          \
+                                                     \
+        if (left->ref)                               \
+        {                                            \
+            left->ref--;                             \
+                                                     \
+            if (right->ref)                          \
+            {                                        \
+                right->ref--;                        \
+                                                     \
+                value_set(res->value, INT_V, value); \
+                return;                              \
+            }                                        \
+                                                     \
+            right->type = INT_V;                     \
+            right->value = value;                    \
+            res->value = right;                      \
+            return;                                  \
+        }                                            \
+                                                     \
+        left->type = INT_V;                          \
+        left->value = value;                         \
+        res->value = left;                           \
+                                                     \
+        value_free_vo(right);                        \
+        return;                                      \
     } while (0)
 
-#define bin_operation_b2(o)                               \
-    do                                                    \
-    {                                                     \
-        if (left->ref)                                    \
-        {                                                 \
-            left->ref--;                                  \
-                                                          \
-            if (right->ref)                               \
-            {                                             \
-                right->ref--;                             \
-                                                          \
-                value_set(res.value, BOOL_V, (void*)(o)); \
-                return res;                               \
-            }                                             \
-                                                          \
-            right->value = (void*)(o);                    \
-            res.value = right;                            \
-            return res;                                   \
-        }                                                 \
-                                                          \
-        left->value = (void*)(o);                         \
-        res.value = left;                                 \
-                                                          \
-        value_free_vo(right);                             \
-        return res;                                       \
+#define bin_operation_b2(o)                                \
+    do                                                     \
+    {                                                      \
+        if (left->ref)                                     \
+        {                                                  \
+            left->ref--;                                   \
+                                                           \
+            if (right->ref)                                \
+            {                                              \
+                right->ref--;                              \
+                                                           \
+                value_set(res->value, BOOL_V, (void*)(o)); \
+                return;                                    \
+            }                                              \
+                                                           \
+            right->value = (void*)(o);                     \
+            res->value = right;                            \
+            return;                                        \
+        }                                                  \
+                                                           \
+        left->value = (void*)(o);                          \
+        res->value = left;                                 \
+                                                           \
+        value_free_vo(right);                              \
+        return;                                            \
     } while (0)
 
 #define bin_operation_cmp(l, r, f, fl, fr)                     \
@@ -87,24 +85,24 @@
             {                                                  \
                 r->ref--;                                      \
                                                                \
-                value_set(res.value, BOOL_V, value);           \
-                return res;                                    \
+                value_set(res->value, BOOL_V, value);          \
+                return;                                        \
             }                                                  \
                                                                \
             fr(r->value);                                      \
             r->type = BOOL_V;                                  \
             r->value = value;                                  \
-            res.value = r;                                     \
-            return res;                                        \
+            res->value = r;                                    \
+            return;                                            \
         }                                                      \
                                                                \
         fl(l->value);                                          \
         l->type = BOOL_V;                                      \
         l->value = value;                                      \
-        res.value = l;                                         \
+        res->value = l;                                        \
                                                                \
         value_free_ts(r, fr);                                  \
-        return res;                                            \
+        return;                                                \
     } while (0)
 
 #define bin_operation_cmpb(f, ff)                                                \
@@ -120,22 +118,22 @@
             {                                                                    \
                 left->ref--;                                                     \
                                                                                  \
-                value_set(res.value, BOOL_V, value);                             \
-                return res;                                                      \
+                value_set(res->value, BOOL_V, value);                            \
+                return;                                                          \
             }                                                                    \
                                                                                  \
             ff(left->value);                                                     \
             left->type = BOOL_V;                                                 \
             left->value = value;                                                 \
-            res.value = left;                                                    \
-            return res;                                                          \
+            res->value = left;                                                   \
+            return;                                                              \
         }                                                                        \
                                                                                  \
         right->value = value;                                                    \
-        res.value = right;                                                       \
+        res->value = right;                                                      \
                                                                                  \
         value_free_ts(left, ff);                                                 \
-        return res;                                                              \
+        return;                                                                  \
     } while (0)
 
 #define bin_operation_cmpb_rev(f, ff)                                            \
@@ -151,157 +149,58 @@
             {                                                                    \
                 right->ref--;                                                    \
                                                                                  \
-                value_set(res.value, BOOL_V, value);                             \
-                return res;                                                      \
+                value_set(res->value, BOOL_V, value);                            \
+                return;                                                          \
             }                                                                    \
                                                                                  \
             ff(right->value);                                                    \
             right->type = BOOL_V;                                                \
             right->value = value;                                                \
-            res.value = right;                                                   \
-            return res;                                                          \
+            res->value = right;                                                  \
+            return;                                                              \
         }                                                                        \
                                                                                  \
         left->value = value;                                                     \
-        res.value = left;                                                        \
+        res->value = left;                                                       \
                                                                                  \
         value_free_ts(right, ff);                                                \
-        return res;                                                              \
+        return;                                                                  \
     } while (0)
 
-#define unary_operation(f)      \
-    do                          \
-    {                           \
-        res.value = f(operand); \
-        return res;             \
+#define unary_operation(f)       \
+    do                           \
+    {                            \
+        res->value = f(operand); \
+        return;                  \
     } while (0)
 
-#define ill_op_error(o, ol)                                                                            \
-    do                                                                                                 \
-    {                                                                                                  \
-        char *detail = mr_alloc(46 + ol + value_name_lens[left->type] + value_name_lens[right->type]); \
-        sprintf(detail, "Invalid binary operation (" o ") between <%s> and <%s>",                      \
-            value_names[left->type], value_names[right->type]);                                        \
-                                                                                                       \
-        res.value = NULL;                                                                              \
-        res.error = invalid_semantic_set(detail, ILLEGAL_OP_E, left->poss, right->pose);               \
-        return res;                                                                                    \
+#define setup_error          \
+    do                       \
+    {                        \
+        type1 = left->type;  \
+        type2 = right->type; \
+        poss = left->poss;   \
+        pose = right->pose;  \
     } while (0)
 
-#define ill_unary_op_error(o, ol)                                                     \
-    do                                                                                \
-    {                                                                                 \
-        char *detail = mr_alloc(34 + ol + value_name_lens[operand->type]);            \
-        sprintf(detail, "Invalid unary operation (" o ") for <%s>",                   \
-            value_names[operand->type]);                                              \
-                                                                                      \
-        res.value = NULL;                                                             \
-        res.error = invalid_semantic_set(detail, ILLEGAL_OP_E, *poss, operand->pose); \
-        return res;                                                                   \
+#define setup_error2        \
+    do                      \
+    {                       \
+        poss = left->poss;  \
+        pose = right->pose; \
     } while (0)
 
-#define ill_inc_dec_op_error(o)                                               \
-    do                                                                        \
-    {                                                                         \
-        char *detail = mr_alloc(26 + value_name_lens[operand->type]);         \
-        sprintf(detail, "<%s> can not be " o, value_names[operand->type]);    \
-                                                                              \
-        res.value = NULL;                                                     \
-        res.error = invalid_semantic_set(detail, ILLEGAL_OP_E, *poss, *pose); \
-        return res;                                                           \
+#define setup_error3        \
+    do                      \
+    {                       \
+        poss = right->poss; \
+        pose = right->pose; \
     } while (0)
 
-#define index_out_error                                                              \
-    do                                                                               \
-    {                                                                                \
-        char *detail = mr_alloc(19);                                                 \
-        strcpy(detail, "Index out of range");                                        \
-                                                                                     \
-        res.value = NULL;                                                            \
-        res.error = invalid_semantic_set(detail, INDEX_E, right->poss, right->pose); \
-        return res;                                                                  \
-    } while (0)
-
-#define mem_overflow_error                                                                  \
-    do                                                                                      \
-    {                                                                                       \
-        char *detail = mr_alloc(16);                                                        \
-        strcpy(detail, "Memory overflow");                                                  \
-                                                                                            \
-        res.value = NULL;                                                                   \
-        res.error = invalid_semantic_set(detail, MEM_OVERFLOW_E, right->poss, right->pose); \
-        return res;                                                                         \
-    } while (0)
-
-#define div_by_zero_error                                                                  \
-    do                                                                                     \
-    {                                                                                      \
-        char *detail = mr_alloc(17);                                                       \
-        strcpy(detail, "Division by zero");                                                \
-                                                                                           \
-        res.value = NULL;                                                                  \
-        res.error = invalid_semantic_set(detail, DIV_BY_ZERO_E, right->poss, right->pose); \
-        return res;                                                                        \
-    } while (0)
-
-#define mod_by_zero_error                                                                  \
-    do                                                                                     \
-    {                                                                                      \
-        char *detail = mr_alloc(15);                                                       \
-        strcpy(detail, "Modulo by zero");                                                  \
-                                                                                           \
-        res.value = NULL;                                                                  \
-        res.error = invalid_semantic_set(detail, DIV_BY_ZERO_E, right->poss, right->pose); \
-        return res;                                                                        \
-    } while (0)
-
-#define ztn_power_error                                                                    \
-    do                                                                                     \
-    {                                                                                      \
-        char *detail = mr_alloc(46);                                                       \
-        strcpy(detail, "Zero raised to the power of a negative number");                   \
-                                                                                           \
-        res.value = NULL;                                                                  \
-        res.error = invalid_semantic_set(detail, DIV_BY_ZERO_E, right->poss, right->pose); \
-        return res;                                                                        \
-    } while (0)
-
-#define ztc_power_error                                                              \
-    do                                                                               \
-    {                                                                                \
-        char *detail = mr_alloc(45);                                                 \
-        strcpy(detail, "Zero raised to the power of a complex number");              \
-                                                                                     \
-        res.value = NULL;                                                            \
-        res.error = invalid_semantic_set(detail, VALUE_E, right->poss, right->pose); \
-        return res;                                                                  \
-    } while (0)
-
-#define neg_shift_error                                                              \
-    do                                                                               \
-    {                                                                                \
-        char *detail = mr_alloc(21);                                                 \
-        strcpy(detail, "Negative shift count");                                      \
-                                                                                     \
-        res.value = NULL;                                                            \
-        res.error = invalid_semantic_set(detail, VALUE_E, right->poss, right->pose); \
-        return res;                                                                  \
-    } while (0)
-
-#define neg_multiplier_error                                                         \
-    do                                                                               \
-    {                                                                                \
-        char *detail = mr_alloc(20);                                                 \
-        strcpy(detail, "Negative multiplier");                                       \
-                                                                                     \
-        res.value = NULL;                                                            \
-        res.error = invalid_semantic_set(detail, VALUE_E, right->poss, right->pose); \
-        return res;                                                                  \
-    } while (0)
-
-visit_res_t compute_add(value_t *left, value_t *right)
+void compute_add(visit_res_t *res, value_t *left, value_t *right)
 {
-    visit_res_t res;
+    uint8_t type1, type2;
+    pos_t poss, pose;
 
     switch (left->type)
     {
@@ -318,9 +217,11 @@ visit_res_t compute_add(value_t *left, value_t *right)
             bin_operation(left, right, int_add_ui);
         }
 
+        setup_error;
+
         value_free(right);
         value_free_ts(left, int_free);
-        goto ret;
+        break;
     case FLOAT_V:
         switch (right->type)
         {
@@ -334,9 +235,11 @@ visit_res_t compute_add(value_t *left, value_t *right)
             bin_operation(left, right, float_add_ui);
         }
 
+        setup_error;
+
         value_free(right);
         value_free_ts(left, float_free);
-        goto ret;
+        break;
     case COMPLEX_V:
         switch (right->type)
         {
@@ -350,9 +253,11 @@ visit_res_t compute_add(value_t *left, value_t *right)
             bin_operation(left, right, complex_add_ui);
         }
 
+        setup_error;
+
         value_free(right);
         value_free_ts(left, complex_free);
-        goto ret;
+        break;
     case BOOL_V:
         switch (right->type)
         {
@@ -366,9 +271,11 @@ visit_res_t compute_add(value_t *left, value_t *right)
             bin_operation_b((uintptr_t)left->value + (uintptr_t)right->value);
         }
 
+        setup_error;
+
         value_free(right);
         value_free_vo(left);
-        goto ret;
+        break;
     case LIST_V:
         switch (right->type)
         {
@@ -378,18 +285,21 @@ visit_res_t compute_add(value_t *left, value_t *right)
         }
 
         bin_operation(left, right, list_append);
+    default:
+        setup_error;
+
+        value_free(right);
+        value_free(left);
+        break;
     }
 
-    value_free(right);
-    value_free(left);
-
-ret:
-    ill_op_error("+", 1);
+    ill_op_error("+", 1, type1, type2, poss, pose);
 }
 
-visit_res_t compute_sub(value_t *left, value_t *right)
+void compute_sub(visit_res_t *res, value_t *left, value_t *right)
 {
-    visit_res_t res;
+    uint8_t type1, type2;
+    pos_t poss, pose;
 
     switch (left->type)
     {
@@ -406,9 +316,11 @@ visit_res_t compute_sub(value_t *left, value_t *right)
             bin_operation(left, right, int_sub_ui);
         }
 
+        setup_error;
+
         value_free(right);
         value_free_ts(left, int_free);
-        goto ret;
+        break;
     case FLOAT_V:
         switch (right->type)
         {
@@ -422,9 +334,11 @@ visit_res_t compute_sub(value_t *left, value_t *right)
             bin_operation(left, right, float_sub_ui);
         }
 
+        setup_error;
+
         value_free(right);
         value_free_ts(left, float_free);
-        goto ret;
+        break;
     case COMPLEX_V:
         switch (right->type)
         {
@@ -438,9 +352,11 @@ visit_res_t compute_sub(value_t *left, value_t *right)
             bin_operation(left, right, complex_sub_ui);
         }
 
+        setup_error;
+
         value_free(right);
         value_free_ts(left, complex_free);
-        goto ret;
+        break;
     case BOOL_V:
         switch (right->type)
         {
@@ -454,18 +370,22 @@ visit_res_t compute_sub(value_t *left, value_t *right)
             bin_operation_b((uintptr_t)left->value - (uintptr_t)right->value);
         }
 
+        setup_error;
+
         value_free(right);
         value_free_vo(left);
-        goto ret;
+        break;
     case LIST_V:
         switch (right->type)
         {
         case INT_V:
             if (!left->value || int_nfit_ull(right->value))
             {
+                setup_error3;
+
                 value_free_ts(right, int_free);
                 value_free_ts(left, list_free);
-                index_out_error;
+                index_out_error(poss, pose);
             }
 
             uint64_t index = int_get_ull(right->value);
@@ -474,38 +394,50 @@ visit_res_t compute_sub(value_t *left, value_t *right)
 
             if (index >= LIST_CAST(left)->size)
             {
+                setup_error3;
+
+                value_free_ts(right, int_free);
                 value_free_ts(left, list_free);
-                index_out_error;
+                index_out_error(poss, pose);
             }
 
-            res.value = list_remove_int(left, right, index);
-            return res;
+            res->value = list_remove_int(left, right, index);
+
+            value_free_ts(right, int_free);
+            return;
         case BOOL_V:
             if (!left->value || (uintptr_t)right->value == LIST_CAST(left)->size)
             {
+                setup_error3;
+
                 value_free_vo(right);
                 value_free_ts(left, list_free);
-                index_out_error;
+                index_out_error(poss, pose);
             }
 
             bin_operation(left, right, list_remove_ui);
         };
 
+        setup_error;
+
         value_free(right);
         value_free_ts(left, list_free);
-        goto ret;
+        break;
+    default:
+        setup_error;
+
+        value_free(right);
+        value_free(left);
+        break;
     }
 
-    value_free(right);
-    value_free(left);
-
-ret:
-    ill_op_error("-", 1);
+    ill_op_error("-", 1, type1, type2, poss, pose);
 }
 
-visit_res_t compute_mul(value_t *left, value_t *right)
+void compute_mul(visit_res_t *res, value_t *left, value_t *right)
 {
-    visit_res_t res;
+    uint8_t type1, type2;
+    pos_t poss, pose;
 
     switch (left->type)
     {
@@ -522,9 +454,11 @@ visit_res_t compute_mul(value_t *left, value_t *right)
             bin_operation(left, right, int_mul_ui);
         }
 
+        setup_error;
+
         value_free(right);
         value_free_ts(left, int_free);
-        goto ret;
+        break;
     case FLOAT_V:
         switch (right->type)
         {
@@ -538,9 +472,11 @@ visit_res_t compute_mul(value_t *left, value_t *right)
             bin_operation(left, right, float_mul_ui);
         }
 
+        setup_error;
+
         value_free(right);
         value_free_ts(left, float_free);
-        goto ret;
+        break;
     case COMPLEX_V:
         switch (right->type)
         {
@@ -554,9 +490,11 @@ visit_res_t compute_mul(value_t *left, value_t *right)
             bin_operation(left, right, complex_mul_ui);
         }
 
+        setup_error;
+
         value_free(right);
         value_free_ts(left, complex_free);
-        goto ret;
+        break;
     case BOOL_V:
         switch (right->type)
         {
@@ -570,61 +508,72 @@ visit_res_t compute_mul(value_t *left, value_t *right)
             bin_operation_b((uintptr_t)left->value & (uintptr_t)right->value);
         }
 
+        setup_error;
+
         value_free(right);
         value_free_vo(left);
-        goto ret;
+        break;
     case LIST_V:
         switch (right->type)
         {
         case INT_V:
             if (!left->value)
             {
-                res.value = left;
+                res->value = left;
 
                 value_free_ts(right, int_free);
-                return res;
+                return;
             }
 
             if (int_gt_ull(right->value, LIST_MAX_SIZE / LIST_CAST(left)->size))
             {
+                setup_error2;
+
                 value_free_ts(right, int_free);
                 value_free_ts(left, list_free);
-                mem_overflow_error;
+                mem_overflow_error(poss, pose);
             }
             if (int_isneg(right->value))
             {
+                setup_error3;
+
                 value_free_ts(right, int_free);
                 value_free_ts(left, list_free);
-                neg_multiplier_error;
+                neg_multiplier_error(poss, pose);
             }
 
             bin_operation(left, right, list_repeat_int);
         case BOOL_V:
             if (!left->value)
             {
-                res.value = left;
+                res->value = left;
 
                 value_free_vo(right);
-                return res;
+                return;
             }
 
             bin_operation(left, right, list_repeat_ui);
         }
 
+        setup_error;
+
         value_free(right);
         value_free_ts(left, list_free);
+        break;
+    default:
+        setup_error;
+
+        value_free(right);
+        value_free(left);
     }
 
-    value_free(right);
-    value_free(left);
-
-ret:
-    ill_op_error("*", 1);
+    ill_op_error("*", 1, type1, type2, poss, pose);
 }
 
-visit_res_t compute_div(value_t *left, value_t *right)
+void compute_div(visit_res_t *res, value_t *left, value_t *right)
 {
-    visit_res_t res;
+    uint8_t type1, type2;
+    pos_t poss, pose;
 
     switch (left->type)
     {
@@ -634,194 +583,237 @@ visit_res_t compute_div(value_t *left, value_t *right)
         case INT_V:
             if (int_iszero(right->value))
             {
+                setup_error3;
+
                 value_free_ts(right, int_free);
                 value_free_ts(left, int_free);
-                div_by_zero_error;
+                div_by_zero_error(poss, pose);
             }
 
             bin_operation(left, right, float_int_div_int);
         case FLOAT_V:
             if (float_iszero(right->value))
             {
+                setup_error3;
+
                 value_free_ts(right, float_free);
                 value_free_ts(left, int_free);
-                div_by_zero_error;
+                div_by_zero_error(poss, pose);
             }
 
             bin_operation(left, right, float_int_div);
         case COMPLEX_V:
             if (complex_iszero(right->value))
             {
+                setup_error3;
+
                 value_free_ts(right, complex_free);
                 value_free_ts(left, int_free);
-                div_by_zero_error;
+                div_by_zero_error(poss, pose);
             }
 
             bin_operation(left, right, complex_int_div);
         case BOOL_V:
             if (!right->value)
             {
+                setup_error3;
+
                 value_free_vo(right);
                 value_free_ts(left, int_free);
-                div_by_zero_error;
+                div_by_zero_error(poss, pose);
             }
 
             bin_operation(left, right, float_int_div_ui);
         }
 
+        setup_error;
+
         value_free(right);
         value_free_ts(left, int_free);
-        goto ret;
+        break;
     case FLOAT_V:
         switch (right->type)
         {
         case INT_V:
             if (int_iszero(right->value))
             {
+                setup_error3;
+
                 value_free_ts(right, int_free);
                 value_free_ts(left, float_free);
-                div_by_zero_error;
+                div_by_zero_error(poss, pose);
             }
 
             bin_operation(left, right, float_div_int);
         case FLOAT_V:
             if (float_iszero(right->value))
             {
+                setup_error3;
+
                 value_free_ts(right, float_free);
                 value_free_ts(left, float_free);
-                div_by_zero_error;
+                div_by_zero_error(poss, pose);
             }
 
             bin_operation(left, right, float_div);
         case COMPLEX_V:
             if (complex_iszero(right->value))
             {
+                setup_error3;
+
                 value_free_ts(right, complex_free);
                 value_free_ts(left, float_free);
-                div_by_zero_error;
+                div_by_zero_error(poss, pose);
             }
 
             bin_operation(left, right, complex_float_div);
         case BOOL_V:
             if (!right->value)
             {
+                setup_error3;
+
                 value_free_vo(right);
                 value_free_ts(left, float_free);
-                div_by_zero_error;
+                div_by_zero_error(poss, pose);
             }
 
-            res.value = left;
+            res->value = left;
 
             value_free_vo(right);
-            return res;
+            return;
         }
+
+        setup_error;
 
         value_free(right);
         value_free_ts(left, float_free);
-        goto ret;
+        break;
     case COMPLEX_V:
         switch (right->type)
         {
         case INT_V:
             if (int_iszero(right->value))
             {
+                setup_error3;
+
                 value_free_ts(right, int_free);
                 value_free_ts(left, complex_free);
-                div_by_zero_error;
+                div_by_zero_error(poss, pose);
             }
 
             bin_operation(left, right, complex_div_int);
         case FLOAT_V:
             if (float_iszero(right->value))
             {
+                setup_error3;
+
                 value_free_ts(right, float_free);
                 value_free_ts(left, complex_free);
-                div_by_zero_error;
+                div_by_zero_error(poss, pose);
             }
 
             bin_operation(left, right, complex_div_float);
         case COMPLEX_V:
             if (complex_iszero(right->value))
             {
+                setup_error3;
+
                 value_free_ts(right, complex_free);
                 value_free_ts(left, complex_free);
-                div_by_zero_error;
+                div_by_zero_error(poss, pose);
             }
 
             bin_operation(left, right, complex_div);
         case BOOL_V:
             if (!right->value)
             {
+                setup_error3;
+
                 value_free_vo(right);
                 value_free_ts(left, complex_free);
-                div_by_zero_error;
+                div_by_zero_error(poss, pose);
             }
 
-            res.value = left;
+            res->value = left;
 
             value_free_vo(right);
-            return res;
+            return;
         }
+
+        setup_error;
 
         value_free(right);
         value_free_ts(left, complex_free);
-        goto ret;
+        break;
     case BOOL_V:
         switch (right->type)
         {
         case INT_V:
             if (int_iszero(right->value))
             {
+                setup_error3;
+
                 value_free_ts(right, int_free);
                 value_free_vo(left);
-                div_by_zero_error;
+                div_by_zero_error(poss, pose);
             }
 
             bin_operation(left, right, float_ui_div_int);
         case FLOAT_V:
             if (float_iszero(right->value))
             {
+                setup_error3;
+
                 value_free_ts(right, float_free);
                 value_free_vo(left);
-                div_by_zero_error;
+                div_by_zero_error(poss, pose);
             }
 
             bin_operation(left, right, float_ui_div);
         case COMPLEX_V:
             if (complex_iszero(right->value))
             {
+                setup_error3;
+
                 value_free_ts(right, complex_free);
                 value_free_vo(left);
-                div_by_zero_error;
+                div_by_zero_error(poss, pose);
             }
 
             bin_operation(left, right, complex_ui_div);
         case BOOL_V:
             if (!right->value)
             {
+                setup_error3;
+
                 value_free_vo(right);
                 value_free_vo(left);
-                div_by_zero_error;
+                div_by_zero_error(poss, pose);
             }
 
             bin_operation(left, right, float_ui_div_ui);
         }
 
+        setup_error;
+
         value_free(right);
         value_free_vo(left);
-        goto ret;
+        break;
+    default:
+        setup_error;
+
+        value_free(right);
+        value_free(left);
+        break;
     }
 
-    value_free(right);
-    value_free(left);
-
-ret:
-    ill_op_error("/", 1);
+    ill_op_error("/", 1, type1, type2, poss, pose);
 }
 
-visit_res_t compute_mod(value_t *left, value_t *right)
+void compute_mod(visit_res_t *res, value_t *left, value_t *right)
 {
-    visit_res_t res;
+    uint8_t type1, type2;
+    pos_t poss, pose;
 
     switch (left->type)
     {
@@ -831,117 +823,144 @@ visit_res_t compute_mod(value_t *left, value_t *right)
         case INT_V:
             if (int_iszero(right->value))
             {
+                setup_error3;
+
                 value_free_ts(right, int_free);
                 value_free_ts(left, int_free);
-                mod_by_zero_error;
+                mod_by_zero_error(poss, pose);
             }
 
             bin_operation(left, right, int_mod);
         case FLOAT_V:
             if (float_iszero(right->value))
             {
+                setup_error3;
+
                 value_free_ts(right, float_free);
                 value_free_ts(left, int_free);
-                mod_by_zero_error;
+                mod_by_zero_error(poss, pose);
             }
 
             bin_operation(left, right, float_int_mod);
         case BOOL_V:
             if (!right->value)
             {
+                setup_error3;
+
                 value_free_vo(right);
                 value_free_ts(left, int_free);
-                mod_by_zero_error;
+                mod_by_zero_error(poss, pose);
             }
 
             bin_operation(left, right, int_mod_ui);
         }
 
+        setup_error;
+
         value_free(right);
         value_free_ts(left, int_free);
-        goto ret;
+        break;
     case FLOAT_V:
         switch (right->type)
         {
         case INT_V:
             if (int_iszero(right->value))
             {
+                setup_error3;
+
                 value_free_ts(right, int_free);
                 value_free_ts(left, float_free);
-                mod_by_zero_error;
+                mod_by_zero_error(poss, pose);
             }
 
             bin_operation(left, right, float_mod_int);
         case FLOAT_V:
             if (float_iszero(right->value))
             {
+                setup_error3;
+
                 value_free_ts(right, float_free);
                 value_free_ts(left, float_free);
-                mod_by_zero_error;
+                mod_by_zero_error(poss, pose);
             }
 
             bin_operation(left, right, float_mod);
         case BOOL_V:
             if (!right->value)
             {
+                setup_error3;
+
                 value_free_vo(right);
                 value_free_ts(left, float_free);
-                mod_by_zero_error;
+                mod_by_zero_error(poss, pose);
             }
 
             bin_operation(left, right, float_mod_ui);
         }
 
+        setup_error;
+
         value_free(right);
         value_free_ts(left, float_free);
-        goto ret;
+        break;
     case BOOL_V:
         switch (right->type)
         {
         case INT_V:
             if (int_iszero(right->value))
             {
+                setup_error3;
+
                 value_free_ts(right, int_free);
                 value_free_vo(left);
-                mod_by_zero_error;
+                mod_by_zero_error(poss, pose);
             }
 
             bin_operation(left, right, int_ui_mod);
         case FLOAT_V:
             if (float_iszero(right->value))
             {
+                setup_error3;
+
                 value_free_ts(right, float_free);
                 value_free_vo(left);
-                mod_by_zero_error;
+                mod_by_zero_error(poss, pose);
             }
 
             bin_operation(left, right, float_ui_mod);
         case BOOL_V:
             if (!right->value)
             {
+                setup_error3;
+
                 value_free_vo(right);
                 value_free_vo(left);
-                mod_by_zero_error;
+                mod_by_zero_error(poss, pose);
             }
 
             bin_operation_b(0);
         }
 
+        setup_error;
+
         value_free(right);
         value_free_vo(left);
-        goto ret;
+        break;
+    default:
+        setup_error;
+
+        value_free(right);
+        value_free(left);
+        break;
     }
 
-    value_free(right);
-    value_free(left);
-
-ret:
-    ill_op_error("%%", 1);
+    ill_op_error("%%", 1, type1, type2, poss, pose);
 }
 
-visit_res_t compute_quot(value_t *left, value_t *right)
+void compute_quot(visit_res_t *res, value_t *left, value_t *right)
 {
-    visit_res_t res;
+    uint8_t type1, type2;
+    pos_t poss, pose;
 
     switch (left->type)
     {
@@ -951,120 +970,146 @@ visit_res_t compute_quot(value_t *left, value_t *right)
         case INT_V:
             if (int_iszero(right->value))
             {
+                setup_error3;
+
                 value_free_ts(right, int_free);
                 value_free_ts(left, int_free);
-                div_by_zero_error;
+                div_by_zero_error(poss, pose);
             }
 
             bin_operation(left, right, int_quot);
         case FLOAT_V:
             if (float_iszero(right->value))
             {
+                setup_error3;
+
                 value_free_ts(right, float_free);
                 value_free_ts(left, int_free);
-                div_by_zero_error;
+                div_by_zero_error(poss, pose);
             }
 
             bin_operation(left, right, float_int_quot);
         case BOOL_V:
             if (!right->value)
             {
+                setup_error3;
+
                 value_free_vo(right);
                 value_free_ts(left, int_free);
-                div_by_zero_error;
+                div_by_zero_error(poss, pose);
             }
 
-            res.value = left;
+            res->value = left;
 
             value_free_vo(right);
-            return res;
+            return;
         }
+
+        setup_error;
 
         value_free(right);
         value_free_ts(left, int_free);
-        goto ret;
+        break;
     case FLOAT_V:
         switch (right->type)
         {
         case INT_V:
             if (int_iszero(right->value))
             {
+                setup_error3;
+
                 value_free_ts(right, int_free);
                 value_free_ts(left, float_free);
-                div_by_zero_error;
+                div_by_zero_error(poss, pose);
             }
 
             bin_operation(left, right, float_quot_int);
         case FLOAT_V:
             if (float_iszero(right->value))
             {
+                setup_error3;
+
                 value_free_ts(right, float_free);
                 value_free_ts(left, float_free);
-                div_by_zero_error;
+                div_by_zero_error(poss, pose);
             }
 
             bin_operation(left, right, float_quot);
         case BOOL_V:
             if (!right->value)
             {
+                setup_error3;
+
                 value_free_vo(right);
                 value_free_ts(left, float_free);
-                div_by_zero_error;
+                div_by_zero_error(poss, pose);
             }
 
             bin_operation(left, right, float_quot_ui);
         }
 
+        setup_error;
+
         value_free(right);
         value_free_ts(left, float_free);
-        goto ret;
+        break;
     case BOOL_V:
         switch (right->type)
         {
         case INT_V:
             if (int_iszero(right->value))
             {
+                setup_error3;
+
                 value_free_ts(right, int_free);
                 value_free_vo(left);
-                div_by_zero_error;
+                div_by_zero_error(poss, pose);
             }
 
             bin_operation(left, right, int_ui_quot);
         case FLOAT_V:
             if (float_iszero(right->value))
             {
+                setup_error3;
+
                 value_free_ts(right, float_free);
                 value_free_vo(left);
-                div_by_zero_error;
+                div_by_zero_error(poss, pose);
             }
 
             bin_operation(left, right, float_ui_quot);
         case BOOL_V:
             if (!right->value)
             {
+                setup_error3;
+
                 value_free_vo(right);
                 value_free_vo(left);
-                div_by_zero_error;
+                div_by_zero_error(poss, pose);
             }
 
             bin_operation_b((uintptr_t)left->value);
         }
 
+        setup_error;
+
         value_free(right);
         value_free_vo(left);
-        goto ret;
+        break;
+    default:
+        setup_error;
+
+        value_free(right);
+        value_free(left);
     }
 
-    value_free(right);
-    value_free(left);
-
-ret:
-    ill_op_error("//", 2);
+    ill_op_error("//", 2, type1, type2, poss, pose);
 }
 
-visit_res_t compute_pow(value_t *left, value_t *right)
+void compute_pow(visit_res_t *res, value_t *left, value_t *right)
 {
-    visit_res_t res;
+    uint8_t type1, type2;
+    pos_t poss, pose;
 
     switch (left->type)
     {
@@ -1076,9 +1121,11 @@ visit_res_t compute_pow(value_t *left, value_t *right)
             {
                 if (int_iszero(left->value))
                 {
+                    setup_error2;
+
                     value_free_ts(right, int_free);
                     value_free_ts(left, int_free);
-                    ztn_power_error;
+                    ztn_power_error(poss, pose);
                 }
 
                 bin_operation(left, right, float_int_pow_int);
@@ -1091,18 +1138,22 @@ visit_res_t compute_pow(value_t *left, value_t *right)
 
             if (int_iszero(left->value) && float_isneg(right->value))
             {
+                setup_error2;
+
                 value_free_ts(right, float_free);
                 value_free_ts(left, int_free);
-                ztn_power_error;
+                ztn_power_error(poss, pose);
             }
 
             bin_operation(left, right, float_int_pow);
         case COMPLEX_V:
             if (int_iszero(left->value))
             {
+                setup_error2;
+
                 value_free_ts(right, complex_free);
                 value_free_ts(left, int_free);
-                ztc_power_error;
+                ztc_power_error(poss, pose);
             }
 
             bin_operation(left, right, complex_int_pow);
@@ -1110,18 +1161,22 @@ visit_res_t compute_pow(value_t *left, value_t *right)
             bin_operation(left, right, int_pow_ui);
         }
 
+        setup_error;
+
         value_free(right);
         value_free_ts(left, int_free);
-        goto ret;
+        break;
     case FLOAT_V:
         switch (right->type)
         {
         case INT_V:
             if (float_iszero(left->value) && int_isneg(right->value))
             {
+                setup_error2;
+
                 value_free_ts(right, int_free);
                 value_free_ts(left, float_free);
-                ztn_power_error;
+                ztn_power_error(poss, pose);
             }
 
             bin_operation(left, right, float_pow_int);
@@ -1131,18 +1186,22 @@ visit_res_t compute_pow(value_t *left, value_t *right)
 
             if (float_iszero(left->value) && float_isneg(right->value))
             {
+                setup_error2;
+
                 value_free_ts(right, float_free);
                 value_free_ts(left, float_free);
-                ztn_power_error;
+                ztn_power_error(poss, pose);
             }
 
             bin_operation(left, right, float_pow);
         case COMPLEX_V:
             if (float_iszero(left->value))
             {
+                setup_error2;
+
                 value_free_ts(right, complex_free);
                 value_free_ts(left, float_free);
-                ztc_power_error;
+                ztc_power_error(poss, pose);
             }
 
             bin_operation(left, right, complex_float_pow);
@@ -1150,36 +1209,44 @@ visit_res_t compute_pow(value_t *left, value_t *right)
             bin_operation(left, right, float_pow_ui);
         }
 
+        setup_error;
+
         value_free(right);
         value_free_ts(left, float_free);
-        goto ret;
+        break;
     case COMPLEX_V:
         switch (right->type)
         {
         case INT_V:
             if (complex_iszero(left->value) && int_isneg(right->value))
             {
+                setup_error2;
+
                 value_free_ts(right, int_free);
                 value_free_ts(left, complex_free);
-                ztn_power_error;
+                ztn_power_error(poss, pose);
             }
 
             bin_operation(left, right, complex_pow_int);
         case FLOAT_V:
             if (complex_iszero(left->value) && float_isneg(right->value))
             {
+                setup_error2;
+
                 value_free_ts(right, float_free);
                 value_free_ts(left, complex_free);
-                ztn_power_error;
+                ztn_power_error(poss, pose);
             }
 
             bin_operation(left, right, complex_pow_float);
         case COMPLEX_V:
             if (complex_iszero(left->value))
             {
+                setup_error2;
+
                 value_free_ts(right, complex_free);
                 value_free_ts(left, complex_free);
-                ztc_power_error;
+                ztc_power_error(poss, pose);
             }
 
             bin_operation(left, right, complex_pow);
@@ -1187,36 +1254,44 @@ visit_res_t compute_pow(value_t *left, value_t *right)
             bin_operation(left, right, complex_pow_ui);
         }
 
+        setup_error;
+
         value_free(right);
         value_free_ts(left, complex_free);
-        goto ret;
+        break;
     case BOOL_V:
         switch (right->type)
         {
         case INT_V:
             if (!left->value && int_isneg(right->value))
             {
+                setup_error2;
+
                 value_free_ts(right, int_free);
                 value_free_vo(left);
-                ztn_power_error;
+                ztn_power_error(poss, pose);
             }
 
             bin_operation(left, right, int_ui_pow);
         case FLOAT_V:
             if (!left->value && float_isneg(right->value))
             {
+                setup_error2;
+
                 value_free_ts(right, float_free);
                 value_free_vo(left);
-                ztn_power_error;
+                ztn_power_error(poss, pose);
             }
 
             bin_operation(left, right, float_ui_pow);
         case COMPLEX_V:
             if (!left->value)
             {
+                setup_error2;
+
                 value_free_ts(right, complex_free);
                 value_free_vo(left);
-                ztc_power_error;
+                ztc_power_error(poss, pose);
             }
 
             bin_operation(left, right, complex_ui_pow);
@@ -1224,21 +1299,26 @@ visit_res_t compute_pow(value_t *left, value_t *right)
             bin_operation_b((uintptr_t)left->value | !right->value);
         }
 
+        setup_error;
+
         value_free(right);
         value_free_vo(left);
-        goto ret;
+        break;
+    default:
+        setup_error;
+
+        value_free(right);
+        value_free(left);
+        break;
     }
 
-    value_free(right);
-    value_free(left);
-
-ret:
-    ill_op_error("**", 2);
+    ill_op_error("**", 2, type1, type2, poss, pose);
 }
 
-visit_res_t compute_b_and(value_t *left, value_t *right)
+void compute_b_and(visit_res_t *res, value_t *left, value_t *right)
 {
-    visit_res_t res;
+    uint8_t type1, type2;
+    pos_t poss, pose;
 
     switch (left->type)
     {
@@ -1251,9 +1331,11 @@ visit_res_t compute_b_and(value_t *left, value_t *right)
             bin_operation(left, right, int_and_ui);
         }
 
+        setup_error;
+
         value_free(right);
         value_free_ts(left, int_free);
-        goto ret;
+        break;
     case BOOL_V:
         switch (right->type)
         {
@@ -1263,21 +1345,26 @@ visit_res_t compute_b_and(value_t *left, value_t *right)
             bin_operation_b2((uintptr_t)left->value & (uintptr_t)right->value);
         }
 
+        setup_error;
+
         value_free(right);
         value_free_vo(left);
-        goto ret;
+        break;
+    default:
+        setup_error;
+
+        value_free(right);
+        value_free(left);
+        break;
     }
 
-    value_free(right);
-    value_free(left);
-
-ret:
-    ill_op_error("&", 1);
+    ill_op_error("&", 1, type1, type2, poss, pose);
 }
 
-visit_res_t compute_b_or(value_t *left, value_t *right)
+void compute_b_or(visit_res_t *res, value_t *left, value_t *right)
 {
-    visit_res_t res;
+    uint8_t type1, type2;
+    pos_t poss, pose;
 
     switch (left->type)
     {
@@ -1290,9 +1377,11 @@ visit_res_t compute_b_or(value_t *left, value_t *right)
             bin_operation(left, right, int_or_ui);
         }
 
+        setup_error;
+
         value_free(right);
         value_free_ts(left, int_free);
-        goto ret;
+        break;
     case BOOL_V:
         switch (right->type)
         {
@@ -1302,21 +1391,26 @@ visit_res_t compute_b_or(value_t *left, value_t *right)
             bin_operation_b2((uintptr_t)left->value | (uintptr_t)right->value);
         }
 
+        setup_error;
+
         value_free(right);
         value_free_vo(left);
-        goto ret;
+        break;
+    default:
+        setup_error;
+
+        value_free(right);
+        value_free(left);
+        break;
     }
 
-    value_free(right);
-    value_free(left);
-
-ret:
-    ill_op_error("|", 1);
+    ill_op_error("|", 1, type1, type2, poss, pose);
 }
 
-visit_res_t compute_b_xor(value_t *left, value_t *right)
+void compute_b_xor(visit_res_t *res, value_t *left, value_t *right)
 {
-    visit_res_t res;
+    uint8_t type1, type2;
+    pos_t poss, pose;
 
     switch (left->type)
     {
@@ -1329,9 +1423,11 @@ visit_res_t compute_b_xor(value_t *left, value_t *right)
             bin_operation(left, right, int_xor_ui);
         }
 
+        setup_error;
+
         value_free(right);
         value_free_ts(left, int_free);
-        goto ret;
+        break;
     case BOOL_V:
         switch (right->type)
         {
@@ -1341,21 +1437,26 @@ visit_res_t compute_b_xor(value_t *left, value_t *right)
             bin_operation_b2((uintptr_t)left->value ^ (uintptr_t)right->value);
         }
 
+        setup_error;
+
         value_free(right);
         value_free_vo(left);
-        goto ret;
+        break;
+    default:
+        setup_error;
+
+        value_free(right);
+        value_free(left);
+        break;
     }
 
-    value_free(right);
-    value_free(left);
-
-ret:
-    ill_op_error("^", 1);
+    ill_op_error("^", 1, type1, type2, poss, pose);
 }
 
-visit_res_t compute_lshift(value_t *left, value_t *right)
+void compute_lshift(visit_res_t *res, value_t *left, value_t *right)
 {
-    visit_res_t res;
+    uint8_t type1, type2;
+    pos_t poss, pose;
 
     switch (left->type)
     {
@@ -1365,16 +1466,20 @@ visit_res_t compute_lshift(value_t *left, value_t *right)
         case INT_V:
             if (int_isnzero(left->value) && int_nfit_ull(right->value))
             {
+                setup_error2;
+
                 value_free_ts(right, int_free);
                 value_free_ts(left, int_free);
-                mem_overflow_error;
+                mem_overflow_error(poss, pose);
             }
 
             if (int_isneg(right->value))
             {
+                setup_error3;
+
                 value_free_ts(right, int_free);
                 value_free_ts(left, int_free);
-                neg_shift_error;
+                neg_shift_error(poss, pose);
             }
 
             bin_operation(left, right, int_lshift);
@@ -1382,25 +1487,31 @@ visit_res_t compute_lshift(value_t *left, value_t *right)
             bin_operation(left, right, int_lshift_ui);
         }
 
+        setup_error;
+
         value_free(right);
         value_free_ts(left, int_free);
-        goto ret;
+        break;
     case BOOL_V:
         switch (right->type)
         {
         case INT_V:
             if (left->value && int_nfit_ull(right->value))
             {
+                setup_error2;
+
                 value_free_ts(right, int_free);
                 value_free_vo(left);
-                mem_overflow_error;
+                mem_overflow_error(poss, pose);
             }
 
             if (int_isneg(right->value))
             {
+                setup_error3;
+
                 value_free_ts(right, int_free);
                 value_free_vo(left);
-                neg_shift_error;
+                neg_shift_error(poss, pose);
             }
 
             bin_operation(left, right, int_ui_lshift);
@@ -1408,21 +1519,26 @@ visit_res_t compute_lshift(value_t *left, value_t *right)
             bin_operation_b((uintptr_t)left->value << (uintptr_t)right->value);
         }
 
+        setup_error;
+
         value_free(right);
         value_free_vo(left);
-        goto ret;
+        break;
+    default:
+        setup_error;
+
+        value_free(right);
+        value_free(left);
+        break;
     }
 
-    value_free(right);
-    value_free(left);
-
-ret:
-    ill_op_error("<<", 2);
+    ill_op_error("<<", 2, type1, type2, poss, pose);
 }
 
-visit_res_t compute_rshift(value_t *left, value_t *right)
+void compute_rshift(visit_res_t *res, value_t *left, value_t *right)
 {
-    visit_res_t res;
+    uint8_t type1, type2;
+    pos_t poss, pose;
 
     switch (left->type)
     {
@@ -1440,29 +1556,31 @@ visit_res_t compute_rshift(value_t *left, value_t *right)
                     {
                         right->ref--;
 
-                        value_set(res.value, INT_V, int_set_ui(0));
-                        return res;
+                        value_set(res->value, INT_V, int_set_ui(0));
+                        return;
                     }
 
                     int_free(right->value);
                     right->value = int_set_ui(0);
-                    res.value = right;
-                    return res;
+                    res->value = right;
+                    return;
                 }
 
                 int_free(left->value);
                 left->value = int_set_ui(0);
-                res.value = left;
+                res->value = left;
 
                 value_free_ts(right, int_free);
-                return res;
+                return;
             }
 
             if (int_isneg(right->value))
             {
+                setup_error3;
+
                 value_free_ts(right, int_free);
                 value_free_ts(left, int_free);
-                neg_shift_error;
+                neg_shift_error(poss, pose);
             }
 
             bin_operation(left, right, int_rshift);
@@ -1470,18 +1588,22 @@ visit_res_t compute_rshift(value_t *left, value_t *right)
             bin_operation(left, right, int_rshift_ui);
         }
 
+        setup_error;
+
         value_free(right);
         value_free_ts(left, int_free);
-        goto ret;
+        break;
     case BOOL_V:
         switch (right->type)
         {
         case INT_V:
             if (int_isneg(right->value))
             {
+                setup_error3;
+
                 value_free_ts(right, int_free);
                 value_free_vo(left);
-                neg_shift_error;
+                neg_shift_error(poss, pose);
             }
 
             bin_operation(left, right, int_ui_rshift);
@@ -1489,22 +1611,24 @@ visit_res_t compute_rshift(value_t *left, value_t *right)
             bin_operation_b((uintptr_t)left->value & !right->value);
         }
 
+        setup_error;
+
         value_free(right);
         value_free_vo(left);
-        goto ret;
+        break;
+    default:
+        setup_error;
+
+        value_free(right);
+        value_free(left);
+        break;
     }
 
-    value_free(right);
-    value_free(left);
-
-ret:
-    ill_op_error(">>", 2);
+    ill_op_error(">>", 2, type1, type2, poss, pose);
 }
 
-visit_res_t compute_eq(value_t *left, value_t *right)
+void compute_eq(visit_res_t *res, value_t *left, value_t *right)
 {
-    visit_res_t res;
-
     switch (left->type)
     {
     case NONE_V:
@@ -1518,22 +1642,22 @@ visit_res_t compute_eq(value_t *left, value_t *right)
                 {
                     right->ref--;
 
-                    value_set(res.value, BOOL_V, (void*)1);
-                    return res;
+                    value_set(res->value, BOOL_V, (void*)1);
+                    return;
                 }
 
                 right->type = BOOL_V;
                 right->value = (void*)1;
-                res.value = right;
-                return res;
+                res->value = right;
+                return;
             }
 
             left->type = BOOL_V;
             left->value = (void*)1;
-            res.value = left;
+            res->value = left;
 
             value_free_vo(right);
-            return res;
+            return;
         }
 
         value_free(right);
@@ -1621,14 +1745,11 @@ visit_res_t compute_eq(value_t *left, value_t *right)
     value_free(left);
 
 ret:
-    value_set(res.value, BOOL_V, NULL);
-    return res;
+    value_set(res->value, BOOL_V, NULL);
 }
 
-visit_res_t compute_neq(value_t *left, value_t *right)
+void compute_neq(visit_res_t *res, value_t *left, value_t *right)
 {
-    visit_res_t res;
-
     switch (left->type)
     {
     case NONE_V:
@@ -1642,22 +1763,22 @@ visit_res_t compute_neq(value_t *left, value_t *right)
                 {
                     right->ref--;
 
-                    value_set(res.value, BOOL_V, NULL);
-                    return res;
+                    value_set(res->value, BOOL_V, NULL);
+                    return;
                 }
 
                 right->type = BOOL_V;
                 right->value = NULL;
-                res.value = right;
-                return res;
+                res->value = right;
+                return;
             }
 
             left->type = BOOL_V;
             left->value = NULL;
-            res.value = left;
+            res->value = left;
 
             value_free_vo(right);
-            return res;
+            return;
         }
 
         value_free(right);
@@ -1745,23 +1866,20 @@ visit_res_t compute_neq(value_t *left, value_t *right)
     value_free(left);
 
 ret:
-    value_set(res.value, BOOL_V, (void*)1);
-    return res;
+    value_set(res->value, BOOL_V, (void*)1);
 }
 
-visit_res_t compute_ex_eq(value_t *left, value_t *right)
+void compute_ex_eq(visit_res_t *res, value_t *left, value_t *right)
 {
-    visit_res_t res;
-
     if (left->type == right->type)
         switch (left->type)
         {
         case NONE_V:
-            value_set(res.value, BOOL_V, (void*)1);
+            value_set(res->value, BOOL_V, (void*)1);
 
             value_free_vo(right);
             value_free_vo(left);
-            return res;
+            return;
         case INT_V:
             bin_operation_cmp(left, right, int_eq, int_free, int_free);
         case FLOAT_V:
@@ -1778,23 +1896,20 @@ visit_res_t compute_ex_eq(value_t *left, value_t *right)
     value_free(right);
     value_free(left);
 
-    value_set(res.value, BOOL_V, NULL);
-    return res;
+    value_set(res->value, BOOL_V, NULL);
 }
 
-visit_res_t compute_ex_neq(value_t *left, value_t *right)
+void compute_ex_neq(visit_res_t *res, value_t *left, value_t *right)
 {
-    visit_res_t res;
-
     if (left->type == right->type)
         switch (left->type)
         {
         case NONE_V:
-            value_set(res.value, BOOL_V, NULL);
+            value_set(res->value, BOOL_V, NULL);
 
             value_free_vo(right);
             value_free_vo(left);
-            return res;
+            return;
         case INT_V:
             bin_operation_cmp(left, right, int_neq, int_free, int_free);
         case FLOAT_V:
@@ -1811,13 +1926,13 @@ visit_res_t compute_ex_neq(value_t *left, value_t *right)
     value_free(right);
     value_free(left);
 
-    value_set(res.value, BOOL_V, (void*)1);
-    return res;
+    value_set(res->value, BOOL_V, (void*)1);
 }
 
-visit_res_t compute_lt(value_t *left, value_t *right)
+void compute_lt(visit_res_t *res, value_t *left, value_t *right)
 {
-    visit_res_t res;
+    uint8_t type1, type2;
+    pos_t poss, pose;
 
     switch (left->type)
     {
@@ -1832,9 +1947,11 @@ visit_res_t compute_lt(value_t *left, value_t *right)
             bin_operation_cmpb(int_lt_ui, int_free);
         }
 
+        setup_error;
+
         value_free(right);
         value_free_ts(left, int_free);
-        goto ret;
+        break;
     case FLOAT_V:
         switch (right->type)
         {
@@ -1846,9 +1963,11 @@ visit_res_t compute_lt(value_t *left, value_t *right)
             bin_operation_cmpb(float_lt_ui, float_free);
         }
 
+        setup_error;
+
         value_free(right);
         value_free_ts(left, float_free);
-        goto ret;
+        break;
     case BOOL_V:
         switch (right->type)
         {
@@ -1860,21 +1979,26 @@ visit_res_t compute_lt(value_t *left, value_t *right)
             bin_operation_b2((uintptr_t)(left->value < right->value));
         }
 
+        setup_error;
+
         value_free(right);
         value_free_vo(left);
-        goto ret;
+        break;
+    default:
+        setup_error;
+
+        value_free(right);
+        value_free(left);
+        break;
     }
 
-    value_free(right);
-    value_free(left);
-
-ret:
-    ill_op_error("<", 1);
+    ill_op_error("<", 1, type1, type2, poss, pose);
 }
 
-visit_res_t compute_gt(value_t *left, value_t *right)
+void compute_gt(visit_res_t *res, value_t *left, value_t *right)
 {
-    visit_res_t res;
+    uint8_t type1, type2;
+    pos_t poss, pose;
 
     switch (left->type)
     {
@@ -1889,9 +2013,11 @@ visit_res_t compute_gt(value_t *left, value_t *right)
             bin_operation_cmpb(int_gt_ui, int_free);
         }
 
+        setup_error;
+
         value_free(right);
         value_free_ts(left, int_free);
-        goto ret;
+        break;
     case FLOAT_V:
         switch (right->type)
         {
@@ -1903,9 +2029,11 @@ visit_res_t compute_gt(value_t *left, value_t *right)
             bin_operation_cmpb(float_gt_ui, float_free);
         }
 
+        setup_error;
+
         value_free(right);
         value_free_ts(left, float_free);
-        goto ret;
+        break;
     case BOOL_V:
         switch (right->type)
         {
@@ -1917,21 +2045,26 @@ visit_res_t compute_gt(value_t *left, value_t *right)
             bin_operation_b2((uintptr_t)(left->value > right->value));
         }
 
+        setup_error;
+
         value_free(right);
         value_free_vo(left);
-        goto ret;
+        break;
+    default:
+        setup_error;
+
+        value_free(right);
+        value_free(left);
+        break;
     }
 
-    value_free(right);
-    value_free(left);
-
-ret:
-    ill_op_error(">", 1);
+    ill_op_error(">", 1, type1, type2, poss, pose);
 }
 
-visit_res_t compute_lte(value_t *left, value_t *right)
+void compute_lte(visit_res_t *res, value_t *left, value_t *right)
 {
-    visit_res_t res;
+    uint8_t type1, type2;
+    pos_t poss, pose;
 
     switch (left->type)
     {
@@ -1946,9 +2079,11 @@ visit_res_t compute_lte(value_t *left, value_t *right)
             bin_operation_cmpb(int_lte_ui, int_free);
         }
 
+        setup_error;
+
         value_free(right);
         value_free_ts(left, int_free);
-        goto ret;
+        break;
     case FLOAT_V:
         switch (right->type)
         {
@@ -1960,9 +2095,11 @@ visit_res_t compute_lte(value_t *left, value_t *right)
             bin_operation_cmpb(float_lte_ui, float_free);
         }
 
+        setup_error;
+
         value_free(right);
         value_free_ts(left, float_free);
-        goto ret;
+        break;
     case BOOL_V:
         switch (right->type)
         {
@@ -1974,21 +2111,26 @@ visit_res_t compute_lte(value_t *left, value_t *right)
             bin_operation_b2((uintptr_t)(left->value <= right->value));
         }
 
+        setup_error;
+
         value_free(right);
         value_free_vo(left);
-        goto ret;
+        break;
+    default:
+        setup_error;
+
+        value_free(right);
+        value_free(left);
+        break;
     }
 
-    value_free(right);
-    value_free(left);
-
-ret:
-    ill_op_error("<=", 2);
+    ill_op_error("<=", 2, type1, type2, poss, pose);
 }
 
-visit_res_t compute_gte(value_t *left, value_t *right)
+void compute_gte(visit_res_t *res, value_t *left, value_t *right)
 {
-    visit_res_t res;
+    uint8_t type1, type2;
+    pos_t poss, pose;
 
     switch (left->type)
     {
@@ -2003,9 +2145,11 @@ visit_res_t compute_gte(value_t *left, value_t *right)
             bin_operation_cmpb(int_gte_ui, int_free);
         }
 
+        setup_error;
+
         value_free(right);
         value_free_ts(left, int_free);
-        goto ret;
+        break;
     case FLOAT_V:
         switch (right->type)
         {
@@ -2017,9 +2161,11 @@ visit_res_t compute_gte(value_t *left, value_t *right)
             bin_operation_cmpb(float_gte_ui, float_free);
         }
 
+        setup_error;
+
         value_free(right);
         value_free_ts(left, float_free);
-        goto ret;
+        break;
     case BOOL_V:
         switch (right->type)
         {
@@ -2031,53 +2177,56 @@ visit_res_t compute_gte(value_t *left, value_t *right)
             bin_operation_b2((uintptr_t)(left->value >= right->value));
         }
 
+        setup_error;
+
         value_free(right);
         value_free_vo(left);
-        goto ret;
+        break;
+    default:
+        setup_error;
+
+        value_free(right);
+        value_free(left);
+        break;
     }
 
-    value_free(right);
-    value_free(left);
-
-ret:
-    ill_op_error(">=", 2);
+    ill_op_error(">=", 2, type1, type2, poss, pose);
 }
 
-visit_res_t compute_pos(value_t *operand, pos_t *poss)
+void compute_pos(visit_res_t *res, value_t *operand, pos_t *poss)
 {
-    visit_res_t res;
-
     switch (operand->type)
     {
     case INT_V:
     case FLOAT_V:
     case COMPLEX_V:
-        res.value = operand;
-        return res;
+        res->value = operand;
+        return;
     case BOOL_V:
         if (operand->ref)
         {
             operand->ref--;
 
-            value_set(res.value, INT_V, int_set_ui((uintptr_t)operand->value));
-            return res;
+            value_set(res->value, INT_V, int_set_ui((uintptr_t)operand->value));
+            return;
         }
 
         operand->type = INT_V;
         operand->value = int_set_ui((uintptr_t)operand->value);
 
-        res.value = operand;
-        return res;
+        res->value = operand;
+        return;
     }
 
+    uint8_t type = operand->type;
+    pos_t pose = operand->pose;
+
     value_free(operand);
-    ill_unary_op_error("+", 1);
+    ill_unary_op_error("+", 1, type, *poss, pose);
 }
 
-visit_res_t compute_neg(value_t *operand, pos_t *poss)
+void compute_neg(visit_res_t *res, value_t *operand, pos_t *poss)
 {
-    visit_res_t res;
-
     switch (operand->type)
     {
     case INT_V:
@@ -2091,24 +2240,25 @@ visit_res_t compute_neg(value_t *operand, pos_t *poss)
         {
             operand->ref--;
 
-            value_set(res.value, INT_V, int_set_ui(-(uintptr_t)operand->value));
-            return res;
+            value_set(res->value, INT_V, int_set_ui(-(uintptr_t)operand->value));
+            return;
         }
 
         operand->type = INT_V;
         operand->value = int_set_ui(-(uintptr_t)operand->value);
-        res.value = operand;
-        return res;
+        res->value = operand;
+        return;
     }
 
+    uint8_t type = operand->type;
+    pos_t pose = operand->pose;
+
     value_free(operand);
-    ill_unary_op_error("-", 1);
+    ill_unary_op_error("-", 1, type, *poss, pose);
 }
 
-visit_res_t compute_b_not(value_t *operand, pos_t *poss)
+void compute_b_not(visit_res_t *res, value_t *operand, pos_t *poss)
 {
-    visit_res_t res;
-
     switch (operand->type)
     {
     case INT_V:
@@ -2118,30 +2268,24 @@ visit_res_t compute_b_not(value_t *operand, pos_t *poss)
         {
             operand->ref--;
 
-            value_set(res.value, BOOL_V, (void*)(uintptr_t)!operand->value);
-            return res;
+            value_set(res->value, BOOL_V, (void*)(uintptr_t)!operand->value);
+            return;
         }
 
         operand->value = (void*)(uintptr_t)!operand->value;
-        res.value = operand;
-        return res;
+        res->value = operand;
+        return;
     }
 
+    uint8_t type = operand->type;
+    pos_t pose = operand->pose;
+
     value_free(operand);
-    ill_unary_op_error("~", 1);
+    ill_unary_op_error("~", 1, type, *poss, pose);
 }
 
-visit_res_t compute_not(value_t *operand, pos_t *poss)
+void compute_inc(visit_res_t *res, value_t *operand, pos_t *poss, pos_t *pose)
 {
-    visit_res_t res;
-    value_set(res.value, BOOL_V, (void*)(uintptr_t)value_isfalse(operand));
-    return res;
-}
-
-visit_res_t compute_inc(value_t *operand, pos_t *poss, pos_t *pose)
-{
-    visit_res_t res;
-
     switch (operand->type)
     {
     case INT_V:
@@ -2155,24 +2299,25 @@ visit_res_t compute_inc(value_t *operand, pos_t *poss, pos_t *pose)
         {
             operand->ref--;
 
-            value_set(res.value, INT_V, int_set_ui((uintptr_t)operand->value + 1));
-            return res;
+            value_set(res->value, INT_V, int_set_ui((uintptr_t)operand->value + 1));
+            return;
         }
 
         operand->type = INT_V;
         operand->value = int_set_ui((uintptr_t)operand->value + 1);
 
-        res.value = operand;
-        return res;
+        res->value = operand;
+        return;
     }
 
-    ill_inc_dec_op_error("incremented");
+    uint8_t type = operand->type;
+
+    value_free(operand);
+    ill_inc_dec_op_error("incremented", type, *poss, *pose);
 }
 
-visit_res_t compute_dec(value_t *operand, pos_t *poss, pos_t *pose)
+void compute_dec(visit_res_t *res, value_t *operand, pos_t *poss, pos_t *pose)
 {
-    visit_res_t res;
-
     switch (operand->type)
     {
     case INT_V:
@@ -2186,18 +2331,21 @@ visit_res_t compute_dec(value_t *operand, pos_t *poss, pos_t *pose)
         {
             operand->ref--;
 
-            value_set(res.value, INT_V, int_set_ui((uintptr_t)operand->value - 1));
-            return res;
+            value_set(res->value, INT_V, int_set_ui((uintptr_t)operand->value - 1));
+            return;
         }
 
         operand->type = INT_V;
         operand->value = int_set_ui((uintptr_t)operand->value - 1);
 
-        res.value = operand;
-        return res;
+        res->value = operand;
+        return;
     }
 
-    ill_inc_dec_op_error("decremented");
+    uint8_t type = operand->type;
+
+    value_free(operand);
+    ill_inc_dec_op_error("decremented", type, *poss, *pose);
 }
 
 uint8_t compute_vneq(const value_t *left, const value_t *right)

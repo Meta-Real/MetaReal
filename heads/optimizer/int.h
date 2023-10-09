@@ -85,4 +85,6 @@ uint8_t int_isneg(const int_value_t *num);
 uint8_t int_gt_ull(const int_value_t *left, uint64_t right);
 uint8_t int_nfit_ull(const int_value_t *num);
 
+uint8_t uint64_len(uint64_t num);
+
 #endif /* __MR_INT__ */

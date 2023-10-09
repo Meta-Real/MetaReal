@@ -80,7 +80,6 @@ char *value_sprint(char *consts, uint64_t *csize, uint64_t *calloc, value_t *val
 char *list_sprint(char *consts, uint64_t *csize, uint64_t *calloc, value_t *value, char lbrace, char rbrace, uint8_t sfree);
 
 uint64_t value_set_id(uint8_t *new, const char *consts, const data_t *data, const char *value, uint64_t size);
-uint8_t uint64_len(uint64_t num);
 
 gen_res_t generate(value_t **values, uint64_t size)
 {
@@ -428,11 +427,4 @@ uint64_t value_set_id(uint8_t *new, const char *consts, const data_t *data, cons
 
     *new = 1;
     return data->csize;
-}
-
-uint8_t uint64_len(uint64_t num)
-{
-    uint8_t len;
-    for (len = 1; num /= 10; len++);
-    return len;
 }

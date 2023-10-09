@@ -48,7 +48,14 @@ typedef struct __INVALID_SEMANTIC_T invalid_semantic_t;
 
 #define illegal_char_set(c, e, p) ((illegal_char_t){c, e, p})
 #define invalid_syntax_set(d, ps, pe) ((invalid_syntax_t){d, ps, pe})
-#define invalid_semantic_set(d, t, ps, pe) ((invalid_semantic_t){d, t, ps, pe})
+
+#define invalid_semantic_set(e, t, ps, pe) \
+    do                                     \
+    {                                      \
+        e.type = t;                        \
+        e.poss = ps;                       \
+        e.pose = pe;                       \
+    } while (0)                            \
 
 void illegal_char_print(const illegal_char_t *error, const char *fname, const char *code);
 void invalid_syntax_print(const invalid_syntax_t *error, const char *fname, const char *code);

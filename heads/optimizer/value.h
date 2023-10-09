@@ -20,7 +20,8 @@ enum __VALUE_TYPES
     LIST_V,
     TUPLE_V,
 
-    PTR_V
+    PTR_V,
+    PTRS_V
 };
 
 struct __VALUE_T
