@@ -34,4 +34,8 @@
 
 #define GEN_CONSTS_LIST_LEN 8
 
+/* debug */
+
+#define TRACK_ALLOC 0
+
 #endif /* __MR_CONSTS__ */

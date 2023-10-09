@@ -7,6 +7,9 @@
 
 #include <pos.h>
 
+#define VAR_ASSIGN_LINK_MASK 1
+#define VAR_ASSIGN_CONST_MASK 2
+
 enum __NODE_TYPES
 {
     NONE_N,
@@ -64,6 +67,8 @@ struct __VAR_ASSIGN_NODE_T
 {
     char *name;
     node_t value;
+
+    uint8_t prop;
 };
 typedef struct __VAR_ASSIGN_NODE_T var_assign_node_t;
 

@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include <consts.h>
 
-#define PROP_SET(ptr, assign) 0b ## assign ## ptr 
+#define PROP_SET(ptr, assign) (assign) << 2 | (ptr)
 
 #define PTR_MASK 1
 #define ASSIGN_MASK 2
@@ -513,7 +513,7 @@ void visit_var_assign(
 {
     if (node->value.type)
     {
-        visit_node(res, &node->value, context, 0);
+        visit_node(res, &node->value, context, PROP_SET(node->prop & VAR_ASSIGN_LINK_MASK, 0));
         if (!res->value)
         {
             mr_free(node->name);
@@ -526,12 +526,38 @@ void visit_var_assign(
 
     if (prop & PTR_MASK)
     {
-        void* ptr = (void*)var_setp(context, node->name, res->value);
+        uint8_t error = 0;
+        void* ptr = (void*)var_setp(&error, context, node->name, res->value, node->prop);
+
+        if (error)
+            const_var_error(node->name, *poss, *pose);
+
         value_set(res->value, PTR_V, ptr);
     }
     else
     {
-        var_set(context, node->name, res->value);
+        uint8_t flag = 0;
+        var_set(&flag, context, node->name, res->value, node->prop);
+
+        switch (flag)
+        {
+        case 0:
+            if (res->value->type == PTR_V)
+                res->value = context->vars[(uintptr_t)res->value->value].value;
+            break;
+        case 1:
+            const_var_error(node->name, *poss, *pose);
+        case 2:
+            do
+            {
+                value_t *value = context->vars[(uintptr_t)res->value->value].value;
+                mr_free(res->value);
+
+                res->value = value;
+            } while (0);
+            break;
+        }
+
         value_addref(res->value, 1);
 
         res->value->poss = *poss;
@@ -565,8 +591,9 @@ void visit_var_access(
         uint8_t error = 0;
         void *ptr = (void*)var_getp(&error, context, node);
 
-        if (error)
+        switch (error)
         {
+        case 1:
             if (prop & ASSIGN_MASK)
             {
                 ptr = (void*)var_add(context, node);
@@ -575,6 +602,8 @@ void visit_var_access(
             }
 
             not_def_error(node, *poss, *pose);
+        case 2:
+            const_var_error(node, *poss, *pose);
         }
 
         value_set(res->value, PTR_V, ptr);

@@ -111,23 +111,29 @@
         res.tokens[size++].pose = pos;          \
     } while (0)
 
+#define KEYWORD_MAX_LEN 5
+#define KEYWORDS_LEN 7
+#define KEYWORD_PAD NOT_KT
+
 void process_id(token_t *token, const char *code, pos_t *pos);
 void process_num(token_t *token, const char *code, pos_t *pos);
 void process_sub(token_t *token, const char *code, pos_t *pos);
 
 uint8_t check_id(const char *id, uint64_t len);
 
-const char *keywords[6] =
+const char *keywords[KEYWORDS_LEN] =
 {
     "not", "and", "or",
     "var",
+    "const",
     "true", "false"
 };
 
-uint8_t keyword_lens[6] =
+uint8_t keyword_lens[KEYWORDS_LEN] =
 {
     3, 3, 2,
     3,
+    5,
     4, 5
 };
 
@@ -335,11 +341,11 @@ void process_sub(token_t *token, const char *code, pos_t *pos)
 
 uint8_t check_id(const char *id, uint64_t len)
 {
-    if (len > 5)
+    if (len > KEYWORD_MAX_LEN)
         return ID_T;
 
     uint8_t j;
-    for (uint8_t i = 0; i < 6; i++)
+    for (uint8_t i = 0; i < KEYWORDS_LEN; i++)
     {
         if (len != keyword_lens[i])
             continue;
@@ -349,7 +355,7 @@ uint8_t check_id(const char *id, uint64_t len)
                 break;
 
         if (j == len)
-            return i + NOT_KT;
+            return i + KEYWORD_PAD;
     }
 
     return ID_T;

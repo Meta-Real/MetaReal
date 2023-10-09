@@ -5,6 +5,7 @@
 #include <optimizer/context.h>
 #include <alloc.h>
 #include <string.h>
+#include <parser/node.h>
 #include <consts.h>
 
 void context_free(context_t *context)
@@ -33,7 +34,7 @@ value_t *var_get(const context_t *context, const char *name)
     return NULL;
 }
 
-void var_set(context_t *context, char *name, value_t *value)
+void var_set(uint8_t *flag, context_t *context, char *name, value_t *value, uint8_t prop)
 {
     for (uint64_t i = 0; i < context->size; i++)
         if (!strcmp(name, context->vars[i].name))
@@ -41,10 +42,28 @@ void var_set(context_t *context, char *name, value_t *value)
             if (context->vars[i].value->type == PTR_V)
                 i = (uintptr_t)context->vars[i].value->value;
 
+            if (context->vars[i].prop & VAR_ASSIGN_CONST_MASK)
+            {
+                value_free(value);
+
+                *flag = 1;
+                return;
+            }
+
+            if (value->type == PTR_V && i == (uintptr_t)value->value)
+            {
+                mr_free(name);
+
+                context->vars[i].prop = prop;
+                *flag = 2;
+                return;
+            }
+
             value_free(context->vars[i].value);
             mr_free(name);
 
             context->vars[i].value = value;
+            context->vars[i].prop = prop;
             return;
         }
 
@@ -52,7 +71,14 @@ void var_set(context_t *context, char *name, value_t *value)
         context->vars = mr_realloc(context->vars, (context->alloc += OPT_VARS_LIST_LEN) * sizeof(var_t));
 
     context->vars[context->size].name = name;
-    context->vars[context->size++].value = value;
+    context->vars[context->size].value = value;
+
+    if (value->type == PTR_V)
+        context->vars[(uintptr_t)value->value].prop = prop;
+    else
+        context->vars[context->size].prop = prop;
+
+    context->size++;
 }
 
 uint64_t var_getp(uint8_t *error, const context_t *context, const char *name)
@@ -63,6 +89,12 @@ uint64_t var_getp(uint8_t *error, const context_t *context, const char *name)
             if (context->vars[i].value->type == PTR_V)
                 return (uintptr_t)context->vars[i].value->value;
 
+            if (context->vars[i].prop & VAR_ASSIGN_CONST_MASK)
+            {
+                *error = 2;
+                return 0;
+            }
+
             return i;
         }
 
@@ -70,7 +102,7 @@ uint64_t var_getp(uint8_t *error, const context_t *context, const char *name)
     return 0;
 }
 
-uint64_t var_setp(context_t *context, char *name, value_t *value)
+uint64_t var_setp(uint8_t *error, context_t *context, char *name, value_t *value, uint8_t prop)
 {
     for (uint64_t i = 0; i < context->size; i++)
         if (!strcmp(name, context->vars[i].name))
@@ -78,10 +110,28 @@ uint64_t var_setp(context_t *context, char *name, value_t *value)
             if (context->vars[i].value->type == PTR_V)
                 i = (uintptr_t)context->vars[i].value->value;
 
+            if (context->vars[i].prop & VAR_ASSIGN_CONST_MASK)
+            {
+                value_free(value);
+
+                *error = 1;
+                return 0;
+            }
+
+            if (value->type == PTR_V && i == (uintptr_t)value->value)
+            {
+                mr_free(value);
+                mr_free(name);
+
+                context->vars[i].prop = prop;
+                return i;
+            }
+
             value_free(context->vars[i].value);
             mr_free(name);
 
             context->vars[i].value = value;
+            context->vars[i].prop = prop;
             return i;
         }
 
@@ -90,6 +140,12 @@ uint64_t var_setp(context_t *context, char *name, value_t *value)
 
     context->vars[context->size].name = name;
     context->vars[context->size].value = value;
+
+    if (value->type == PTR_V)
+        context->vars[(uintptr_t)value->value].prop = prop;
+    else
+        context->vars[context->size].prop = prop;
+
     return context->size++;
 }
 
@@ -99,6 +155,6 @@ uint64_t var_add(context_t *context, char *name)
         context->vars = mr_realloc(context->vars, (context->alloc += OPT_VARS_LIST_LEN) * sizeof(var_t));
 
     context->vars[context->size].name = name;
-    context->vars[context->size].value = NULL;
+    context->vars[context->size].prop = 0;
     return context->size++;
 }

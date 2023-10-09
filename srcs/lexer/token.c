@@ -6,7 +6,7 @@
 #include <alloc.h>
 #include <stdio.h>
 
-const char *token_labels[54] =
+const char *token_labels[55] =
 {
     "EOF",
     "SEMICOLON",
@@ -24,6 +24,7 @@ const char *token_labels[54] =
     "ADD", "SUB", "B_NOT",
     "NOT_K", "OR_K", "NOT_K",
     "VAR_K",
+    "CONST_K",
     "TRUE_K", "FALSE_K"
 };
 

@@ -456,6 +456,13 @@ token_t *handle_var(parse_res_t *res, token_t *tokens)
 {
     pos_t poss = tokens++->poss;
 
+    uint8_t prop = 0;
+    if (tokens->type == CONST_KT)
+    {
+        prop = VAR_ASSIGN_CONST_MASK;
+        tokens++;
+    }
+
     if (tokens->type != ID_T)
     {
         set_error(invalid_syntax_set("Expected identifier", tokens->poss, tokens->pose));
@@ -465,9 +472,13 @@ token_t *handle_var(parse_res_t *res, token_t *tokens)
     var_assign_node_t *value = mr_alloc(sizeof(var_assign_node_t));
     value->name = tokens++->value;
 
-    if (tokens->type != ASSIGN_T)
+    if (tokens->type == LINK_T)
+        prop |= VAR_ASSIGN_LINK_MASK;
+    else if (tokens->type != ASSIGN_T)
     {
         value->value.type = NONE_N;
+        value->prop = prop;
+
         set_node(VAR_ASSIGN_N, value, poss, tokens[-1].pose);
         return tokens;
     }
@@ -481,6 +492,8 @@ token_t *handle_var(parse_res_t *res, token_t *tokens)
     }
 
     value->value = res->nodes[res->size];
+    value->prop = prop;
+
     set_node_peo(VAR_ASSIGN_N, value, poss);
     return tokens;
 }

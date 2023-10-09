@@ -188,4 +188,5 @@ void var_assign_node_print(const var_assign_node_t *node)
 {
     printf("%s, ", node->name);
     node_print(&node->value);
+    printf(", [%hu, %hu]", node->prop & VAR_ASSIGN_LINK_MASK, node->prop & VAR_ASSIGN_CONST_MASK);
 }

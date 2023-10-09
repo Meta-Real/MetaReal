@@ -5,8 +5,11 @@
 #include <alloc.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <consts.h>
 
-//uint64_t i = 0;
+#if TRACK_ALLOC
+uint64_t i = 0;
+#endif
 
 void *mr_alloc(uint64_t size)
 {
@@ -17,8 +20,10 @@ void *mr_alloc(uint64_t size)
         abort();
     }
 
-    //i++;
-    //printf("%llu >>>>>>>>>>>>>>> %p\n", i, block);
+#if TRACK_ALLOC
+    i++;
+    printf("%llu >>>>>>>>>>>>>>> %p\n", i, block);
+#endif
 
     return block;
 }
@@ -37,11 +42,13 @@ void *mr_realloc(void *block, uint64_t size)
 
 void mr_free(void *block)
 {
-    //if (block)
-    //{
-    //    i--;
-    //    printf("%llu <<<<<<<<<<<< %p\n", i, block);
-    //}
+#if TRACK_ALLOC
+    if (block)
+    {
+        i--;
+        printf("%llu <<<<<<<<<<<< %p\n", i, block);
+    }
+#endif
 
     free(block);
 }

@@ -33,19 +33,33 @@
         return;                                                              \
     } while (0)
 
-#define not_def_error(s, ps, pe)                              \
-    do                                                        \
-    {                                                         \
-        res->error.detail = mr_alloc(18 + strlen(s));         \
-        sprintf(res->error.detail, "'%s' is not defined", s); \
-                                                              \
-        res->value = NULL;                                    \
-        invalid_semantic_set(res->error, NOT_DEF_E, ps, pe);  \
-                                                              \
-        mr_free(s);                                           \
-        return;                                               \
+#define not_def_error(s, ps, pe)                             \
+    do                                                       \
+    {                                                        \
+        res->error.detail = mr_alloc(18 + strlen(s));        \
+        sprintf(res->error.detail, "'%s' is not defined",    \
+            s);                                              \
+                                                             \
+        res->value = NULL;                                   \
+        invalid_semantic_set(res->error, NOT_DEF_E, ps, pe); \
+                                                             \
+        mr_free(s);                                          \
+        return;                                              \
     } while (0)
-    
+
+#define const_var_error(s, ps, pe)                             \
+    do                                                         \
+    {                                                          \
+        res->error.detail = mr_alloc(15 + strlen(s));          \
+        sprintf(res->error.detail, "'%s' is constant",         \
+            s);                                                \
+                                                               \
+        res->value = NULL;                                     \
+        invalid_semantic_set(res->error, CONST_VAR_E, ps, pe); \
+                                                               \
+        mr_free(s);                                            \
+        return;                                                \
+    } while (0)
 
 /* operations */
 
