@@ -24,8 +24,20 @@
         res->value->pose = *pose;    \
     } while (0)
 
+#define value_set_pos_vo(t)          \
+    do                               \
+    {                                \
+        value_set_vo(res->value, t); \
+        res->value->poss = *poss;    \
+        res->value->pose = *pose;    \
+    } while (0)
+
 void visit_node(visit_res_t *res, node_t *node, context_t *context, uint8_t prop);
 
+void visit_none(
+    visit_res_t *res,
+    pos_t *poss, pos_t *pose, uint8_t prop
+);
 void visit_int(
     visit_res_t *res, char *node,
     pos_t *poss, pos_t *pose, uint8_t prop
@@ -124,6 +136,9 @@ void visit_node(visit_res_t *res, node_t *node, context_t *context, uint8_t prop
 {
     switch (node->type)
     {
+    case NONE_N:
+        visit_none(res, &node->poss, &node->pose, prop);
+        return;
     case INT_N:
         visit_int(res, node->value, &node->poss, &node->pose, prop);
         return;
@@ -164,6 +179,17 @@ void visit_node(visit_res_t *res, node_t *node, context_t *context, uint8_t prop
 
     fprintf(stderr, "Internal Error: Invalid node type #%hu (visit function)\n", node->type);
     abort();
+}
+
+void visit_none(
+    visit_res_t *res,
+    pos_t *poss, pos_t *pose, uint8_t prop
+)
+{
+    if (prop & PTR_MASK)
+        access_datatype_error(NONE_V, *poss, *pose);
+
+    value_set_pos_vo(NONE_V);
 }
 
 void visit_int(
@@ -511,7 +537,7 @@ void visit_var_assign(
     context_t *context, pos_t *poss, pos_t *pose, uint8_t prop
 )
 {
-    if (node->value.type)
+    if (node->value.poss.ln)
     {
         visit_node(res, &node->value, context, PROP_SET(node->prop & VAR_ASSIGN_LINK_MASK, 0));
         if (!res->value)

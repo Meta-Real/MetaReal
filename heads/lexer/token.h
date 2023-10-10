@@ -11,6 +11,7 @@ enum __TOKEN_TYPES
 {
     EOF_T,
 
+    NEWLINE_T,
     SEMICOLON_T,
 
     ID_T,
@@ -79,6 +80,7 @@ enum __TOKEN_TYPES
 
     CONST_KT,
 
+    NONE_KT,
     TRUE_KT,
     FALSE_KT
 };
@@ -93,7 +95,7 @@ struct __TOKEN_T
 };
 typedef struct __TOKEN_T token_t;
 
-extern const char *token_labels[55];
+extern const char *token_labels[57];
 
 void tokens_free(token_t *tokens);
 void tokens_print(const token_t *tokens);

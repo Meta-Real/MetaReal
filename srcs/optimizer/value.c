@@ -164,7 +164,7 @@ uint8_t value_isfalse(value_t *value)
 
 void value_print(const value_t *value)
 {
-    if (!value->type)
+    if (value->type == NONE_V)
     {
         fputs("(NONE)", stdout);
         return;

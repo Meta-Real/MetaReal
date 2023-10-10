@@ -6,6 +6,7 @@
 #define __MR_CONSTS__
 
 #define MR_VERSION "1.0.0"
+
 #define DEF_FILE_NAME "<stdin>"
 #define DEF_CODE_SIZE 1024
 

@@ -18,6 +18,14 @@
         res->nodes[res->size].pose = pe; \
     } while (0)
 
+#define set_node_vo(t, ps, pe)           \
+    do                                   \
+    {                                    \
+        res->nodes[res->size].type = t;  \
+        res->nodes[res->size].poss = ps; \
+        res->nodes[res->size].pose = pe; \
+    } while (0)
+
 #define set_node_pso(t, v, pe)           \
     do                                   \
     {                                    \
@@ -43,6 +51,8 @@
         res->nodes = NULL;                 \
     } while (0)
 
+#define advance_newline if ((++tokens)->type == NEWLINE_T) tokens++
+
 #define bin_operation(f1, f2, c)                            \
     do                                                      \
     {                                                       \
@@ -56,9 +66,10 @@
         while (c)                                           \
         {                                                   \
             value = mr_alloc(sizeof(bin_operation_node_t)); \
-            value->operator = tokens++->type;               \
+            value->operator = tokens->type;                 \
             value->left = left;                             \
                                                             \
+            advance_newline;                                \
             tokens = f2(res, tokens);                       \
             if (!res->nodes)                                \
             {                                               \
@@ -110,8 +121,8 @@ parse_res_t parse(token_t *tokens)
     token_t *ptr = tokens;
     do
     {
-        for (; tokens->type == SEMICOLON_T; tokens++);
-        if (!tokens->type)
+        for (; tokens->type == SEMICOLON_T || tokens->type == NEWLINE_T; tokens++);
+        if (tokens->type == EOF_T)
             break;
 
         if (res.size == alloc)
@@ -126,9 +137,9 @@ parse_res_t parse(token_t *tokens)
         }
 
         res.size++;
-    } while (tokens->type == SEMICOLON_T);
+    } while (tokens->type == SEMICOLON_T || tokens[-1].type == NEWLINE_T);
 
-    if (tokens->type)
+    if (tokens->type != EOF_T)
     {
         res.error = invalid_syntax_set("Expected EOF", tokens->poss, tokens->pose);
 
@@ -168,9 +179,13 @@ token_t *tuple(parse_res_t *res, token_t *tokens)
         pose.ln = 0;
         do
         {
-            if ((++tokens)->type == RPAREN_T || tokens->type == SEMICOLON_T || tokens->type == EOF_T)
+            advance_newline;
+            if (tokens->type == RPAREN_T || tokens->type == SEMICOLON_T || tokens->type == EOF_T)
             {
-                pose = tokens[-1].pose;
+                if (tokens[-1].type == COMMA_T)
+                    pose = tokens[-1].pose;
+                else
+                    pose = tokens[-2].pose;
                 break;
             }
 
@@ -207,9 +222,10 @@ token_t *modify(parse_res_t *res, token_t *tokens)
     if (tokens->type >= ASSIGN_T && tokens->type <= RSHIFT_EQ_T)
     {
         bin_operation_node_t *node = mr_alloc(sizeof(bin_operation_node_t));
-        node->operator = tokens++->type;
+        node->operator = tokens->type;
         node->left = res->nodes[res->size];
 
+        advance_newline;
         tokens = tuple(res, tokens);
         if (!res->nodes)
         {
@@ -283,8 +299,9 @@ token_t *factor(parse_res_t *res, token_t *tokens)
         unary_operation_node_t *value = mr_alloc(sizeof(unary_operation_node_t));
         value->operator = tokens->type;
 
-        pos_t poss = tokens++->poss;
+        pos_t poss = tokens->poss;
 
+        advance_newline;
         tokens = factor(res, tokens);
         if (!res->nodes)
         {
@@ -312,8 +329,9 @@ token_t *prefix(parse_res_t *res, token_t *tokens)
         unary_operation_node_t *value = mr_alloc(sizeof(unary_operation_node_t));
         value->operator = tokens->type;
 
-        pos_t poss = tokens++->poss;
+        pos_t poss = tokens->poss;
 
+        advance_newline;
         tokens = prefix(res, tokens);
         if (!res->nodes)
         {
@@ -342,7 +360,9 @@ token_t *postfix(parse_res_t *res, token_t *tokens)
         value->operator = tokens->type + ADD_T - INC_T;
 
         value->operand = res->nodes[res->size];
-        set_node_pso(VAR_FMODIFY_N, value, tokens++->pose);
+        set_node_pso(VAR_FMODIFY_N, value, tokens->pose);
+
+        advance_newline;
     }
 
     return tokens;
@@ -352,8 +372,9 @@ token_t *core(parse_res_t *res, token_t *tokens)
 {
     if (tokens->type == LPAREN_T)
     {
-        pos_t poss = tokens++->poss;
+        pos_t poss = tokens->poss;
 
+        advance_newline;
         tokens = tuple(res, tokens);
         if (!res->nodes)
             return tokens;
@@ -366,29 +387,48 @@ token_t *core(parse_res_t *res, token_t *tokens)
         }
 
         res->nodes[res->size].poss = poss;
-        res->nodes[res->size].pose = tokens++->pose;
+        res->nodes[res->size].pose = tokens->pose;
+
+        advance_newline;
         return tokens;
     }
 
     switch (tokens->type)
     {
     case ID_T:
-        set_node(VAR_ACCESS_N, tokens->value, tokens->poss, tokens++->pose);
+        set_node(VAR_ACCESS_N, tokens->value, tokens->poss, tokens->pose);
+
+        advance_newline;
         return tokens;
     case INT_T:
-        set_node(INT_N, tokens->value, tokens->poss, tokens++->pose);
+        set_node(INT_N, tokens->value, tokens->poss, tokens->pose);
+
+        advance_newline;
         return tokens;
     case FLOAT_T:
-        set_node(FLOAT_N, tokens->value, tokens->poss, tokens++->pose);
+        set_node(FLOAT_N, tokens->value, tokens->poss, tokens->pose);
+
+        advance_newline;
         return tokens;
     case IMAG_T:
-        set_node(IMAG_N, tokens->value, tokens->poss, tokens++->pose);
+        set_node(IMAG_N, tokens->value, tokens->poss, tokens->pose);
+
+        advance_newline;
+        return tokens;
+    case NONE_KT:
+        set_node_vo(NONE_N, tokens->poss, tokens->pose);
+
+        advance_newline;
         return tokens;
     case TRUE_KT:
-        set_node(BOOL_N, (void*)1, tokens->poss, tokens++->pose);
+        set_node(BOOL_N, (void*)1, tokens->poss, tokens->pose);
+
+        advance_newline;
         return tokens;
     case FALSE_KT:
-        set_node(BOOL_N, NULL, tokens->poss, tokens++->pose);
+        set_node(BOOL_N, NULL, tokens->poss, tokens->pose);
+
+        advance_newline;
         return tokens;
     case LSQUARE_T:
         return handle_list(res, tokens);
@@ -402,11 +442,14 @@ token_t *core(parse_res_t *res, token_t *tokens)
 
 token_t *handle_list(parse_res_t *res, token_t *tokens)
 {
-    pos_t poss = tokens++->poss;
+    pos_t poss = tokens->poss;
 
+    advance_newline;
     if (tokens->type == RSQUARE_T)
     {
-        set_node(LIST_N, NULL, poss, tokens++->pose);
+        set_node(LIST_N, NULL, poss, tokens->pose);
+
+        advance_newline;
         return tokens;
     }
 
@@ -423,7 +466,8 @@ token_t *handle_list(parse_res_t *res, token_t *tokens)
 
     while (tokens->type == COMMA_T)
     {
-        if ((++tokens)->type == RSQUARE_T)
+        advance_newline;
+        if (tokens->type == RSQUARE_T)
             goto ret;
 
         tokens = modify(res, tokens);
@@ -448,19 +492,22 @@ token_t *handle_list(parse_res_t *res, token_t *tokens)
 
 ret:
     node->elements = mr_realloc(node->elements, node->size * sizeof(node_t));
-    set_node(LIST_N, node, poss, tokens++->pose);
+    set_node(LIST_N, node, poss, tokens->pose);
+
+    advance_newline;
     return tokens;
 }
 
 token_t *handle_var(parse_res_t *res, token_t *tokens)
 {
-    pos_t poss = tokens++->poss;
+    pos_t poss = tokens->poss;
+    advance_newline;
 
     uint8_t prop = 0;
     if (tokens->type == CONST_KT)
     {
         prop = VAR_ASSIGN_CONST_MASK;
-        tokens++;
+        advance_newline;
     }
 
     if (tokens->type != ID_T)
@@ -470,20 +517,26 @@ token_t *handle_var(parse_res_t *res, token_t *tokens)
     }
 
     var_assign_node_t *value = mr_alloc(sizeof(var_assign_node_t));
-    value->name = tokens++->value;
+    value->name = tokens->value;
+
+    advance_newline;
 
     if (tokens->type == LINK_T)
         prop |= VAR_ASSIGN_LINK_MASK;
     else if (tokens->type != ASSIGN_T)
     {
-        value->value.type = NONE_N;
+        value->value.poss.ln = 0;
         value->prop = prop;
 
-        set_node(VAR_ASSIGN_N, value, poss, tokens[-1].pose);
+        if (tokens[-1].type != NEWLINE_T)
+            set_node(VAR_ASSIGN_N, value, poss, tokens[-1].pose);
+        else
+            set_node(VAR_ASSIGN_N, value, poss, tokens[-2].pose);
         return tokens;
     }
 
-    tokens = tuple(res, ++tokens);
+    advance_newline;
+    tokens = tuple(res, tokens);
     if (!res->nodes)
     {
         mr_free(value->name);

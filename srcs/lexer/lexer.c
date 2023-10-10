@@ -112,7 +112,7 @@
     } while (0)
 
 #define KEYWORD_MAX_LEN 5
-#define KEYWORDS_LEN 7
+#define KEYWORDS_LEN 8
 #define KEYWORD_PAD NOT_KT
 
 void process_id(token_t *token, const char *code, pos_t *pos);
@@ -126,7 +126,7 @@ const char *keywords[KEYWORDS_LEN] =
     "not", "and", "or",
     "var",
     "const",
-    "true", "false"
+    "none", "true", "false"
 };
 
 uint8_t keyword_lens[KEYWORDS_LEN] =
@@ -134,7 +134,7 @@ uint8_t keyword_lens[KEYWORDS_LEN] =
     3, 3, 2,
     3,
     5,
-    4, 5
+    4, 4, 5
 };
 
 lex_res_t lex(const char *code)
@@ -146,9 +146,9 @@ lex_res_t lex(const char *code)
     uint64_t alloc = LEX_TOKEN_LIST_LEN;
 
     pos_t pos = set_pos(0, 1);
-    while (code[pos.idx])
+    while (code[pos.idx] != '\0')
     {
-        if (code[pos.idx] == ' ' || code[pos.idx] == '\t')
+        if (code[pos.idx] == ' ' || code[pos.idx] == '\t' || code[pos.idx] == '\r')
         {
             pos.idx++;
             continue;
@@ -171,6 +171,22 @@ lex_res_t lex(const char *code)
 
         switch (code[pos.idx])
         {
+        case '\n':
+            if (res.tokens[size - 1].type == NEWLINE_T)
+            {
+                pos.idx++;
+                pos.ln++;
+                break;
+            }
+
+            res.tokens[size].type = NEWLINE_T;
+            res.tokens[size].value = NULL;
+            res.tokens[size].poss = pos;
+
+            pos.idx++;
+            pos.ln++;
+            res.tokens[size++].pose = pos;
+            break;
         case ';':
             set_token(SEMICOLON_T);
             break;

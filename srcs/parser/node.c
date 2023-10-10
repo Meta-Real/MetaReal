@@ -83,7 +83,7 @@ void node_free(const node_t *node)
 
 void node_print(const node_t *node)
 {
-    if (!node->type)
+    if (node->type == NONE_N)
     {
         fputs("(NONE)", stdout);
         return;
