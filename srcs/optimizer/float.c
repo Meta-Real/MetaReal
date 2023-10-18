@@ -6,6 +6,8 @@
 #include <alloc.h>
 #include <string.h>
 
+#include <stdlib.h>
+
 #define float_binary(f)                                                           \
     do                                                                            \
     {                                                                             \
@@ -285,7 +287,7 @@ void float_free(float_value_t *num)
 
 char *float_get_str(const float_value_t *num)
 {
-    char* res = mr_alloc(100);
+    char* res = malloc(100);
     mpfr_sprintf(res, "%.16Rg", num->num);
 
     res = mr_realloc(res, strlen(res) + 1);

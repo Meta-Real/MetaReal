@@ -2311,8 +2311,6 @@ void compute_inc(visit_res_t *res, value_t *operand, pos_t *poss, pos_t *pose)
     }
 
     uint8_t type = operand->type;
-
-    value_free(operand);
     ill_inc_dec_op_error("incremented", type, *poss, *pose);
 }
 
@@ -2343,8 +2341,6 @@ void compute_dec(visit_res_t *res, value_t *operand, pos_t *poss, pos_t *pose)
     }
 
     uint8_t type = operand->type;
-
-    value_free(operand);
     ill_inc_dec_op_error("decremented", type, *poss, *pose);
 }
 

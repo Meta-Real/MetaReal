@@ -6,6 +6,8 @@
 #include <alloc.h>
 #include <string.h>
 
+#include <stdlib.h>
+
 #define complex_binary(f)                                                               \
     do                                                                                  \
     {                                                                                   \
@@ -298,14 +300,14 @@ char *complex_get_str(const complex_value_t *num)
 {
     if (!mpfr_zero_p(mpc_realref(num->num)))
     {
-        char *res = mr_alloc(200);
+        char *res = malloc(200);
         mpfr_sprintf(res, "(%.16Rg%+.16Rgi)", mpc_realref(num->num), mpc_imagref(num->num));
 
         res = mr_realloc(res, strlen(res) + 1);
         return res;
     }
 
-    char *res = mr_alloc(100);
+    char *res = malloc(100);
     mpfr_sprintf(res, "%.16Rgi", mpc_imagref(num->num));
 
     res = mr_realloc(res, strlen(res) + 1);

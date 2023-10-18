@@ -9,11 +9,19 @@ SRCS = $(shell find $(SDIR) -name "*.c")
 OBJS = $(patsubst $(SDIR)/%.c, $(ODIR)/%.o, $(SRCS))
 OUT = metareal
 
-make: $(OUT)
+make: $(ODIR) $(OUT)
 	./$(OUT)
 
 all: clean $(OUT)
 	./$(OUT)
+
+$(ODIR):
+	@mkdir $(ODIR)
+	@mkdir $(ODIR)/error
+	@mkdir $(ODIR)/generator
+	@mkdir $(ODIR)/lexer
+	@mkdir $(ODIR)/optimizer
+	@mkdir $(ODIR)/parser
 
 $(OUT): $(OBJS)
 	$(CC) -o $(OUT) $(OBJS) -lgmp -lmpfr -lmpc
@@ -21,7 +29,7 @@ $(OUT): $(OBJS)
 $(ODIR)/%.o: $(SDIR)/%.c
 	$(CC) $(CFLAGS) -c -o $@ $< -I $(HDIR)
 
-clean:
+clean: $(ODIR)
 	@rm -f $(shell find $(ODIR) -name "*.o")
 	@rm -f $(OUT)
 

@@ -99,10 +99,6 @@ uint64_t var_getp(uint8_t *error, const context_t *context, const char *name)
             if (context->vars[i].value->type == PTR_V)
                 return (uintptr_t)context->vars[i].value->value;
 
-            if (context->vars[i].prop & VAR_ASSIGN_CONST_MASK &&
-                context->vars[i].value->type != NONE_V)
-                *error = 2;
-
             return i;
         }
 

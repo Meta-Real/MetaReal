@@ -87,8 +87,14 @@ void visit_var_access(
     context_t *context, pos_t *poss, pos_t *pose, uint8_t prop
 );
 
-void map_array(visit_res_t *res, context_t *context, list_value_t *ptrs, value_t *values);
-void link_array(visit_res_t *res, context_t *context, list_value_t *ptrs, value_t *values);
+void prefix_modify(
+    visit_res_t *res, context_t *context, pos_t *poss, pos_t *pose, uint8_t prop,
+    void (*func)(visit_res_t*, value_t*, pos_t*, pos_t*)
+);
+void postfix_modify(
+    visit_res_t *res, context_t *context, pos_t *poss, pos_t *pose, uint8_t prop,
+    void (*func)(visit_res_t*, value_t*, pos_t*, pos_t*)
+);
 
 opt_res_t optimize(node_t *nodes, uint64_t size)
 {
@@ -255,10 +261,7 @@ void visit_list(
 {
     if (!node)
     {
-        if (prop & PTR_MASK)
-            value_set_pos(PTRS_V, NULL);
-        else
-            value_set_pos(LIST_V, NULL);
+        value_set_pos(LIST_V, NULL);
         return;
     }
 
@@ -284,10 +287,7 @@ void visit_list(
         value->elements[value->size] = res->value;
     }
 
-    if (prop & PTR_MASK)
-        value_set_pos(PTRS_V, value);
-    else
-        value_set_pos(LIST_V, value);
+    value_set_pos(LIST_V, value);
 
     mr_free(node->elements);
     mr_free(node);
@@ -320,10 +320,7 @@ void visit_tuple(
         value->elements[value->size] = res->value;
     }
 
-    if (prop & PTR_MASK)
-        value_set_pos(PTRS_V, value);
-    else
-        value_set_pos(TUPLE_V, value);
+    value_set_pos(TUPLE_V, value);
 
     mr_free(node->elements);
     mr_free(node);
@@ -558,7 +555,7 @@ void visit_var_assign(
         if (error)
             const_var_error(node->name, *poss, *pose);
 
-        value_set(res->value, PTR_V, ptr);
+        value_set_pos(PTR_V, ptr);
     }
     else
     {
@@ -585,10 +582,10 @@ void visit_var_assign(
         }
 
         value_addref(res->value, 1);
-
-        res->value->poss = *poss;
-        res->value->pose = *pose;
     }
+
+    res->value->poss = *poss;
+    res->value->pose = *pose;
 
     mr_free(node);
 }
@@ -605,6 +602,35 @@ void visit_var_fmodify(
     context_t *context, pos_t *poss, pos_t *pose, uint8_t prop
 )
 {
+    visit_node(res, &node->operand, context, PROP_SET(1, 0));
+    if (!res->value)
+    {
+        mr_free(node);
+        return;
+    }
+
+    switch (node->operator)
+    {
+    case INC_T:
+        prefix_modify(res, context, poss, pose, prop, compute_inc);
+        break;
+    case DEC_T:
+        prefix_modify(res, context, poss, pose, prop, compute_dec);
+        break;
+    case ADD_T:
+        postfix_modify(res, context, poss, pose, prop, compute_inc);
+        break;
+    case SUB_T:
+        postfix_modify(res, context, poss, pose, prop, compute_dec);
+        break;
+    }
+
+    mr_free(node);
+    if (!res->value)
+        return;
+
+    res->value->poss = *poss;
+    res->value->pose = *pose;
 }
 
 void visit_var_access(
@@ -617,22 +643,19 @@ void visit_var_access(
         uint8_t error = 0;
         void *ptr = (void*)var_getp(&error, context, node);
 
-        switch (error)
+        if (error)
         {
-        case 1:
             if (prop & ASSIGN_MASK)
             {
                 ptr = (void*)var_add(context, node);
-                value_set(res->value, PTR_V, ptr);
+                value_set_pos(PTR_V, ptr);
                 return;
             }
 
             not_def_error(node, *poss, *pose);
-        case 2:
-            const_var_error(node, *poss, *pose);
         }
 
-        value_set(res->value, PTR_V, ptr);
+        value_set_pos(PTR_V, ptr);
     }
     else
     {
@@ -647,10 +670,132 @@ void visit_var_access(
     mr_free(node);
 }
 
-void map_array(visit_res_t *res, context_t *context, list_value_t *ptrs, value_t *values)
+void prefix_modify(
+    visit_res_t *res, context_t *context, pos_t *poss, pos_t *pose, uint8_t prop,
+    void (*func)(visit_res_t*, value_t*, pos_t*, pos_t*)
+)
 {
+    if (res->value->type == PTR_V)
+    {
+        value_t *ptr = res->value;
+
+        func(res, context->vars[(uintptr_t)ptr->value].value, poss, pose);
+        if (!res->value)
+        {
+            value_free_vo(ptr);
+            return;
+        }
+
+        context->vars[(uintptr_t)ptr->value].value = res->value;
+
+        if (prop & PTR_MASK)
+        {
+            res->value = ptr;
+            return;
+        }
+
+        value_addref(res->value, 1);
+
+        value_free_vo(ptr);
+        return;
+    }
+
+    value_t *list = res->value;
+    pos_t sposs, spose;
+    for (uint64_t i = 0; i < LIST_CAST(list)->size; i++)
+    {
+        res->value = LIST_CAST(list)->elements[i];
+
+        sposs = res->value->poss;
+        spose = res->value->pose;
+        prefix_modify(res, context, &sposs, &spose, prop, func);
+
+        LIST_CAST(list)->elements[i] = res->value;
+
+        if (!res->value)
+        {
+            list_free(list->value);
+            mr_free(list);
+            return;
+        }
+    }
+
+    if (prop & PTR_MASK)
+    {
+        res->value = list;
+        return;
+    }
+
+    res->value = list;
 }
 
-void link_array(visit_res_t *res, context_t *context, list_value_t *ptrs, value_t *values)
+void postfix_modify(
+    visit_res_t *res, context_t *context, pos_t *poss, pos_t *pose, uint8_t prop,
+    void (*func)(visit_res_t*, value_t*, pos_t*, pos_t*)
+)
 {
+    if (res->value->type == PTR_V)
+    {
+        value_t *ptr = res->value;
+
+        if (prop & PTR_MASK)
+        {
+            func(res, context->vars[(uintptr_t)ptr->value].value, poss, pose);
+            if (!res->value)
+            {
+                value_free_vo(ptr);
+                return;
+            }
+
+            context->vars[(uintptr_t)ptr->value].value = res->value;
+
+            res->value = ptr;
+            return;
+        }
+
+        value_t *value = context->vars[(uintptr_t)ptr->value].value;
+        value_addref(value, 1);
+
+        func(res, value, poss, pose);
+        if (!res->value)
+        {
+            value_addref(value, -1);
+            value_free_vo(ptr);
+            return;
+        }
+
+        context->vars[(uintptr_t)ptr->value].value = res->value;
+        res->value = value;
+
+        value_free_vo(ptr);
+        return;
+    }
+
+    value_t *list = res->value;
+    pos_t sposs, spose;
+    for (uint64_t i = 0; i < LIST_CAST(list)->size; i++)
+    {
+        res->value = LIST_CAST(list)->elements[i];
+
+        sposs = res->value->poss;
+        spose = res->value->pose;
+        postfix_modify(res, context, &sposs, &spose, prop, func);
+
+        LIST_CAST(list)->elements[i] = res->value;
+
+        if (!res->value)
+        {
+            list_free(list->value);
+            mr_free(list);
+            return;
+        }
+    }
+
+    if (prop & PTR_MASK)
+    {
+        res->value = list;
+        return;
+    }
+
+    res->value = list;
 }
