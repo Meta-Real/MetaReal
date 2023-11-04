@@ -34,7 +34,7 @@ value_t *var_get(const context_t *context, const char *name)
     return NULL;
 }
 
-void var_set(uint8_t *flag, context_t *context, char *name, value_t *value, uint8_t prop)
+uint8_t var_set(uint8_t *flag, context_t *context, char *name, value_t *value, uint8_t prop, uint8_t type)
 {
     for (uint64_t i = 0; i < context->size; i++)
         if (!strcmp(name, context->vars[i].name))
@@ -51,13 +51,14 @@ void var_set(uint8_t *flag, context_t *context, char *name, value_t *value, uint
 
                     context->vars[i].value = value;
                     context->vars[i].prop |= prop;
-                    return;
+                    context->vars[i].type |= type;
+                    return 0;
                 }
 
                 value_free(value);
 
                 *flag = 1;
-                return;
+                return 0;
             }
 
             if (value->type == PTR_V && i == (uintptr_t)value->value)
@@ -65,8 +66,22 @@ void var_set(uint8_t *flag, context_t *context, char *name, value_t *value, uint
                 mr_free(name);
 
                 context->vars[i].prop |= prop;
+                context->vars[i].type |= type;
                 *flag = 2;
-                return;
+                return 0;
+            }
+
+            if (context->vars[i].type != NONE_V)
+            {
+                if (value->type != NONE_V && context->vars[i].type != value->type)
+                    return context->vars[i].type;
+                if (type != NONE_V && context->vars[i].type != type)
+                {
+                    value_free(value);
+
+                    *flag = 1;
+                    return context->vars[i].type;
+                }
             }
 
             value_free(context->vars[i].value);
@@ -74,7 +89,8 @@ void var_set(uint8_t *flag, context_t *context, char *name, value_t *value, uint
 
             context->vars[i].value = value;
             context->vars[i].prop |= prop;
-            return;
+            context->vars[i].type |= type;
+            return 0;
         }
 
     if (context->size == context->alloc)
@@ -84,11 +100,18 @@ void var_set(uint8_t *flag, context_t *context, char *name, value_t *value, uint
     context->vars[context->size].value = value;
 
     if (value->type == PTR_V)
+    {
         context->vars[(uintptr_t)value->value].prop |= prop;
+        context->vars[(uintptr_t)value->value].type |= type;
+    }
     else
+    {
         context->vars[context->size].prop = prop;
+        context->vars[context->size].type = type;
+    }
 
     context->size++;
+    return 0;
 }
 
 uint64_t var_getp(uint8_t *error, const context_t *context, const char *name)
@@ -106,7 +129,7 @@ uint64_t var_getp(uint8_t *error, const context_t *context, const char *name)
     return 0;
 }
 
-uint64_t var_setp(uint8_t *error, context_t *context, char *name, value_t *value, uint8_t prop)
+uint64_t var_setp(uint8_t *error, context_t *context, char *name, value_t *value, uint8_t prop, uint8_t type)
 {
     for (uint64_t i = 0; i < context->size; i++)
         if (!strcmp(name, context->vars[i].name))
@@ -116,12 +139,14 @@ uint64_t var_setp(uint8_t *error, context_t *context, char *name, value_t *value
 
             if (context->vars[i].prop & VAR_ASSIGN_CONST_MASK)
             {
-                if (context->vars[i].value->type == NONE_V && value->type == NONE_V)
+                if (context->vars[i].value->type == NONE_V)
                 {
-                    value_free_vo(value);
+                    value_free_vo(context->vars[i].value);
                     mr_free(name);
 
+                    context->vars[i].value = value;
                     context->vars[i].prop |= prop;
+                    context->vars[i].type |= type;
                     return i;
                 }
 
@@ -137,7 +162,24 @@ uint64_t var_setp(uint8_t *error, context_t *context, char *name, value_t *value
                 mr_free(name);
 
                 context->vars[i].prop |= prop;
+                context->vars[i].type |= type;
                 return i;
+            }
+
+            if (context->vars[i].type != NONE_V)
+            {
+                if (value->type != NONE_V && context->vars[i].type != value->type)
+                {
+                    *error = 2;
+                    return context->vars[i].type;
+                }
+                if (type != NONE_V && context->vars[i].type != type)
+                {
+                    value_free(value);
+
+                    *error = 3;
+                    return context->vars[i].type;
+                }
             }
 
             value_free(context->vars[i].value);
@@ -145,6 +187,7 @@ uint64_t var_setp(uint8_t *error, context_t *context, char *name, value_t *value
 
             context->vars[i].value = value;
             context->vars[i].prop |= prop;
+            context->vars[i].type |= type;
             return i;
         }
 
@@ -155,10 +198,16 @@ uint64_t var_setp(uint8_t *error, context_t *context, char *name, value_t *value
     context->vars[context->size].value = value;
 
     if (value->type == PTR_V)
+    {
         context->vars[(uintptr_t)value->value].prop |= prop;
-    else
-        context->vars[context->size].prop = prop;
+        context->vars[(uintptr_t)value->value].type |= type;
 
+        context->size++;
+        return (uintptr_t)value->value;
+    }
+
+    context->vars[context->size].prop = prop;
+    context->vars[context->size].type = type;
     return context->size++;
 }
 
@@ -169,5 +218,6 @@ uint64_t var_add(context_t *context, char *name)
 
     context->vars[context->size].name = name;
     context->vars[context->size].prop = 0;
+    context->vars[context->size].type = 0;
     return context->size++;
 }

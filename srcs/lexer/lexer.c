@@ -115,6 +115,10 @@
 #define KEYWORDS_LEN 8
 #define KEYWORD_PAD NOT_KT
 
+#define TYPE_MAX_LEN 7
+#define TYPES_LEN 6
+#define TYPE_PAD INT_TT
+
 void process_id(token_t *token, const char *code, pos_t *pos);
 void process_num(token_t *token, const char *code, pos_t *pos);
 void process_sub(token_t *token, const char *code, pos_t *pos);
@@ -135,6 +139,20 @@ uint8_t keyword_lens[KEYWORDS_LEN] =
     3,
     5,
     4, 4, 5
+};
+
+const char *types[TYPES_LEN] =
+{
+    "int", "float", "complex",
+    "bool",
+    "list", "tuple"
+};
+
+uint8_t type_lens[TYPES_LEN] =
+{
+    3, 5, 7,
+    4,
+    4, 5
 };
 
 lex_res_t lex(const char *code)
@@ -357,22 +375,33 @@ void process_sub(token_t *token, const char *code, pos_t *pos)
 
 uint8_t check_id(const char *id, uint64_t len)
 {
-    if (len > KEYWORD_MAX_LEN)
-        return ID_T;
+    uint8_t i, j;
+    if (len <= KEYWORD_MAX_LEN)
+        for (i = 0; i < KEYWORDS_LEN; i++)
+        {
+            if (len != keyword_lens[i])
+                continue;
 
-    uint8_t j;
-    for (uint8_t i = 0; i < KEYWORDS_LEN; i++)
-    {
-        if (len != keyword_lens[i])
-            continue;
+            for (j = 0; j < len; j++)
+                if (id[j] != keywords[i][j])
+                    break;
 
-        for (j = 0; j < len; j++)
-            if (id[j] != keywords[i][j])
-                break;
+            if (j == len)
+                return i + KEYWORD_PAD;
+        }
+    if (len <= TYPE_MAX_LEN)
+        for (i = 0; i < TYPES_LEN; i++)
+        {
+            if (len != type_lens[i])
+                continue;
 
-        if (j == len)
-            return i + KEYWORD_PAD;
-    }
+            for (j = 0; j < len; j++)
+                if (id[j] != types[i][j])
+                    break;
+
+            if (j == len)
+                return i + TYPE_PAD;
+        }
 
     return ID_T;
 }

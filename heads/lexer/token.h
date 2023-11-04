@@ -82,8 +82,19 @@ enum __TOKEN_TYPES
 
     NONE_KT,
     TRUE_KT,
-    FALSE_KT
+    FALSE_KT,
+
+    INT_TT,
+    FLOAT_TT,
+    COMPLEX_TT,
+
+    BOOL_TT,
+
+    LIST_TT,
+    TUPLE_TT
 };
+
+#define TOKENS_LEN 63
 
 struct __TOKEN_T
 {
@@ -95,7 +106,7 @@ struct __TOKEN_T
 };
 typedef struct __TOKEN_T token_t;
 
-extern const char *token_labels[57];
+extern const char *token_labels[TOKENS_LEN];
 
 void tokens_free(token_t *tokens);
 void tokens_print(const token_t *tokens);

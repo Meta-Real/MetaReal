@@ -69,6 +69,7 @@ struct __VAR_ASSIGN_NODE_T
     node_t value;
 
     uint8_t prop;
+    uint8_t type;
 };
 typedef struct __VAR_ASSIGN_NODE_T var_assign_node_t;
 

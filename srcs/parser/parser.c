@@ -510,6 +510,13 @@ token_t *handle_var(parse_res_t *res, token_t *tokens)
         advance_newline;
     }
 
+    uint8_t type = 0;
+    if (tokens->type >= INT_TT)
+    {
+        type = tokens->type - INT_TT + 1;
+        advance_newline;
+    }
+
     if (tokens->type != ID_T)
     {
         set_error(invalid_syntax_set("Expected identifier", tokens->poss, tokens->pose));
@@ -518,6 +525,7 @@ token_t *handle_var(parse_res_t *res, token_t *tokens)
 
     var_assign_node_t *value = mr_alloc(sizeof(var_assign_node_t));
     value->name = tokens->value;
+    value->type = type;
 
     advance_newline;
 

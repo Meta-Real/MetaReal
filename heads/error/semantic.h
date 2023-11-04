@@ -61,6 +61,31 @@
         return;                                                \
     } while (0)
 
+#define type_mismatch(s, t1, t2, ps, pe)                                                          \
+    do                                                                                            \
+    {                                                                                             \
+        res->error.detail = mr_alloc(52 + strlen(s) + value_name_lens[t1] + value_name_lens[t2]); \
+        sprintf(res->error.detail, "Type of '%s' (<%s>) and type of value (<%s>) do not match",   \
+            s, value_names[t1], value_names[t2]);                                                 \
+                                                                                                  \
+        res->value = NULL;                                                                        \
+        invalid_semantic_set(res->error, TYPE_E, ps, pe);                                         \
+    } while (0)
+
+#define type_change(s, t1, t2, ps, pe)                                                            \
+    do                                                                                            \
+    {                                                                                             \
+        res->error.detail = mr_alloc(44 + strlen(s) + value_name_lens[t1] + value_name_lens[t2]); \
+        sprintf(res->error.detail, "Can not change the type of '%s' from <%s> to <%s>",           \
+            s, value_names[t1], value_names[t2]);                                                 \
+                                                                                                  \
+        res->value = NULL;                                                                        \
+        invalid_semantic_set(res->error, TYPE_E, ps, pe);                                         \
+                                                                                                  \
+        mr_free(s);                                                                               \
+        return;                                                                                   \
+    } while (0)
+
 /* operations */
 
 #define ill_op_error(o, ol, t1, t2, ps, pe)                                                  \

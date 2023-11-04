@@ -29,6 +29,7 @@ enum __INVALID_SEMANTIC_TYPES
 {
     ILLEGAL_OP_E,
     VALUE_E,
+    TYPE_E,
     NOT_DEF_E,
     CONST_VAR_E,
     ACCESS_E,

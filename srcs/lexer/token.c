@@ -6,7 +6,7 @@
 #include <alloc.h>
 #include <stdio.h>
 
-const char *token_labels[57] =
+const char *token_labels[TOKENS_LEN] =
 {
     "EOF",
     "NEWLINE", "SEMICOLON",
@@ -25,7 +25,10 @@ const char *token_labels[57] =
     "NOT_K", "OR_K", "NOT_K",
     "VAR_K",
     "CONST_K",
-    "NONE_K", "TRUE_K", "FALSE_K"
+    "NONE_K", "TRUE_K", "FALSE_K",
+    "INT_T", "FLOAT_T", "COMPLEX_T",
+    "BOOL_T",
+    "LIST_T", "TUPLE_T"
 };
 
 void tokens_free(token_t *tokens)

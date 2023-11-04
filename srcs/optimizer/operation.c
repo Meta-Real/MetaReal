@@ -2310,8 +2310,7 @@ void compute_inc(visit_res_t *res, value_t *operand, pos_t *poss, pos_t *pose)
         return;
     }
 
-    uint8_t type = operand->type;
-    ill_inc_dec_op_error("incremented", type, *poss, *pose);
+    ill_inc_dec_op_error("incremented", operand->type, *poss, *pose);
 }
 
 void compute_dec(visit_res_t *res, value_t *operand, pos_t *poss, pos_t *pose)
@@ -2340,8 +2339,7 @@ void compute_dec(visit_res_t *res, value_t *operand, pos_t *poss, pos_t *pose)
         return;
     }
 
-    uint8_t type = operand->type;
-    ill_inc_dec_op_error("decremented", type, *poss, *pose);
+    ill_inc_dec_op_error("decremented", operand->type, *poss, *pose);
 }
 
 uint8_t compute_vneq(const value_t *left, const value_t *right)

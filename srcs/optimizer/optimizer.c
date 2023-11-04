@@ -543,6 +543,19 @@ void visit_var_assign(
             mr_free(node);
             return;
         }
+
+        uint8_t type = res->value->type;
+        if (type == PTR_V)
+            type = context->vars[(uint64_t)res->value->value].value->type;
+
+        if (type != NONE_V && node->type && type != node->type)
+        {
+            type_mismatch(node->name, node->type, type, *poss, *pose);
+
+            value_free(res->value);
+            mr_free(node);
+            return;
+        }
     }
     else
         value_set_vo(res->value, NONE_V);
@@ -550,17 +563,62 @@ void visit_var_assign(
     if (prop & PTR_MASK)
     {
         uint8_t error = 0;
-        void* ptr = (void*)var_setp(&error, context, node->name, res->value, node->prop);
+        uint64_t ptr = var_setp(&error, context, node->name, res->value, node->prop, node->type);
 
-        if (error)
-            const_var_error(node->name, *poss, *pose);
+        switch (error)
+        {
+        case 1:
+            do
+            {
+                char *str = node->name;
 
-        value_set_pos(PTR_V, ptr);
+                mr_free(node);
+                const_var_error(str, *poss, *pose);
+            } while (0);
+        case 2:
+            do
+            {
+                type_mismatch(node->name, ptr, res->value->type, *poss, *pose);
+
+                value_free(res->value);
+                mr_free(node);
+                return;
+            } while (0);
+        case 3:
+            do
+            {
+                char *str = node->name;
+                uint8_t type2 = node->type;
+
+                mr_free(node);
+                type_change(str, ptr, type2, *poss, *pose);
+            } while (0);
+        }
+
+        value_set_pos(PTR_V, (void*)ptr);
     }
     else
     {
         uint8_t flag = 0;
-        var_set(&flag, context, node->name, res->value, node->prop);
+        uint8_t type = var_set(&flag, context, node->name, res->value, node->prop, node->type);
+
+        if (type)
+        {
+            if (flag)
+            {
+                char *str = node->name;
+                uint8_t type2 = node->type;
+
+                mr_free(node);
+                type_change(str, type, type2, *poss, *pose);
+            }
+
+            type_mismatch(node->name, type, res->value->type, *poss, *pose);
+
+            value_free(res->value);
+            mr_free(node);
+            return;
+        }
 
         switch (flag)
         {
@@ -688,6 +746,16 @@ void prefix_modify(
 
         context->vars[(uintptr_t)ptr->value].value = res->value;
 
+        if (context->vars[(uintptr_t)ptr->value].type != NONE_V &&
+            res->value->type != context->vars[(uintptr_t)ptr->value].type)
+        {
+            type_mismatch(context->vars[(uintptr_t)ptr->value].name,
+                context->vars[(uintptr_t)ptr->value].type, res->value->type, *poss, *pose);
+
+            value_free_vo(ptr);
+            return;
+        }
+
         if (prop & PTR_MASK)
         {
             res->value = ptr;
@@ -748,6 +816,15 @@ void postfix_modify(
             }
 
             context->vars[(uintptr_t)ptr->value].value = res->value;
+            if (context->vars[(uintptr_t)ptr->value].type != NONE_V &&
+                res->value->type != context->vars[(uintptr_t)ptr->value].type)
+            {
+                type_mismatch(context->vars[(uintptr_t)ptr->value].name,
+                    context->vars[(uintptr_t)ptr->value].type, res->value->type, *poss, *pose);
+
+                value_free_vo(ptr);
+                return;
+            }
 
             res->value = ptr;
             return;
@@ -765,7 +842,16 @@ void postfix_modify(
         }
 
         context->vars[(uintptr_t)ptr->value].value = res->value;
-        res->value = value;
+        if (context->vars[(uintptr_t)ptr->value].type != NONE_V &&
+            res->value->type != context->vars[(uintptr_t)ptr->value].type)
+        {
+            type_mismatch(context->vars[(uintptr_t)ptr->value].name,
+                context->vars[(uintptr_t)ptr->value].type, res->value->type, *poss, *pose);
+
+            value_addref(value, -1);
+        }
+        else
+            res->value = value;
 
         value_free_vo(ptr);
         return;
