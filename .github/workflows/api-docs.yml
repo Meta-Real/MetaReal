@@ -1,0 +1,27 @@
+name: Doxygen
+
+on:
+  # Manual workflow dispatch
+  workflow_dispatch:
+
+jobs:
+  make_and_deploy_doxygen:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. Checkout current branch of GitHub repository.
+      - name: Checkout current branch
+        uses: actions/checkout@v4
+      # 2. Install doxygen
+      - name: Install doxygen
+        run: sudo apt-get update; sudo apt-get install -y doxygen graphviz texlive-full
+      # 3. Create the doxygen pages.
+      - name: Create the doxygen
+        run: |
+          doxygen ./Doxyfile
+
+      # Deploy to GitHub Pages
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs/html
