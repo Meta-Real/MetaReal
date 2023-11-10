@@ -13,7 +13,7 @@ jobs:
         uses: actions/checkout@v4
       # 2. Install doxygen
       - name: Install doxygen
-        run: sudo apt-get update; sudo apt-get install -y doxygen graphviz texlive-full
+        run: sudo apt-get update; sudo apt-get install -y doxygen
       # 3. Create the doxygen pages.
       - name: Create the doxygen
         run: |
