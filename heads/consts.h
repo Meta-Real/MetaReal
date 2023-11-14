@@ -16,6 +16,7 @@
 
 #define LEX_ID_SIZE 16
 #define LEX_NUM_SIZE 8
+#define LEX_STR_SIZE 64
 
 /* parser */
 

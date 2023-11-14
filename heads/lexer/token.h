@@ -18,6 +18,8 @@ enum __TOKEN_TYPES
     INT_T,
     FLOAT_T,
     IMAG_T,
+    CHAR_T,
+    STR_T,
 
     MUL_T,
     DIV_T,
@@ -90,16 +92,21 @@ enum __TOKEN_TYPES
 
     BOOL_TT,
 
+    CHAR_TT,
+    STR_TT,
+
     LIST_TT,
     TUPLE_TT
 };
 
-#define TOKENS_LEN 63
+#define TOKENS_LEN 67
 
 struct __TOKEN_T
 {
     uint8_t type;
+
     char *value;
+    uint64_t size;
 
     pos_t poss;
     pos_t pose;

@@ -8,6 +8,30 @@
 #include <stdio.h>
 #include <string.h>
 
+/*#include <pthread.h>
+
+#define SUB_COUNT 10
+
+value_t *LIST;
+
+void *thread(void *args);
+
+void *thread(void *args)
+{
+    uint64_t end = (uintptr_t)args + SUB_COUNT;
+    uint64_t start = (uintptr_t)args % LIST_CAST(LIST)->size;
+
+    uint64_t i = (uintptr_t)args, j;
+    for (j = start; j < LIST_CAST(LIST)->size; i++, j++)
+        LIST_CAST(LIST)->elements[i] = LIST_CAST(LIST)->elements[j];
+
+    for (i = (uintptr_t)args; i < end;)
+        for (j = 0; j < LIST_CAST(LIST)->size; i++, j++)
+            LIST_CAST(LIST)->elements[i] = LIST_CAST(LIST)->elements[j];
+
+    return NULL;
+}*/
+
 list_value_t *list_set(uint64_t size)
 {
     list_value_t *list = mr_alloc(sizeof(list_value_t));
@@ -396,6 +420,40 @@ value_t *list_repeat_int(value_t *list, value_t *ptr)
     for (; i < size;)
         for (j = 0; j < LIST_CAST(list)->size; i++, j++)
             LIST_CAST(list)->elements[i] = LIST_CAST(list)->elements[j];
+
+    /*uint64_t tcount = (size - LIST_CAST(list)->size) / SUB_COUNT;
+    if (!tcount)
+    {
+        uint64_t j;
+        for (; i < size;)
+            for (j = 0; j < LIST_CAST(list)->size; i++, j++)
+                LIST_CAST(list)->elements[i] = LIST_CAST(list)->elements[j];
+    }
+    else
+    {
+        LIST = list;
+
+        pthread_t *data = mr_alloc(tcount * sizeof(pthread_t));
+        uint64_t idx = LIST_CAST(list)->size;
+
+        for (i = 0; i < tcount; i++)
+        {
+            pthread_create(data + i, NULL, thread, (void*)idx);
+            idx += SUB_COUNT;
+        }
+
+        if (idx != size)
+        {
+            uint64_t j;
+            for (i = idx; i < size;)
+                for (j = 0; j < LIST_CAST(list)->size; i++, j++)
+                    LIST_CAST(list)->elements[i] = LIST_CAST(list)->elements[j];
+        }
+
+        for (i = 0; i < tcount; i++)
+            pthread_join(data[i], NULL);
+        mr_free(data);
+    }*/
 
     LIST_CAST(list)->size = size;
 

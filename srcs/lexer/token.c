@@ -10,7 +10,7 @@ const char *token_labels[TOKENS_LEN] =
 {
     "EOF",
     "NEWLINE", "SEMICOLON",
-    "ID", "INT", "FLOAT", "IMAG",
+    "ID", "INT", "FLOAT", "IMAG", "CHAR", "STR",
     "MUL", "DIV", "MOD", "QUOT", "POW",
     "B_AND", "B_OR", "B_XOR", "LSHIFT", "RSHIFT",
     "EQ", "NEQ", "EX_EQ", "EX_NEQ",
@@ -28,6 +28,7 @@ const char *token_labels[TOKENS_LEN] =
     "NONE_K", "TRUE_K", "FALSE_K",
     "INT_T", "FLOAT_T", "COMPLEX_T",
     "BOOL_T",
+    "CHAR", "STR",
     "LIST_T", "TUPLE_T"
 };
 
@@ -43,8 +44,10 @@ void tokens_print(const token_t *tokens)
     {
         fputs(token_labels[tokens->type], stdout);
 
-        if (tokens->value)
-            printf(": %s", tokens->value);
+        if (tokens->type == CHAR_T)
+            printf(": '%c'", tokens->size);
+        else if (tokens->value)
+            printf(": \"%s\"", tokens->value);
 
         putchar('\n');
     }

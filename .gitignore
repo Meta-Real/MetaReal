@@ -1,7 +1,6 @@
 .*
 *.o
 *.exe
-*.json
 
 build
 objs

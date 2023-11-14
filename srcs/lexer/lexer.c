@@ -7,6 +7,18 @@
 #include <consts.h>
 #include <stddef.h>
 
+#define set_error(c, e)                          \
+    do                                           \
+    {                                            \
+        while (size)                             \
+            mr_free(res.tokens[--size].value);   \
+        mr_free(res.tokens);                     \
+        res.tokens = NULL;                       \
+                                                 \
+        res.error = illegal_char_set(c, e, pos); \
+        return res;                              \
+    } while (0)
+
 #define set_token(t)                   \
     do                                 \
     {                                  \
@@ -116,11 +128,13 @@
 #define KEYWORD_PAD NOT_KT
 
 #define TYPE_MAX_LEN 7
-#define TYPES_LEN 6
+#define TYPES_LEN 8
 #define TYPE_PAD INT_TT
 
 void process_id(token_t *token, const char *code, pos_t *pos);
 void process_num(token_t *token, const char *code, pos_t *pos);
+uint8_t process_char(token_t *token, const char *code, pos_t *pos);
+uint8_t process_str(token_t *token, const char *code, pos_t *pos);
 void process_sub(token_t *token, const char *code, pos_t *pos);
 
 uint8_t check_id(const char *id, uint64_t len);
@@ -145,6 +159,7 @@ const char *types[TYPES_LEN] =
 {
     "int", "float", "complex",
     "bool",
+    "char", "str",
     "list", "tuple"
 };
 
@@ -152,6 +167,7 @@ uint8_t type_lens[TYPES_LEN] =
 {
     3, 5, 7,
     4,
+    4, 3,
     4, 5
 };
 
@@ -184,6 +200,20 @@ lex_res_t lex(const char *code)
         if ((code[pos.idx] >= '0' && code[pos.idx] <= '9') || code[pos.idx] == '.')
         {
             process_num(res.tokens + size++, code, &pos);
+            continue;
+        }
+        if (code[pos.idx] == '\'')
+        {
+            if (process_char(res.tokens + size++, code, &pos))
+                set_error('\'', 1);
+
+            continue;
+        }
+        if (code[pos.idx] == '"')
+        {
+            if (process_str(res.tokens + size++, code, &pos))
+                set_error('"', 1);
+
             continue;
         }
 
@@ -263,13 +293,7 @@ lex_res_t lex(const char *code)
             set_token(COMMA_T);
             break;
         default:
-            while (size)
-                mr_free(res.tokens[--size].value);
-            mr_free(res.tokens);
-            res.tokens = NULL;
-
-            res.error = illegal_char_set(code[pos.idx], 0, pos);
-            return res;
+            set_error(code[pos.idx], 0);
         }
     }
 
@@ -313,6 +337,11 @@ void process_id(token_t *token, const char *code, pos_t *pos)
     token->pose = *pos;
 }
 
+uint8_t process_char(token_t *token, const char *code, pos_t *pos)
+{
+
+}
+
 void process_num(token_t *token, const char *code, pos_t *pos)
 {
     token->type = INT_T;
@@ -345,6 +374,79 @@ void process_num(token_t *token, const char *code, pos_t *pos)
     token->value = mr_realloc(token->value, size + 1);
     token->value[size] = '\0';
     token->pose = *pos;
+}
+
+uint8_t process_str(token_t *token, const char *code, pos_t *pos)
+{
+    char quot = code[pos->idx];
+    uint8_t escape = 0;
+
+    token->value = mr_alloc(LEX_STR_SIZE);
+    token->size = 0;
+    token->poss = *pos;
+
+    uint64_t alloc = LEX_STR_SIZE;
+    while (escape || code[++pos->idx] != quot)
+    {
+        if (code[pos->idx] == '\0')
+            return 1;
+
+        if (token->size == alloc)
+            token->value = mr_realloc(token->value, alloc += LEX_STR_SIZE);
+
+        if (escape)
+        {
+            switch (code[pos->idx])
+            {
+            case 'a':
+                token->value[token->size++] = '\a';
+                break;
+            case 'b':
+                token->value[token->size++] = '\b';
+                break;
+            case 'f':
+                token->value[token->size++] = '\f';
+                break;
+            case 'n':
+                token->value[token->size++] = '\n';
+                break;
+            case 'r':
+                token->value[token->size++] = '\r';
+                break;
+            case 't':
+                token->value[token->size++] = '\t';
+                break;
+            case 'v':
+                token->value[token->size++] = '\v';
+                break;
+            case '0':
+                token->value[token->size++] = '\0';
+                break;
+            default:
+                token->value[token->size++] = code[pos->idx];
+                break;
+            }
+
+            escape = 0;
+            continue;
+        }
+
+        if (code[pos->idx] == '\\')
+        {
+            escape = 1;
+            continue;
+        }
+
+        token->value[token->size++] = code[pos->idx];
+        if (code[pos->idx] == '\n')
+            pos->ln++;
+    }
+
+    if (token->size + 1 != alloc)
+        token->value = mr_realloc(token->value, token->size + 1);
+
+    token->value[token->size] = '\0';
+    return 0;
 }
 
 void process_sub(token_t *token, const char *code, pos_t *pos)
