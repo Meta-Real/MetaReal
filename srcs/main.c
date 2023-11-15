@@ -131,6 +131,8 @@ int main(int argc, char const **argv)
             continue;
         }
 
+        tokens_print(lex_res.tokens);
+
         parse_res = parse(lex_res.tokens);
         if (!parse_res.nodes)
         {

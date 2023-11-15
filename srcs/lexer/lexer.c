@@ -6,6 +6,7 @@
 #include <alloc.h>
 #include <consts.h>
 #include <stddef.h>
+#include <stdio.h>
 
 #define set_error(c, e)                          \
     do                                           \
@@ -339,7 +340,64 @@ void process_id(token_t *token, const char *code, pos_t *pos)
 
 uint8_t process_char(token_t *token, const char *code, pos_t *pos)
 {
+    uint8_t escape = code[pos->idx + 1] == '\\';
+    if (code[pos->idx + 2 + escape] != '\'')
+        return process_str(token, code, pos);
 
+    token->type = CHAR_T;
+    token->value = NULL;
+    token->poss = *pos;
+
+    pos->idx++;
+    if (escape)
+    {
+        pos->idx++;
+
+        switch (code[pos->idx])
+        {
+        case 'a':
+            token->size = '\a';
+            break;
+        case 'b':
+            token->size = '\b';
+            break;
+        case 'f':
+            token->size = '\f';
+            break;
+        case 'n':
+            token->size = '\n';
+            break;
+        case 'r':
+            token->size = '\r';
+            break;
+        case 't':
+            token->size = '\t';
+            break;
+        case 'v':
+            token->size = '\v';
+            break;
+        case '0':
+            token->size = '\0';
+            break;
+        default:
+            if (code[pos->idx] == '\n')
+                pos->ln++;
+
+            token->size = code[pos->idx];
+            break;
+        }
+    }
+    else
+    {
+        if (code[pos->idx] == '\n')
+            pos->ln++;
+
+        token->size = code[pos->idx];
+    }
+
+    pos->idx += 2;
+    token->pose = *pos;
+    return 0;
 }
 
 void process_num(token_t *token, const char *code, pos_t *pos)
@@ -381,12 +439,13 @@ uint8_t process_str(token_t *token, const char *code, pos_t *pos)
     char quot = code[pos->idx];
     uint8_t escape = 0;
 
+    token->type = STR_T;
     token->value = mr_alloc(LEX_STR_SIZE);
     token->size = 0;
     token->poss = *pos;
 
     uint64_t alloc = LEX_STR_SIZE;
-    while (escape || code[++pos->idx] != quot)
+    while (code[++pos->idx] != quot || escape)
     {
         if (code[pos->idx] == '\0')
             return 1;
@@ -423,6 +482,9 @@ uint8_t process_str(token_t *token, const char *code, pos_t *pos)
                 token->value[token->size++] = '\0';
                 break;
             default:
+                if (code[pos->idx] == '\n')
+                    pos->ln++;
+
                 token->value[token->size++] = code[pos->idx];
                 break;
             }
@@ -441,6 +503,9 @@ uint8_t process_str(token_t *token, const char *code, pos_t *pos)
         if (code[pos->idx] == '\n')
             pos->ln++;
     }
+
+    pos->idx++;
+    token->pose = *pos;
 
     if (token->size + 1 != alloc)
         token->value = mr_realloc(token->value, token->size + 1);

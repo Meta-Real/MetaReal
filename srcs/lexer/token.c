@@ -45,7 +45,7 @@ void tokens_print(const token_t *tokens)
         fputs(token_labels[tokens->type], stdout);
 
         if (tokens->type == CHAR_T)
-            printf(": '%c'", tokens->size);
+            printf(": '%c'", (char)tokens->size);
         else if (tokens->value)
             printf(": \"%s\"", tokens->value);
 

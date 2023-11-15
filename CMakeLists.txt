@@ -24,3 +24,5 @@ target_include_directories(MetaReal PUBLIC "heads")
 target_link_libraries(MetaReal gmp)
 target_link_libraries(MetaReal mpfr)
 target_link_libraries(MetaReal mpc)
+
+add_custom_command(TARGET MetaReal POST_BUILD COMMAND "${CMAKE_COMMAND}" -E copy $<TARGET_FILE:MetaReal> ..)
