@@ -130,7 +130,7 @@ extern const char *token_labels[TOKENS_LEN]; /**< Label of the tokens (for debug
 /**
  * \fn void tokens_free(token_t *tokens)
  * \pre
- * Gets the list of tokens and deallocates all the tokens inside it (not the tokens pointer itself).
+ * Gets the list of tokens and deallocates all the tokens inside it (not the tokens pointer itself). \n
  * The tokens list should end with an EOF token.
  * \param tokens The list of tokens
 */
@@ -139,8 +139,8 @@ void tokens_free(token_t *tokens);
 /**
  * \fn void tokens_print(const token_t *tokens)
  * \pre
- * Prints the list of tokens in the stdout stream (for debugging).
- * The tokens list should end with an EOF token.
+ * Prints the list of tokens in the stdout stream (for debugging). \n
+ * The tokens list should end with an EOF token. \n
  * Each token is printed in a separate line.
  * \param tokens The list of tokens
 */
