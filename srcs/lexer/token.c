@@ -28,7 +28,7 @@ const char *token_labels[TOKENS_LEN] =
     "NONE_K", "TRUE_K", "FALSE_K",
     "INT_T", "FLOAT_T", "COMPLEX_T",
     "BOOL_T",
-    "CHAR", "STR",
+    "CHAR_T", "STR_T",
     "LIST_T", "TUPLE_T"
 };
 

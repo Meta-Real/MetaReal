@@ -338,6 +338,40 @@ void process_id(token_t *token, const char *code, pos_t *pos)
     token->pose = *pos;
 }
 
+void process_num(token_t *token, const char *code, pos_t *pos)
+{
+    token->type = INT_T;
+    token->value = mr_alloc(LEX_NUM_SIZE);
+    token->poss = *pos;
+
+    uint64_t size = 0;
+    uint64_t alloc = LEX_NUM_SIZE;
+    do
+    {
+        if (code[pos->idx] == '.')
+        {
+            if (token->type == FLOAT_T)
+                break;
+            token->type = FLOAT_T;
+        }
+
+        if (size == alloc)
+            token->value = mr_realloc(token->value, alloc += LEX_NUM_SIZE);
+
+        token->value[size++] = code[pos->idx++];
+    } while ((code[pos->idx] >= '0' && code[pos->idx] <= '9') || code[pos->idx] == '.');
+
+    if (code[pos->idx] == 'i')
+    {
+        token->type = IMAG_T;
+        pos->idx++;
+    }
+
+    token->value = mr_realloc(token->value, size + 1);
+    token->value[size] = '\0';
+    token->pose = *pos;
+}
+
 uint8_t process_char(token_t *token, const char *code, pos_t *pos)
 {
     uint8_t escape = code[pos->idx + 1] == '\\';
@@ -398,40 +432,6 @@ uint8_t process_char(token_t *token, const char *code, pos_t *pos)
     pos->idx += 2;
     token->pose = *pos;
     return 0;
-}
-
-void process_num(token_t *token, const char *code, pos_t *pos)
-{
-    token->type = INT_T;
-    token->value = mr_alloc(LEX_NUM_SIZE);
-    token->poss = *pos;
-
-    uint64_t size = 0;
-    uint64_t alloc = LEX_NUM_SIZE;
-    do
-    {
-        if (code[pos->idx] == '.')
-        {
-            if (token->type == FLOAT_T)
-                break;
-            token->type = FLOAT_T;
-        }
-
-        if (size == alloc)
-            token->value = mr_realloc(token->value, alloc += LEX_NUM_SIZE);
-
-        token->value[size++] = code[pos->idx++];
-    } while ((code[pos->idx] >= '0' && code[pos->idx] <= '9') || code[pos->idx] == '.');
-
-    if (code[pos->idx] == 'i')
-    {
-        token->type = IMAG_T;
-        pos->idx++;
-    }
-
-    token->value = mr_realloc(token->value, size + 1);
-    token->value[size] = '\0';
-    token->pose = *pos;
 }
 
 uint8_t process_str(token_t *token, const char *code, pos_t *pos)
