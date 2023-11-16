@@ -7,7 +7,7 @@
 
 #include <pos.h>
 
-enum __TOKEN_TYPES
+enum __TOKEN_TYPES /**< Token types */
 {
     EOF_T,              /**< End of file */
 
@@ -75,17 +75,17 @@ enum __TOKEN_TYPES
     B_NOT_T,            /**< Binary not ~ */
 
     /**
-     * 'not' keyword
+     * 'not' keyword \n
      * Not !
     */
     NOT_KT,
     /**
-     * 'and' keyword
+     * 'and' keyword \n
      * And &&
     */
     AND_KT,
     /**
-     * 'or' keyword
+     * 'or' keyword \n
      * Or ||
     */
     OR_KT,
@@ -109,19 +109,19 @@ enum __TOKEN_TYPES
 
     LIST_TT,            /**< 'list' datatype */
     TUPLE_TT            /**< 'tuple' datatype */
-}; /**< Token types */
+};
 
 #define TOKENS_LEN 67 /**< Number of token types */
 
 struct __TOKEN_T
 {
-    uint8_t type;               /**< Type of the token (from TOKEN_TYPES enum) */
+    uint8_t type;           /**< Type of the token (from TOKEN_TYPES enum) */
 
-    char *value;                /**< Value of the token (NULL if the token is a symbol)*/
-    uint64_t size;              /**< Size of the value */
+    char *value;            /**< Value of the token (NULL if the token is a symbol) */
+    uint64_t size;          /**< Size of the value */
 
-    pos_t poss;                 /**< Starting position of the token in the MetaReal raw code */
-    pos_t pose;                 /**< Ending position of the token in the MetaReal raw code */
+    pos_t poss;             /**< Starting position of the token in the MetaReal raw code */
+    pos_t pose;             /**< Ending position of the token in the MetaReal raw code */
 };
 typedef struct __TOKEN_T token_t; /**< Word equivalent in MetaReal translation process */
 
@@ -129,8 +129,7 @@ extern const char *token_labels[TOKENS_LEN]; /**< Label of the tokens (for debug
 
 /**
  * \fn void tokens_free(token_t *tokens)
- * \pre
- * Gets the list of tokens and deallocates all the tokens inside it (not the tokens pointer itself). \n
+ * Gets the \a tokens and deallocates all the tokens inside it (not the \a tokens pointer itself). \n
  * The tokens list should end with an EOF token.
  * \param tokens The list of tokens
 */
@@ -138,8 +137,7 @@ void tokens_free(token_t *tokens);
 
 /**
  * \fn void tokens_print(const token_t *tokens)
- * \pre
- * Prints the list of tokens in the stdout stream (for debugging). \n
+ * Prints the \a tokens in the stdout stream (for debugging). \n
  * The tokens list should end with an EOF token. \n
  * Each token is printed in a separate line.
  * \param tokens The list of tokens
