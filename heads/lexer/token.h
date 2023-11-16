@@ -111,9 +111,9 @@ enum __TOKEN_TYPES /** Token types */
     TUPLE_TT            /**< 'tuple' datatype */
 };
 
-#define TOKENS_LEN 67 /**< Number of token types */
+#define TOKENS_LEN 67               /**< Number of token types */
 
-struct __TOKEN_T
+struct __TOKEN_T /**< Word equivalent in MetaReal translation process */
 {
     uint8_t type;           /**< Type of the token (from TOKEN_TYPES enum) */
 

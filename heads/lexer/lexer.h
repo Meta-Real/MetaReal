@@ -8,7 +8,7 @@
 #include <lexer/token.h>
 #include <error/error.h>
 
-struct __LEX_RES_T
+struct __LEX_RES_T /**< Result of the lex function */
 {
     token_t *tokens;        /**< List of tokens */
 
