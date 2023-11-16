@@ -10,6 +10,16 @@
 #include <stdio.h>
 #include <string.h>
 
+/**
+ * \def access_datatype_error(t, ps, pe)
+ * Generates an invalid semantic error for invalidly accessing a value. \n
+ * It returns from the function that called it. \n
+ * The function calling this macro should not return any value. \n
+ * A visit_res must be defined as \a res before calling this macro.
+ * \param t Type of the value (uint8_t)
+ * \param ps Starting position of the value (pos_t)
+ * \param pe Ending position of the value (pos_t)
+*/
 #define access_datatype_error(t, ps, pe)                                       \
     do                                                                         \
     {                                                                          \
@@ -22,6 +32,17 @@
         return;                                                                \
     } while (0)
 
+/**
+ * \def access_statement_error(s, sl, ps, pe)
+ * Generates an invalid semantic error for invalidly accessing a statement. \n
+ * It returns from the function that called it. \n
+ * The function calling this macro should not return any value. \n
+ * A visit_res must be defined as \a res before calling this macro.
+ * \param s Name of the statement (const char*)
+ * \param sl Length of the \a s (to avoid calling strlen) (uint64_t)
+ * \param ps Starting position of the statement (pos_t)
+ * \param pe Ending position of the statement (pos_t)
+*/
 #define access_statement_error(s, sl, ps, pe)                                \
     do                                                                       \
     {                                                                        \
@@ -33,6 +54,17 @@
         return;                                                              \
     } while (0)
 
+/**
+ * \def not_def_error(s, ps, pe)
+ * Generates an invalid semantic error for calling an undefined variable. \n
+ * It returns from the function that called it. \n
+ * The function calling this macro should not return any value. \n
+ * A visit_res must be defined as \a res before calling this macro. \n
+ * It automatically deallocates name of the variable.
+ * \param s Name of the variable (char*)
+ * \param ps Starting position of the variable name (pos_t)
+ * \param pe Ending position of the variable name (pos_t)
+*/
 #define not_def_error(s, ps, pe)                             \
     do                                                       \
     {                                                        \
@@ -47,6 +79,17 @@
         return;                                              \
     } while (0)
 
+/**
+ * \def const_var_error(s, ps, pe)
+ * Generates an invalid semantic error for changing a constant variable. \n
+ * It returns from the function that called it. \n
+ * The function calling this macro should not return any value. \n
+ * A visit_res must be defined as \a res before calling this macro. \n
+ * It automatically deallocates name of the constant variable.
+ * \param s Name of the constant variable (char*)
+ * \param ps Starting position of the variable name (pos_t)
+ * \param pe Ending position of the variable name (pos_t)
+*/
 #define const_var_error(s, ps, pe)                             \
     do                                                         \
     {                                                          \
@@ -61,17 +104,40 @@
         return;                                                \
     } while (0)
 
-#define type_mismatch(s, t1, t2, ps, pe)                                                          \
-    do                                                                                            \
-    {                                                                                             \
-        res->error.detail = mr_alloc(52 + strlen(s) + value_name_lens[t1] + value_name_lens[t2]); \
-        sprintf(res->error.detail, "Type of '%s' (<%s>) and type of value (<%s>) do not match",   \
-            s, value_names[t1], value_names[t2]);                                                 \
-                                                                                                  \
-        res->value = NULL;                                                                        \
-        invalid_semantic_set(res->error, TYPE_E, ps, pe);                                         \
+/**
+ * \def type_mismatch(s, t1, t2, ps, pe)
+ * Generates an invalid semantic error for mismatching type of the variable and its value. \n
+ * A visit_res must be defined as \a res before calling this macro.
+ * \param s Name of the variable (const char*)
+ * \param t1 Type of the variable (uint8_t)
+ * \param t2 Type of the value (uint8_t)
+ * \param ps Starting position of the assignment (pos_t)
+ * \param pe Ending position of the assignment (pos_t)
+*/
+#define type_mismatch(s, t1, t2, ps, pe)                                                            \
+    do                                                                                              \
+    {                                                                                               \
+        res->error.detail = mr_alloc(56 + strlen(s) + value_name_lens[t1] + value_name_lens[t2]);   \
+        sprintf(res->error.detail, "Type of '%s' (<%s>) and type of the value (<%s>) do not match", \
+            s, value_names[t1], value_names[t2]);                                                   \
+                                                                                                    \
+        res->value = NULL;                                                                          \
+        invalid_semantic_set(res->error, TYPE_E, ps, pe);                                           \
     } while (0)
 
+/**
+ * \def type_change(s, t1, t2, ps, pe)
+ * Generates an invalid semantic error for changing type of a fixed-type variable. \n
+ * It returns from the function that called it. \n
+ * The function calling this macro should not return any value. \n
+ * A visit_res must be defined as \a res before calling this macro. \n
+ * It automatically deallocates name of the fixed-type variable.
+ * \param s Name of the fixed-type variable (char*)
+ * \param t1 Old type of the variable (uint8_t)
+ * \param t2 New type of the variable (uint8_t)
+ * \param ps Starting position of the assignment (pos_t)
+ * \param pe Ending position of the assignment (pos_t)
+*/
 #define type_change(s, t1, t2, ps, pe)                                                            \
     do                                                                                            \
     {                                                                                             \
@@ -88,6 +154,19 @@
 
 /* operations */
 
+/**
+ * \def ill_op_error(o, ol, t1, t2, ps, pe)
+ * Generates an invalid semantic error for an illegal operation between two values. \n
+ * It returns from the function that called it. \n
+ * The function calling this macro should not return any value. \n
+ * A visit_res must be defined as \a res before calling this macro.
+ * \param o Symbol of the operator (const char*)
+ * \param ol Length of the \a o (to avoid calling strlen) (uint64_t)
+ * \param t1 Type of the left operand (uint8_t)
+ * \param t2 Type of the right operand (uint8_t)
+ * \param ps Starting position of the operation (pos_t)
+ * \param pe Ending position of the operation (pos_t)
+*/
 #define ill_op_error(o, ol, t1, t2, ps, pe)                                                  \
     do                                                                                       \
     {                                                                                        \
@@ -100,6 +179,18 @@
         return;                                                                              \
     } while (0)
 
+/**
+ * \def ill_unary_op_error(o, ol, t, ps, pe)
+ * Generates an invalid semantic error for an illegal operation for a value. \n
+ * It returns from the function that called it. \n
+ * The function calling this macro should not return any value. \n
+ * A visit_res must be defined as \a res before calling this macro.
+ * \param o Symbol of the operator (const char*)
+ * \param ol Length of the \a o (to avoid calling strlen) (uint64_t)
+ * \param t Type of the operand (uint8_t)
+ * \param ps Starting position of the operation (pos_t)
+ * \param pe Ending position of the operation (pos_t)
+*/
 #define ill_unary_op_error(o, ol, t, ps, pe)                                   \
     do                                                                         \
     {                                                                          \
@@ -112,6 +203,17 @@
         return;                                                                \
     } while (0)
 
+/**
+ * \def ill_inc_dec_op_error(o, t, ps, pe)
+ * Generates an invalid semantic error for an illegal incrementing or decrementing. \n
+ * It returns from the function that called it. \n
+ * The function calling this macro should not return any value. \n
+ * A visit_res must be defined as \a res before calling this macro.
+ * \param o Name of the operation (must be "incremented" or "decremented") (const char*)
+ * \param t Type of the operand (uint8_t)
+ * \param ps Starting position of the operation (pos_t)
+ * \param pe Ending position of the operation (pos_t)
+*/
 #define ill_inc_dec_op_error(o, t, ps, pe)                      \
     do                                                          \
     {                                                           \
@@ -124,6 +226,15 @@
         return;                                                 \
     } while (0)
 
+/**
+ * \def mem_overflow_error(ps, pe)
+ * Generates an invalid semantic error for a memory overflow situation. \n
+ * It returns from the function that called it. \n
+ * The function calling this macro should not return any value. \n
+ * A visit_res must be defined as \a res before calling this macro.
+ * \param ps Starting position of the expression (pos_t)
+ * \param pe Ending position of the expression (pos_t)
+*/
 #define mem_overflow_error(ps, pe)                                \
     do                                                            \
     {                                                             \
@@ -135,6 +246,15 @@
         return;                                                   \
     } while (0)
 
+/**
+ * \def index_out_error(ps, pe)
+ * Generates an invalid semantic error for accessing an invalid address in the memory. \n
+ * It returns from the function that called it. \n
+ * The function calling this macro should not return any value. \n
+ * A visit_res must be defined as \a res before calling this macro.
+ * \param ps Starting position of the expression (pos_t)
+ * \param pe Ending position of the expression (pos_t)
+*/
 #define index_out_error(ps, pe)                            \
     do                                                     \
     {                                                      \
@@ -146,6 +266,15 @@
         return;                                            \
     } while (0)
 
+/**
+ * \def div_by_zero_error(ps, pe)
+ * Generates an invalid semantic error for dividing by zero. \n
+ * It returns from the function that called it. \n
+ * The function calling this macro should not return any value. \n
+ * A visit_res must be defined as \a res before calling this macro.
+ * \param ps Starting position of the operation (pos_t)
+ * \param pe Ending position of the operation (pos_t)
+*/
 #define div_by_zero_error(ps, pe)                                \
     do                                                           \
     {                                                            \
@@ -157,6 +286,15 @@
         return;                                                  \
     } while (0)
 
+/**
+ * \def mod_by_zero_error(ps, pe)
+ * Generates an invalid semantic error for modulo by zero. \n
+ * It returns from the function that called it. \n
+ * The function calling this macro should not return any value. \n
+ * A visit_res must be defined as \a res before calling this macro.
+ * \param ps Starting position of the operation (pos_t)
+ * \param pe Ending position of the operation (pos_t)
+*/
 #define mod_by_zero_error(ps, pe)                                \
     do                                                           \
     {                                                            \
@@ -168,6 +306,15 @@
         return;                                                  \
     } while (0)
 
+/**
+ * \def ztn_power_error(ps, pe)
+ * Generates an invalid semantic error for raising zero to a negative power. \n
+ * It returns from the function that called it. \n
+ * The function calling this macro should not return any value. \n
+ * A visit_res must be defined as \a res before calling this macro.
+ * \param ps Starting position of the operation (pos_t)
+ * \param pe Ending position of the operation (pos_t)
+*/
 #define ztn_power_error(ps, pe)                                                     \
     do                                                                              \
     {                                                                               \
@@ -179,6 +326,15 @@
         return;                                                                     \
     } while (0)
 
+/**
+ * \def ztc_power_error(ps, pe)
+ * Generates an invalid semantic error for raising zero to a complex power. \n
+ * It returns from the function that called it. \n
+ * The function calling this macro should not return any value. \n
+ * A visit_res must be defined as \a res before calling this macro.
+ * \param ps Starting position of the operation (pos_t)
+ * \param pe Ending position of the operation (pos_t)
+*/
 #define ztc_power_error(ps, pe)                                                    \
     do                                                                             \
     {                                                                              \
@@ -190,6 +346,15 @@
         return;                                                                    \
     } while (0)
 
+/**
+ * \def neg_shift_error(ps, pe)
+ * Generates an invalid semantic error for left or right shifting by a negative amount. \n
+ * It returns from the function that called it. \n
+ * The function calling this macro should not return any value. \n
+ * A visit_res must be defined as \a res before calling this macro.
+ * \param ps Starting position of the operation (pos_t)
+ * \param pe Ending position of the operation (pos_t)
+*/
 #define neg_shift_error(ps, pe)                            \
     do                                                     \
     {                                                      \
@@ -201,6 +366,16 @@
         return;                                            \
     } while (0)
 
+/**
+ * \def neg_multiplier_error(ps, pe)
+ * Generates an invalid semantic error for multiplying by a negative number. \n
+ * This error usually applies for strings and iterables. \n
+ * It returns from the function that called it. \n
+ * The function calling this macro should not return any value. \n
+ * A visit_res must be defined as \a res before calling this macro.
+ * \param ps Starting position of the operation (pos_t)
+ * \param pe Ending position of the operation (pos_t)
+*/
 #define neg_multiplier_error(ps, pe)                       \
     do                                                     \
     {                                                      \

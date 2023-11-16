@@ -180,7 +180,7 @@ lex_res_t lex(const char *code)
     uint64_t size = 0;
     uint64_t alloc = LEX_TOKEN_LIST_LEN;
 
-    pos_t pos = set_pos(0, 1);
+    pos_t pos = pos_set(0, 1);
     while (code[pos.idx] != '\0')
     {
         if (code[pos.idx] == ' ' || code[pos.idx] == '\t' || code[pos.idx] == '\r')

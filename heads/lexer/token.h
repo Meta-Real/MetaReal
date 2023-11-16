@@ -7,7 +7,7 @@
 
 #include <pos.h>
 
-enum __TOKEN_TYPES /**< Token types */
+enum __TOKEN_TYPES /** Token types */
 {
     EOF_T,              /**< End of file */
 
