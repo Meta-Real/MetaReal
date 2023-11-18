@@ -18,7 +18,7 @@ enum __NODE_TYPES /** Node types */
     IMAG_N,             /**< Imaginary node */
     BOOL_N,             /**< Boolean node */
     LIST_N,             /**< List node */
-    TUPLE_N,
+    TUPLE_N,            /**< Tuple node */
 
     BIN_OPERATION_N,    /**< Binary operation node */
     UNARY_OPERATION_N,  /**< Unary operation node */
@@ -29,7 +29,10 @@ enum __NODE_TYPES /** Node types */
     VAR_ACCESS_N        /**< Variable access node */
 };
 
-struct __NODE_T /**< Sentence equivalent in MetaReal translation process */
+/**
+ * Sentence equivalent in MetaReal translation process
+*/
+struct __NODE_T
 {
     uint8_t type;           /**< Type of the node (from NODE_TYPES enum) */
     void *value;            /**< Value of the node */
@@ -39,14 +42,20 @@ struct __NODE_T /**< Sentence equivalent in MetaReal translation process */
 };
 typedef struct __NODE_T node_t; /**< Sentence equivalent in MetaReal translation process */
 
-struct __LIST_NODE_T /**< List node structure */
+/**
+ * List node structure
+*/
+struct __LIST_NODE_T
 {
     node_t *elements;       /**< List of the elements */
     uint64_t size;          /**< Size of the elements list */
 };
 typedef struct __LIST_NODE_T list_node_t; /**< List node value structure */
 
-struct __BIN_OPERATION_NODE_T /**< Binary operation node structure */
+/**
+ * Binary operation node structure
+*/
+struct __BIN_OPERATION_NODE_T
 {
     uint8_t operator;       /**< Binary operator (from TOKEN_TYPES enum) */
 
@@ -55,7 +64,10 @@ struct __BIN_OPERATION_NODE_T /**< Binary operation node structure */
 };
 typedef struct __BIN_OPERATION_NODE_T bin_operation_node_t; /**< Binary operation node structure */
 
-struct __UNARY_OPERATION_NODE_T /**< Unary operation node structure */
+/**
+ * Unary operation node structure
+*/
+struct __UNARY_OPERATION_NODE_T
 {
     uint8_t operator;       /**< Unary operator (from TOKEN_TYPES enum) */
 
@@ -63,7 +75,10 @@ struct __UNARY_OPERATION_NODE_T /**< Unary operation node structure */
 };
 typedef struct __UNARY_OPERATION_NODE_T unary_operation_node_t; /**< Unary operation node structure */
 
-struct __VAR_ASSIGN_NODE_T /**< Variable assignment node structure */
+/**
+ * Variable assignment node structure
+*/
+struct __VAR_ASSIGN_NODE_T
 {
     char *name;             /**< Name of the variable */
     node_t value;           /**< Value of the variable (possibly empty) */

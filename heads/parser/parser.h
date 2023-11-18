@@ -9,7 +9,10 @@
 #include <lexer/token.h>
 #include <error/error.h>
 
-struct __PARSE_RES_T /**< Result of the parse function */
+/**
+ * Result of the parse function
+*/
+struct __PARSE_RES_T
 {
     node_t *nodes;              /**< List of the generated nodes */
     uint64_t size;              /**< Size of the nodes list*/

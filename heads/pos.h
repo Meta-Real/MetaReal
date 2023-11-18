@@ -7,7 +7,10 @@
 
 #include <stdint.h>
 
-struct __POS_T /**< Position in the MetaReal code (used by the debugger) */
+/**
+ * Position in the MetaReal code (used by the debugger)
+*/
+struct __POS_T
 {
     uint64_t idx;           /**< Index of the position inside the code */
     uint64_t ln;            /**< Line of the position (incremented by newlines) */

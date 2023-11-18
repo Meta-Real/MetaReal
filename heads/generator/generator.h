@@ -7,7 +7,10 @@
 
 #include <optimizer/optimizer.h>
 
-struct __GEN_RES_T /**< Result of the generate function */
+/**
+ * Result of the generate function
+*/
+struct __GEN_RES_T
 {
     char *consts;           /**< Constants section of the assembly */
     char *main;             /**< Main section of the assembly */

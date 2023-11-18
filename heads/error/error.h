@@ -7,7 +7,10 @@
 
 #include <pos.h>
 
-struct __ILLEGAL_CHAR_T /**< Illegal character error (lexer) */
+/**
+ * Illegal character error (lexer)
+*/
+struct __ILLEGAL_CHAR_T
 {
     char chr;               /**< Illegal or missing character */
     uint8_t expected;       /**< Is the character missing (1) or is it illegal (0) */
@@ -16,7 +19,10 @@ struct __ILLEGAL_CHAR_T /**< Illegal character error (lexer) */
 };
 typedef struct __ILLEGAL_CHAR_T illegal_char_t; /**< Illegal character error (lexer) */
 
-struct __INVALID_SYNTAX_T /**< Invalid syntax error (parser) */
+/**
+ * Invalid syntax error (parser)
+*/
+struct __INVALID_SYNTAX_T
 {
     const char *detail;     /**< Detail of the error (NULL if the error is a general invalid syntax) */
 
@@ -38,7 +44,10 @@ enum __INVALID_SEMANTIC_TYPES /** Invalid semantic error types */
     DIV_BY_ZERO_E       /**< Divide by zero error */
 };
 
-struct __INVALID_SEMANTIC_T /**< Invalid semantic error (optimizer) */
+/**
+ * Invalid semantic error (optimizer)
+*/
+struct __INVALID_SEMANTIC_T
 {
     char *detail;           /**< Detail of the error */
     uint8_t type;           /**< Type of the error (from INVALID_SEMANTIC_TYPES enum) */
