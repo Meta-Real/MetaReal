@@ -1,43 +1,34 @@
-/*
-    MetaReal Compiler version 1.0.0
+/**
+ * @file consts.h
+ * This file contains all the constants defined in by the compiler. \n
+ * Types of constants: \n
+ *     1. Compiler information constants: constants that hold an information about the compiler. \n
+ *        Examples: compiler version, core used by the compiler, core version, etc. \n
+ *     2. Compiler process constants: constants that hold an information about the compile process. \n
+ *        Examples: default length of the string, number, identifier, etc.
 */
 
 #ifndef __MR_CONSTS__
 #define __MR_CONSTS__
 
-#define MR_VERSION "1.0.0"          /**< Current version of the MetaReal */
+#define MR_VERSION_MAJOR "1"
+#define MR_VERSION_MINOR "0"
+#define MR_VERSION_PATCH "0"
 
-#define DEF_FILE_NAME "<stdin>"     /**< Name of the default input stream */
-#define DEF_CODE_SIZE 1024          /**< Maximum code size inputted from the stdin */
+#define MR_VERSION MR_VERSION_MAJOR "." MR_VERSION_MINOR "." MR_VERSION_PATCH
 
-/* lexer */
+#define MR_CORE_VERSION_MAJOR "1"
+#define MR_CORE_VERSION_MINOR "0"
+#define MR_CORE_VERSION_PATCH "0"
 
-#define LEX_TOKEN_LIST_LEN 128      /**< Default length of a list of tokens */
+#define MR_CORE "mr-core"
+#define MR_CORE_VERSION MR_CORE_VERSION_MAJOR "." MR_CORE_VERSION_MINOR "." MR_CORE_VERSION_PATCH
 
-#define LEX_ID_SIZE 16              /**< Default length of an identifier in characters */
-#define LEX_NUM_SIZE 8              /**< Default length of a number in characters */
-#define LEX_STR_SIZE 64             /**< Default length of a string in characters */
+#define MR_PORT_VERSION_MAJOR "1"
+#define MR_PORT_VERSION_MINOR "0"
+#define MR_PORT_VERSION_PATCH "0"
 
-/* parser */
-
-#define PARSE_NODE_LIST_LEN 64      /**< Default length of a list of nodes */
-
-#define PARSE_LIST_LEN 16           /**< Default length of a list object */
-#define PARSE_TUPLE_LEN 16          /**< Default length of a tuple object */
-
-/* optimizer */
-
-#define OPT_VARS_LIST_LEN 16        /**< Default length of the list of variables */
-
-/* generator */
-
-#define GEN_CONSTS_LEN 128          /**< Default length of the assembly consts section in characters */
-#define GEN_MAIN_LEN 1024           /**< Default length of the assembly main section in characters */
-
-#define GEN_CONSTS_LIST_LEN 8       /**< Default length of the list of constants */
-
-/* debug */
-
-#define TRACK_ALLOC 0               /**< Debugging the allocation process (1) or not (0) */
+#define MR_PORT "mr-port"
+#define MR_PORT_VERSION MR_PORT_VERSION_MAJOR "." MR_PORT_VERSION_MINOR "." MR_PORT_VERSION_PATCH
 
 #endif /* __MR_CONSTS__ */
