@@ -18,4 +18,20 @@ typedef const mr_chr_t *mr_str_ct;
 #define MR_TRUE 1
 #define MR_FALSE 0
 
+/**
+ * @struct __MR_POS_T
+ * Holds the position of each element in the code file. \n
+ * The main purpose of the structure is to help the debugger find the position of the error.
+ * @var __MR_POS_T::idx
+ * The index of the position (used by the `fseek` function).
+ * @var __MR_POS_T::ln
+ * The line of the position (for the debugger to show the information).
+*/
+struct __MR_POS_T
+{
+    mr_size_t idx;
+    mr_size_t ln;
+};
+typedef struct __MR_POS_T mr_pos_t;
+
 #endif /* __MR_DEFS__ */
