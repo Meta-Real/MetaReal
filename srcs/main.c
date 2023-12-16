@@ -13,10 +13,10 @@
 /**
  * @fn mr_byte_t mr_compile(mr_str_ct fname, FILE *code, mr_size_t size)
  * <pre>
- * It compiles the code according to the MetaReal compile rules. \n
- * Order of compilation: \n
- *     [code] -> lexer -> parser -> optimizer -> generator -> assembler -> linker -> [executable] \n
- * Also, the debugger will debug the code during the compilation process (if enabled). \n
+ * It compiles the code according to the MetaReal compile rules.
+ * Order of compilation:
+ *     [code] -> lexer -> parser -> optimizer -> generator -> assembler -> linker -> [executable]
+ * Also, the debugger will debug the code during the compilation process (if enabled).
  * Dollar methods are handled with a different mechanism in the optimization step.
  * </pre>
  * @param fname

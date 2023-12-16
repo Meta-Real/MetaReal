@@ -13,7 +13,7 @@
 
 /**
  * @struct __MR_LEXER_T
- * The result of the `mr_lexer` function.
+ * The result of the \code mr_lexer \endcode function.
  * @var mr_token_t* __MR_LEXER_T::tokens
  * The list of the tokens. \n
  * If there is an error in the code (illegal character error), the tokens list will be NULL.

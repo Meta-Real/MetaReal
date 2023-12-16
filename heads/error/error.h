@@ -32,18 +32,18 @@ typedef struct __MR_ILLEGAL_CHR_T mr_illegal_chr_t;
 /**
  * @fn void mr_illegal_chr_print(mr_illegal_chr_t *error, mr_str_ct fname, FILE *code, mr_size_t size)
  * <pre>
- * It displays the \a error in the \a error_stream. \n
- * Example of the illegal character error: \n \n
- * Illegal Character Error: '@' \n
- * File "test.mr", line 4 \n \n
- * a += 4 * 3 @ \n
- *            ^ \n \n
- * Example of the expected character error: \n \n
- * Expected Character Error: '"' \n
- * File "test.mr", line 7 \n \n
- * a = "Hello World \n
- *                 ^ \n \n
- * The \a error_stream is `stderr` by the dollar method `$set_error_stream`.
+ * It displays the \a error in the \a error_stream.
+ * Example of the illegal character error: \n
+ * Illegal Character Error: '@'
+ * File "test.mr", line 4 \n
+ * a += 4 * 3 @
+ *            ^ \n
+ * Example of the expected character error: \n
+ * Expected Character Error: '"'
+ * File "test.mr", line 7 \n
+ * a = "Hello World
+ *                 ^ \n
+ * The \a error_stream is \code stderr \endcode by the dollar method \code $set_error_stream \endcode .
  * </pre>
  * @param error
  * The illegal character error that needs to be displayed.
