@@ -14,10 +14,10 @@
 /**
  * @struct __MR_LEXER_T
  * The result of the `mr_lexer` function.
- * @var __MR_LEXER_T::tokens
+ * @var mr_token_t* __MR_LEXER_T::tokens
  * The list of the tokens. \n
  * If there is an error in the code (illegal character error), the tokens list will be NULL.
- * @var __MR_LEXER_T::error
+ * @var mr_illegal_chr_t __MR_LEXER_T::error
  * The illegal character error (It will be filled if the \a tokens is NULL).
 */
 struct __MR_LEXER_T
@@ -38,7 +38,7 @@ typedef struct __MR_LEXER_T mr_lexer_t;
  * @param code
  * The file that contains the code.
  * @param size
- * The size of the \a code .
+ * The size of the \a code.
 */
 void mr_lexer(mr_lexer_t *res, FILE *code, mr_size_t size);
 

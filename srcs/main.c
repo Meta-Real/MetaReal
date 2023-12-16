@@ -12,17 +12,19 @@
 
 /**
  * @fn mr_byte_t mr_compile(mr_str_ct fname, FILE *code, mr_size_t size)
+ * <pre>
  * It compiles the code according to the MetaReal compile rules. \n
  * Order of compilation: \n
  *     [code] -> lexer -> parser -> optimizer -> generator -> assembler -> linker -> [executable] \n
  * Also, the debugger will debug the code during the compilation process (if enabled). \n
  * Dollar methods are handled with a different mechanism in the optimization step.
+ * </pre>
  * @param fname
  * The name of the source file (for displaying errors).
  * @param code
  * The file that contains the code.
  * @param size
- * The size of the \a code .
+ * The size of the \a code.
  * @return It returns the code which indicates if the process was successful or not. \n
  * If the process was successful, it returns 0. Otherwise, it returns the error code.
 */
