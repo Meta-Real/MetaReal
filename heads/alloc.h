@@ -10,7 +10,6 @@
 #include <stdlib.h>
 
 /**
- * @fn mr_ptr_t mr_alloc(mr_size_t size)
  * It allocates \a size bytes from memory and returns the pointer pointing to the allocated section. \n
  * The function returns NULL if the allocation process fails.
  * @param size
@@ -23,7 +22,6 @@ inline mr_ptr_t mr_alloc(mr_size_t size)
 }
 
 /**
- * @fn mr_ptr_t mr_aligned_alloc(mr_size_t size, mr_size_t align)
  * It allocates \a size bytes from memory and returns the pointer pointing to the allocated section. \n
  * The returned pointer is aligned by the \a align parameter. \n
  * The function returns NULL if the allocation process fails.
@@ -43,7 +41,6 @@ inline mr_ptr_t mr_aligned_alloc(mr_size_t size, mr_size_t align)
 }
 
 /**
- * @fn mr_ptr_t mr_realloc(mr_ptr_t block, mr_size_t size)
  * It reallocates \a block and changes its size to \a size bytes. \n
  * The function returns NULL if the reallocation process fails.
  * @param block
@@ -58,7 +55,6 @@ inline mr_ptr_t mr_realloc(mr_ptr_t block, mr_size_t size)
 }
 
 /**
- * @fn mr_ptr_t mr_aligned_realloc(mr_ptr_t block, mr_size_t size, mr_size_t align)
  * It reallocates \a block and changes its size to \a size bytes. \n
  * The returned pointer is aligned by the \a align parameter. \n
  * The function returns NULL if the reallocation process fails.
@@ -80,7 +76,6 @@ inline mr_ptr_t mr_aligned_realloc(mr_ptr_t block, mr_size_t size, mr_size_t ali
 }
 
 /**
- * @fn void mr_free(mr_ptr_t block)
  * It deallocates the \a block from memory.
  * The \a block pointer must be valid and allocated.
  * @param block
@@ -92,7 +87,6 @@ inline void mr_free(mr_ptr_t block)
 }
 
 /**
- * @fn void mr_aligned_free(mr_ptr_t block)
  * It deallocates the \a block from memory.
  * The \a block pointer must be valid and allocated.
  * @param block

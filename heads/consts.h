@@ -31,4 +31,8 @@
 #define MR_PORT "mr-port"
 #define MR_PORT_VERSION MR_PORT_VERSION_MAJOR "." MR_PORT_VERSION_MINOR "." MR_PORT_VERSION_PATCH
 
+/* Lexer */
+
+#define MR_LEXER_TOKENS_SIZE 0x400
+
 #endif /* __MR_CONSTS__ */

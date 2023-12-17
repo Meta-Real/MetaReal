@@ -5,10 +5,10 @@
 
 #include <error/error.h>
 
-void mr_illegal_chr_print(mr_illegal_chr_t *error, mr_str_ct fname, FILE *code, mr_size_t size)
+void mr_illegal_chr_print(mr_illegal_chr_t *error, mr_str_ct fname, mr_str_ct code)
 {
     // dummy
-    if (!code || !size)
+    if (!code)
         return;
 
     if (error->expected)

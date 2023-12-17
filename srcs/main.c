@@ -11,50 +11,25 @@
 #include <error.h>
 
 /**
- * @fn mr_byte_t mr_compile(mr_str_ct fname, FILE *code, mr_size_t size)
- * <pre>
- * It compiles the code according to the MetaReal compile rules.
+ * @pre
+ * It compiles the \a code according to the MetaReal compile rules.
  * Order of compilation:
  *     [code] -> lexer -> parser -> optimizer -> generator -> assembler -> linker -> [executable]
- * Also, the debugger will debug the code during the compilation process (if enabled).
+ * Also, the debugger will debug the \a code during the compilation process (if enabled).
  * Dollar methods are handled with a different mechanism in the optimization step.
- * </pre>
  * @param fname
  * The name of the source file (for displaying errors).
  * @param code
- * The file that contains the code.
- * @param size
- * The size of the \a code.
+ * The source code.
  * @return It returns the code which indicates if the process was successful or not. \n
  * If the process was successful, it returns 0. Otherwise, it returns the error code.
 */
-mr_byte_t mr_compile(mr_str_ct fname, FILE *code, mr_size_t size)
-{
-    mr_lexer_t lexer;
-
-    mr_lexer(&lexer, code, size);
-    if (!lexer.tokens)
-    {
-        mr_illegal_chr_print(&lexer.error, fname, code, size);
-        return ERROR_BAD_FORMAT;
-    }
-
-    return NO_ERROR;
-}
+mr_byte_t mr_compile(mr_str_ct fname, mr_str_ct code);
 
 /**
- * @fn void mr_print_help()
  * It prints out the help information (called with the \--help flag).
 */
-void mr_print_help()
-{
-    fputs(
-        "MetaReal [options] [output] [files]\nOptions:\n"
-        "  --help\t\tDisplays the help information.\n"
-        "  --version\t\tDisplays the version information.\n"
-        "  --dumpver\t\tDisplays the version data.\n",
-        stdout);
-}
+void mr_print_help();
 
 int main(int argc, mr_str_ct argv[])
 {
@@ -93,8 +68,8 @@ int main(int argc, mr_str_ct argv[])
             return NO_ERROR;
         }
 
-        FILE *code = fopen(argv[1], "rb");
-        if (!code)
+        FILE *file = fopen(argv[1], "rb");
+        if (!file)
         {
             fprintf(stderr,
                 "Internal error: can not find the file \"%s\"\n",
@@ -102,18 +77,30 @@ int main(int argc, mr_str_ct argv[])
             return ERROR_FILE_NOT_FOUND;
         }
 
-        fseek(code, 0, SEEK_END);
-        mr_size_t size = ftell(code);
-        rewind(code);
+        fseek(file, 0, SEEK_END);
+        mr_size_t size = ftell(file);
+        rewind(file);
 
         if (!size)
         {
-            fclose(code);
+            fclose(file);
             return NO_ERROR;
         }
 
-        mr_byte_t retcode = mr_compile(argv[1], code, size);
-        fclose(code);
+        mr_str_t code = mr_alloc((size + 1) * sizeof(mr_chr_t));
+        if (!code)
+        {
+            fclose(file);
+            fputs("Internal error: not enough memory.\n", stderr);
+            return ERROR_NOT_ENOUGH_MEMORY;
+        }
+
+        fread(code, sizeof(mr_chr_t), size, file);
+        fclose(file);
+        code[size] = '\0';
+
+        mr_byte_t retcode = mr_compile(argv[1], code);
+        mr_free(code);
         return retcode;
     }
 
@@ -122,4 +109,33 @@ int main(int argc, mr_str_ct argv[])
         "Write \"MetaReal --help\" for more information.\n",
         stderr);
     return ERROR_BAD_COMMAND;
+}
+
+mr_byte_t mr_compile(mr_str_ct fname, mr_str_ct code)
+{
+    mr_lexer_t lexer;
+    mr_byte_t retcode;
+
+    retcode = mr_lexer(&lexer, code);
+    if (retcode != NO_ERROR)
+        return retcode;
+    if (!lexer.tokens)
+    {
+        mr_illegal_chr_print(&lexer.error, fname, code);
+        return ERROR_BAD_FORMAT;
+    }
+
+    mr_token_print(lexer.tokens);
+    mr_token_free(lexer.tokens);
+    return NO_ERROR;
+}
+
+void mr_print_help()
+{
+    fputs(
+        "MetaReal [options] [output] [files]\nOptions:\n"
+        "  --help\t\tDisplays the help information.\n"
+        "  --version\t\tDisplays the version information.\n"
+        "  --dumpver\t\tDisplays the version data.\n",
+        stdout);
 }

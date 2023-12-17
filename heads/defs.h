@@ -23,7 +23,7 @@ typedef const mr_chr_t *mr_str_ct;
  * Holds the position of each element in the code file. \n
  * The main purpose of the structure is to help the debugger find the position of the error.
  * @var mr_size_t __MR_POS_T::idx
- * The index of the position (used by the \code fseek \endcode function).
+ * The index of the position (used by the \a fseek function).
  * @var mr_size_t __MR_POS_T::ln
  * The line of the position (for the debugger to show the information).
 */
