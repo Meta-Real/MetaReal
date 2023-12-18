@@ -2,7 +2,7 @@
  * @file lexer.h
  * This file contains the definitions of the lexer that
  * converts the content of the code into a list of tokens. \n
- * All the functions defined in this file have the prefix "mr_lexer".
+ * All the things defined in \a lexer.c and this file have the prefix <em>mr_lexer</em>.
 */
 
 #ifndef __MR_LEXER__

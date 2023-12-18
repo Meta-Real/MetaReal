@@ -1,7 +1,7 @@
 /**
  * @file token.h
  * Definitions of the tokens which are used by the lexer to organize the code. \n
- * All the functions defined in this file have the prefix "mr_token".
+ * All the things defined in \a token.c and this file have the prefix <em>mr_token</em>.
 */
 
 #ifndef __MR_TOKEN__

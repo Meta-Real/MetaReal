@@ -1,6 +1,7 @@
 /**
  * @file error.h
  * This file contains all the error structures that the MetaReal default debugger supports.
+ * All the things defined in \a error.c and this file have the prefix <em>mr_error</em>.
 */
 
 #ifndef __MR_ERROR__
