@@ -53,6 +53,6 @@ typedef struct __MR_ILLEGAL_CHR_T mr_illegal_chr_t;
  * @param code
  * The source code.
 */
-void mr_illegal_chr_print(mr_illegal_chr_t *error, mr_str_ct fname, mr_str_ct code);
+void mr_error_illegal_chr_print(mr_illegal_chr_t *error, mr_str_ct fname, mr_str_ct code);
 
 #endif /* __MR_ERROR__ */

@@ -5,7 +5,7 @@
 
 #include <error/error.h>
 
-void mr_illegal_chr_print(mr_illegal_chr_t *error, mr_str_ct fname, mr_str_ct code)
+void mr_error_illegal_chr_print(mr_illegal_chr_t *error, mr_str_ct fname, mr_str_ct code)
 {
     if (error->expected)
         fprintf(stderr, "\nExpected Character Error: '%c'\n", error->chr);

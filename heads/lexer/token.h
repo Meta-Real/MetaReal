@@ -42,11 +42,12 @@ struct __MR_TOKEN_T
 typedef struct __MR_TOKEN_T mr_token_t;
 
 /**
+ * @enum __MR_TOKEN_ENUM
  * The list of valid token types. \n
  * The <em>MR_TOKEN_PLUS</em>, <em>MR_TOKEN_MINUS<em>, <em>MR_TOKEN_B_NOT</em>, and \a MR_TOKEN_NOT_K
  * are placed together for performance reasons (see the \a mr_parser_factor function).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_EOF
- * The <em> end of file </em> token type. \n
+ * The <em>end of file</em> token type. \n
  * This token must be present at the end of the tokens list (null terminator).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_NEWLINE
  * The \a newline and the \a semicolon token type ('\n' and ';' equivalent).
@@ -55,18 +56,18 @@ typedef struct __MR_TOKEN_T mr_token_t;
  * @var __MR_TOKEN_ENUM::MR_TOKEN_INT
  * The \a integer token type. The \a integer token is a word.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_FLOAT
- * The <em> float number </em> token type. The <em> float number </em> token is a word.
+ * The <em>float number</em> token type. The <em>float number</em> token is a word.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_IMAGINARY
- * The <em> imaginary number </em> token type. The <em> imaginary number </em> token is a word.
+ * The <em>imaginary number</em> token type. The <em>imaginary number</em> token is a word.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_CHR
  * The \a character token type. The \a character token is a word.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_STR
  * The \a string token type. The \a string token is a word.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_FSTR_START
- * The <em> start of the formatted string </em> token type. \n
+ * The <em>start of the formatted string</em> token type. \n
  * This token contains the information about the start and end position of the string.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_FSTR_END
- * The <em> end of the formatted string </em> token type. \n
+ * The <em>end of the formatted string</em> token type. \n
  * This token only indicates the end of the string. Not its ending position.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_PLUS
  * The \a plus token type ('+' equivalent).
@@ -83,33 +84,33 @@ typedef struct __MR_TOKEN_T mr_token_t;
  * @var __MR_TOKEN_ENUM::MR_TOKEN_POWER
  * The \a power token type ('**' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_B_AND
- * The <em> binary and </em> token type ('&' equivalent).
+ * The <em>binary and</em> token type ('&' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_B_OR
- * The <em> binary or </em> token type ('|' equivalent).
+ * The <em>binary or</em> token type ('|' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_B_XOR
- * The <em> binary xor </em> token type ('^' equivalent).
+ * The <em>binary xor</em> token type ('^' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_L_SHIFT
- * The <em> left shift </em> token type ('<<' equivalent).
+ * The <em>left shift</em> token type ('<<' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_R_SHIFT
- * The <em> right shift </em> token type ('>>' equivalent).
+ * The <em>right shift</em> token type ('>>' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_B_NOT
- * The <em> binary not </em> token type ('~' equivalent).
+ * The <em>binary not</em> token type ('~' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_EQUAL
  * The \a equal token type ('==' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_NEQUAL
- * The <em> not equal </em> token type ('!=' equivalent).
+ * The <em>not equal</em> token type ('!=' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_EX_EQUAL
- * The <em> exactly equal </em> token type ('===' equivalent).
+ * The <em>exactly equal</em> token type ('===' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_EX_NEQUAL
- * The <em> exactly not equal </em> token type ('!==' equivalent).
+ * The <em>exactly not equal</em> token type ('!==' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_LESS
- * The <em> less than </em> token type ('<' equivalent).
+ * The <em>less than</em> token type ('<' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_GREATER
- * The <em> greater than </em> token type ('>' equivalent).
+ * The <em>greater than</em> token type ('>' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_LESS_EQUAL
- * The <em> less than or equal to </em> token type ('<=' equivalent).
+ * The <em>less than or equal to</em> token type ('<=' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_GREATER_EQUAL
- * The <em> greater than or equal to </em> token type ('>=' equivalent).
+ * The <em>greater than or equal to</em> token type ('>=' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_INCREMENT
  * The \a increment token type ('++' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_DECREMENT
@@ -119,41 +120,41 @@ typedef struct __MR_TOKEN_T mr_token_t;
  * @var __MR_TOKEN_ENUM::MR_TOKEN_LINK
  * The \a link token type ('->' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_PLUS_ASSIGN
- * The <em> plus and assign </em> token type ('+=' equivalent).
+ * The <em>plus and assign</em> token type ('+=' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_MINUS_ASSIGN
- * The <em> minus and assign </em> token type ('-=' equivalent).
+ * The <em>minus and assign</em> token type ('-=' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_MULTIPLY_ASSIGN
- * The <em> multiply and assign </em> token type ('*=' equivalent).
+ * The <em>multiply and assign</em> token type ('*=' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_DIVIDE_ASSIGN
- * The <em> divide and assign </em> token type ('/=' equivalent).
+ * The <em>divide and assign</em> token type ('/=' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_MODULO_ASSIGN
- * The <em> modulo and assign </em> token type ('%=' equivalent).
+ * The <em>modulo and assign</em> token type ('%=' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_QUOTIENT_ASSIGN
- * The <em> quotient and assign </em> token type ('//=' equivalent).
+ * The <em>quotient and assign</em> token type ('//=' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_POWER_ASSIGN
- * The <em> power and assign </em> token type ('**=' equivalent).
+ * The <em>power and assign</em> token type ('**=' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_B_AND_ASSIGN
- * The <em> binary and and assign </em> token type ('&=' equivalent).
+ * The <em>binary and and assign</em> token type ('&=' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_B_OR_ASSIGN
- * The <em> binary or and assign </em> token type ('|=' equivalent).
+ * The <em>binary or and assign</em> token type ('|=' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_B_XOR_ASSIGN
- * The <em> binary xor and assign </em> token type ('^=' equivalent).
+ * The <em>binary xor and assign</em> token type ('^=' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_L_SHIFT_ASSIGN
- * The <em> left shift and assign </em> token type ('<<=' equivalent).
+ * The <em>left shift and assign</em> token type ('<<=' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_R_SHIFT_ASSIGN
- * The <em> right shift and assign </em> token type ('>>=' equivalent).
+ * The <em>right shift and assign</em> token type ('>>=' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_L_PAREN
- * The <em> left parentheses </em> token type ('(' equivalent).
+ * The <em>left parentheses</em> token type ('(' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_R_PAREN
- * The <em> right parentheses </em> token type (')' equivalent).
+ * The <em>right parentheses</em> token type (')' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_L_SQUARE
- * The <em> left square bracket </em> token type ('[' equivalent).
+ * The <em>left square bracket</em> token type ('[' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_R_SQUARE
- * The <em> right square bracket </em> token type (']' equivalent).
+ * The <em>right square bracket</em> token type (']' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_L_CURLY
- * The <em> left curly bracket </em> token type ('{' equivalent).
+ * The <em>left curly bracket</em> token type ('{' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_R_CURLY
- * The <em> right curly bracket </em> token type ('}' equivalent).
+ * The <em>right curly bracket</em> token type ('}' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_COMMA
  * The \a comma token type (',' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_DOT
@@ -161,9 +162,9 @@ typedef struct __MR_TOKEN_T mr_token_t;
  * @var __MR_TOKEN_ENUM::MR_TOKEN_COLON
  * The \a colon token type (':' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_QUESTION
- * The <em> question mark </em> token type ('?' equivalent).
+ * The <em>question mark</em> token type ('?' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_DOLLAR
- * The <em> dollar sign </em> token type ('$' equivalent).
+ * The <em>dollar sign</em> token type ('$' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_ELLIPSIS
  * The \a ellipsis token type ('...' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_TRUE_K
@@ -299,7 +300,7 @@ enum __MR_TOKEN_ENUM
     MR_TOKEN_EQUAL,
     MR_TOKEN_NEQUAL,
     MR_TOKEN_EX_EQUAL,
-    MR_TOKEN_EQ_NEQUAL,
+    MR_TOKEN_EX_NEQUAL,
     MR_TOKEN_LESS,
     MR_TOKEN_GREATER,
     MR_TOKEN_LESS_EQUAL,

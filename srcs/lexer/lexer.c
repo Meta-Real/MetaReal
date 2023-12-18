@@ -116,6 +116,7 @@ struct __MR_LEXER_MATCH_T
 typedef struct __MR_LEXER_MATCH_T mr_lexer_match_t;
 
 /**
+ * @enum __MR_LEXER_MATCH_FLAG_ENUM
  * The list of possible codes returned by the \a mr_lexer_match function.
  * @var __MR_LEXER_MATCH_FLAG_ENUM::MR_LEXER_MATCH_FLAG_OK
  * The matching completed successfully.
@@ -145,8 +146,8 @@ void mr_lexer_match(mr_lexer_match_t *data, mr_chr_t end);
 
 /**
  * It skips the comments (both singleline and multiline ones). \n
- * Singleline comment regex pattern: \b \#.* \n
- * Multiline comment regex pattern: \b \#\*(.|\n)*?\*\#
+ * Singleline comment regex pattern: `\#.*` \n
+ * Multiline comment regex pattern: `\#\*(.|\n)*?\*\#`
  * @param data
  * The data structure containing the information about the code.
 */
@@ -154,7 +155,7 @@ void mr_lexer_skip_comment(mr_lexer_match_t *data);
 
 /**
  * It generates an identifier, a keyword, or a type bases on the code. \n
- * Identifier regex pattern: \b [a-zA-Z_]\w*
+ * Identifier regex pattern: `[a-zA-Z_]\w*`
  * @param data
  * The data structure containing the information about the code.
 */
@@ -162,9 +163,9 @@ void mr_lexer_generate_identifier(mr_lexer_match_t *data);
 
 /**
  * It generates a number (int, float, or imaginary) based on the code. \n
- * Int regex pattern: \b [0-9][0-9_]* \n
- * Float regex pattern: \b ([0-9][0-9_]*\.|\.)[0-9_]* \n
- * Imaginary regex pattern: \b ([0-9][0-9_]*\.*|\.*)[0-9_]*i
+ * Int regex pattern: `[0-9][0-9_]*` \n
+ * Float regex pattern: `([0-9][0-9_]*\.|\.)[0-9_]*` \n
+ * Imaginary regex pattern: `([0-9][0-9_]*\.*|\.*)[0-9_]*i`
  * @param data
  * The data structure containing the information about the code.
 */
