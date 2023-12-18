@@ -31,7 +31,7 @@ typedef struct __MR_ILLEGAL_CHR_T mr_illegal_chr_t;
 
 /**
  * <pre>
- * It displays the \a error in the \a errstream.
+ * It displays the \a error in the <em>errstream</em>.
  * Example of the illegal character error: \n
  * Illegal Character Error: '@'
  * File "test.mr", line 4 \n
@@ -44,7 +44,7 @@ typedef struct __MR_ILLEGAL_CHR_T mr_illegal_chr_t;
  *                 ^ \n
  * </pre>
  * The \a errstream is \a stderr by default and
- * can be changed with the dollar method \a $set_errstream.
+ * can be changed with the dollar method <em>$set_errstream</em>.
  * @param error
  * The illegal character error that needs to be displayed.
  * @param fname

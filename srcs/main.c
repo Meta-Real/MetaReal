@@ -101,6 +101,10 @@ int main(int argc, mr_str_ct argv[])
 
         mr_byte_t retcode = mr_compile(argv[1], code);
         mr_free(code);
+
+        if (retcode == ERROR_NOT_ENOUGH_MEMORY)
+            fputs("Internal error: not enough memory.\n", stderr);
+        printf("!!\n"); // dummy
         return retcode;
     }
 

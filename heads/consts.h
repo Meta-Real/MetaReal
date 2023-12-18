@@ -35,4 +35,7 @@
 
 #define MR_LEXER_TOKENS_SIZE 0x400
 
+#define MR_LEXER_IDENTIFIER_SIZE 32
+#define MR_LEXER_NUMBER_SIZE 16
+
 #endif /* __MR_CONSTS__ */

@@ -29,7 +29,7 @@ struct __MR_LEXER_T
 typedef struct __MR_LEXER_T mr_lexer_t;
 
 /**
- * It creates the list of tokens based on the \a code. \n
+ * It creates the list of tokens based on the <em>code</em>. \n
  * If there is an illegal character in the \a code or a character is missing,
  * the function returns an error. \n
  * The function reads the file in chunks in order to save memory for other processes. \n

@@ -42,14 +42,16 @@ struct __MR_TOKEN_T
 typedef struct __MR_TOKEN_T mr_token_t;
 
 /**
- * The list of valid token types.
+ * The list of valid token types. \n
+ * The <em>MR_TOKEN_PLUS</em>, <em>MR_TOKEN_MINUS<em>, <em>MR_TOKEN_B_NOT</em>, and \a MR_TOKEN_NOT_K
+ * are placed together for performance reasons (see the \a mr_parser_factor function).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_EOF
  * The <em> end of file </em> token type. \n
  * This token must be present at the end of the tokens list (null terminator).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_NEWLINE
- * The \a newline token type ('\n' equivalent).
- * @var __MR_TOKEN_ENUM::MR_TOKEN_SEMICOLON
- * The \a semicolon token type (';' equivalent).
+ * The \a newline and the \a semicolon token type ('\n' and ';' equivalent).
+ * @var __MR_TOKEN_ENUM::MR_TOKEN_IDENTIFIER
+ * The \a identifier token type. The \a identifier token is a word.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_INT
  * The \a integer token type. The \a integer token is a word.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_FLOAT
@@ -92,12 +94,6 @@ typedef struct __MR_TOKEN_T mr_token_t;
  * The <em> right shift </em> token type ('>>' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_B_NOT
  * The <em> binary not </em> token type ('~' equivalent).
- * @var __MR_TOKEN_ENUM::MR_TOKEN_AND
- * The \a and token type ('&&' equivalent).
- * @var __MR_TOKEN_ENUM::MR_TOKEN_OR
- * The \a or token type ('||' equivalent).
- * @var __MR_TOKEN_ENUM::MR_TOKEN_NOT
- * The \a not token type ('!' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_EQUAL
  * The \a equal token type ('==' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_NEQUAL
@@ -203,11 +199,11 @@ typedef struct __MR_TOKEN_T mr_token_t;
  * @var __MR_TOKEN_ENUM::MR_TOKEN_IN_K
  * The \b in keyword token type.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_AND_K
- * The \b and keyword token type.
+ * The \b and keyword and the \a and token type ('&&' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_OR_K
- * The \b or keyword token type.
+ * The \b or keyword and the \a or token type ('||' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_NOT_K
- * The \b not keyword token type.
+ * The \b not keyword and the \a not token type ('!' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_IF_K
  * The \b if keyword token type.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_ELIF_K
@@ -277,7 +273,8 @@ enum __MR_TOKEN_ENUM
 {
     MR_TOKEN_EOF,
     MR_TOKEN_NEWLINE,
-    MR_TOKEN_SEMICOLON,
+
+    MR_TOKEN_IDENTIFIER,
 
     MR_TOKEN_INT,
     MR_TOKEN_FLOAT,
@@ -287,8 +284,6 @@ enum __MR_TOKEN_ENUM
     MR_TOKEN_FSTR_START,
     MR_TOKEN_FSTR_END,
 
-    MR_TOKEN_PLUS,
-    MR_TOKEN_MINUS,
     MR_TOKEN_MULTIPLY,
     MR_TOKEN_DIVIDE,
     MR_TOKEN_MODULO,
@@ -300,11 +295,6 @@ enum __MR_TOKEN_ENUM
     MR_TOKEN_B_XOR,
     MR_TOKEN_L_SHIFT,
     MR_TOKEN_R_SHIFT,
-    MR_TOKEN_B_NOT,
-
-    MR_TOKEN_AND,
-    MR_TOKEN_OR,
-    MR_TOKEN_NOT,
 
     MR_TOKEN_EQUAL,
     MR_TOKEN_NEQUAL,
@@ -348,6 +338,11 @@ enum __MR_TOKEN_ENUM
     MR_TOKEN_DOLLAR,
     MR_TOKEN_ELLIPSIS,
 
+    MR_TOKEN_PLUS,
+    MR_TOKEN_MINUS,
+    MR_TOKEN_B_NOT,
+    MR_TOKEN_NOT_K,
+
     MR_TOKEN_TRUE_K,
     MR_TOKEN_FALSE_K,
     MR_TOKEN_NONE_K,
@@ -369,7 +364,6 @@ enum __MR_TOKEN_ENUM
     MR_TOKEN_IN_K,
     MR_TOKEN_AND_K,
     MR_TOKEN_OR_K,
-    MR_TOKEN_NOT_K,
 
     MR_TOKEN_IF_K,
     MR_TOKEN_ELIF_K,
@@ -414,6 +408,22 @@ enum __MR_TOKEN_ENUM
 
 #define MR_TOKEN_COUNT (MR_TOKEN_TYPE_T + 1)
 
+#define MR_TOKEN_KEYWORD_PAD MR_TOKEN_NOT_K
+#define MR_TOKEN_KEYWORD_COUNT (MR_TOKEN_CONTINUE_K - MR_TOKEN_KEYWORD_PAD + 1)
+#define MR_TOKEN_KEYWORD_MAXSIZE 8
+
+#define MR_TOKEN_TYPE_PAD MR_TOKEN_OBJECT_T
+#define MR_TOKEN_TYPE_COUNT (MR_TOKEN_TYPE_T - MR_TOKEN_TYPE_PAD + 1)
+#define MR_TOKEN_TYPE_MAXSIZE 7
+
+extern mr_str_ct mr_token_label[MR_TOKEN_COUNT];
+
+extern mr_str_ct mr_token_keyword[MR_TOKEN_KEYWORD_COUNT];
+extern mr_byte_t mr_token_keyword_size[MR_TOKEN_KEYWORD_COUNT];
+
+extern mr_str_ct mr_token_type[MR_TOKEN_TYPE_COUNT];
+extern mr_byte_t mr_token_type_size[MR_TOKEN_TYPE_COUNT];
+
 /**
  * It deallocates the tokens list and its elements from memory. \n
  * The \a tokens must end with an EOF token (null terminator). \n
@@ -424,10 +434,10 @@ enum __MR_TOKEN_ENUM
 void mr_token_free(mr_token_t *tokens);
 
 /**
- * It prints out the tokens list into the \a outstream.
+ * It prints out the tokens list into the <em>outstream</em>.
  * The \a tokens must end with an EOF token (null terminator). \n
  * The \a outstream is \a stdout by default and
- * can be changed with the dollar method \a $set_outstream.
+ * can be changed with the dollar method <em>$set_outstream</em>.
  * @param tokens
  * The list of tokens.
 */
