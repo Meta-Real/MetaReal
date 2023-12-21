@@ -67,6 +67,66 @@
         data->size++;                \
     } while (0)
 
+#define mr_lexer_token_setd(typ1, typ2, chr)      \
+    do                                            \
+    {                                             \
+        if (data->code[data->pos.idx + 1] == chr) \
+            mr_lexer_token_set(typ1, 2);          \
+        else                                      \
+            mr_lexer_token_set(typ2, 1);          \
+    } while (0)
+
+#define mr_lexer_token_sett(typ1, typ2, typ3, chr1, chr2) \
+    do                                                    \
+    {                                                     \
+        switch (data->code[data->pos.idx + 1])            \
+        {                                                 \
+        case chr1:                                        \
+            mr_lexer_token_set(typ1, 2);                  \
+            break;                                        \
+        case chr2:                                        \
+            mr_lexer_token_set(typ2, 2);                  \
+            break;                                        \
+        default:                                          \
+            mr_lexer_token_set(typ3, 1);                  \
+            break;                                        \
+        }                                                 \
+    } while (0)
+
+#define mr_lexer_token_settl(typ1, typ2, typ3, chr1, chr2) \
+    do                                                     \
+    {                                                      \
+        if (data->code[data->pos.idx + 1] == chr1)         \
+        {                                                  \
+            if (data->code[data->pos.idx + 2] == chr2)     \
+                mr_lexer_token_set(typ1, 3);               \
+            else                                           \
+                mr_lexer_token_set(typ2, 2);               \
+        }                                                  \
+        else                                               \
+            mr_lexer_token_set(typ3, 1);                   \
+    } while (0)
+
+#define mr_lexer_token_setq(typ1, typ2, typ3, typ4, chr1, chr2, chr3) \
+    do                                                                \
+    {                                                                 \
+        switch (data->code[data->pos.idx + 1])                        \
+        {                                                             \
+        case chr1:                                                    \
+            mr_lexer_token_set(typ1, 2);                              \
+            break;                                                    \
+        case chr2:                                                    \
+            if (data->code[data->pos.idx + 2] == chr3)                \
+                mr_lexer_token_set(typ2, 3);                          \
+            else                                                      \
+                mr_lexer_token_set(typ3, 2);                          \
+            break;                                                    \
+        default:                                                      \
+            mr_lexer_token_set(typ4, 1);                              \
+            break;                                                    \
+        }                                                             \
+    } while (0)
+
 /**
  * @def mr_lexer_value_realloc(size)
  * It reallocates the value block ( \a value field of \a token structure). \n
@@ -544,9 +604,9 @@ void mr_lexer_match(mr_lexer_match_t *data)
         mr_lexer_token_set(MR_TOKEN_NEWLINE, 1);
         break;
     case '\\':
-        chr = data->code[data->pos.idx + 1];
-        if (chr == 'f')
+        switch (data->code[data->pos.idx + 1])
         {
+        case 'f':
             chr = data->code[data->pos.idx + 2];
             if (chr == '\'' || chr == '"')
             {
@@ -556,18 +616,21 @@ void mr_lexer_match(mr_lexer_match_t *data)
 
                 break;
             }
-        }
-        else if (chr == '\'' || chr == '"')
-        {
+
+            break;
+        case '\'':
+        case '"':
             mr_lexer_generate_str(data, MR_FALSE);
             if (data->flag)
                 return;
 
             break;
+        default:
+            data->flag = MR_LEXER_MATCH_FLAG_ILLEGAL;
+            return;
         }
 
-        data->flag = MR_LEXER_MATCH_FLAG_ILLEGAL;
-        return;
+        break;
     case '\'':
         mr_lexer_generate_chr(data);
         if (data->flag)
@@ -580,20 +643,95 @@ void mr_lexer_match(mr_lexer_match_t *data)
             return;
 
         break;
-    case '.':
-        mr_lexer_generate_dot(data);
-        if (data->flag)
-            return;
-
+    case '+':
+        mr_lexer_token_sett(
+            MR_TOKEN_INCREMENT, MR_TOKEN_PLUS_ASSIGN,
+            MR_TOKEN_PLUS,
+            '+', '=');
+        break;
+    case '-':
+        switch (data->code[data->pos.idx + 1])
+        {
+        case '=':
+            mr_lexer_token_set(MR_TOKEN_MINUS_ASSIGN, 2);
+            break;
+        case '-':
+            mr_lexer_token_set(MR_TOKEN_DECREMENT, 2);
+            break;
+        case '>':
+            mr_lexer_token_set(MR_TOKEN_LINK, 2);
+            break;
+        default:
+            mr_lexer_token_set(MR_TOKEN_MINUS, 1);
+            break;
+        }
+        break;
+    case '*':
+        mr_lexer_token_setq(
+            MR_TOKEN_MULTIPLY_ASSIGN, MR_TOKEN_POWER_ASSIGN,
+            MR_TOKEN_POWER, MR_TOKEN_MULTIPLY,
+            '=', '*', '=');
+        break;
+    case '/':
+        mr_lexer_token_setq(
+            MR_TOKEN_DIVIDE_ASSIGN, MR_TOKEN_QUOTIENT_ASSIGN,
+            MR_TOKEN_QUOTIENT, MR_TOKEN_DIVIDE,
+            '=', '/', '=');
+        break;
+    case '%':
+        mr_lexer_token_setd(
+            MR_TOKEN_MODULO_ASSIGN, MR_TOKEN_MODULO,
+            '=');
+        break;
+    case '&':
+        mr_lexer_token_sett(
+            MR_TOKEN_AND_K, MR_TOKEN_B_AND_ASSIGN,
+            MR_TOKEN_B_AND,
+            '&', '=');
+        break;
+    case '|':
+        mr_lexer_token_sett(
+            MR_TOKEN_OR_K, MR_TOKEN_B_OR_ASSIGN,
+            MR_TOKEN_B_OR,
+            '|', '=');
+        break;
+    case '^':
+        mr_lexer_token_setd(
+            MR_TOKEN_B_XOR_ASSIGN, MR_TOKEN_B_XOR,
+            '=');
         break;
     case '~':
         mr_lexer_token_set(MR_TOKEN_B_NOT, 1);
+        break;
+    case '=':
+        mr_lexer_token_settl(
+            MR_TOKEN_EX_EQUAL, MR_TOKEN_EQUAL,
+            MR_TOKEN_ASSIGN,
+            '=', '=');
+        break;
+    case '!':
+        mr_lexer_token_settl(
+            MR_TOKEN_EX_NEQUAL, MR_TOKEN_NEQUAL,
+            MR_TOKEN_NOT_K,
+            '=', '=');
+        break;
+    case '<':
+        mr_lexer_token_setq(
+            MR_TOKEN_LESS_EQUAL, MR_TOKEN_L_SHIFT_ASSIGN,
+            MR_TOKEN_L_SHIFT, MR_TOKEN_LESS,
+            '=', '<', '=');
+        break;
+    case '>':
+        mr_lexer_token_setq(
+            MR_TOKEN_GREATER_EQUAL, MR_TOKEN_R_SHIFT_ASSIGN,
+            MR_TOKEN_R_SHIFT, MR_TOKEN_GREATER,
+            '=', '>', '=');
         break;
     case '(':
         mr_lexer_token_set(MR_TOKEN_L_PAREN, 1);
         break;
     case ')':
-        mr_lexer_token_set(MR_TOKEN_L_PAREN, 1);
+        mr_lexer_token_set(MR_TOKEN_R_PAREN, 1);
         break;
     case '[':
         mr_lexer_token_set(MR_TOKEN_L_SQUARE, 1);
@@ -609,6 +747,12 @@ void mr_lexer_match(mr_lexer_match_t *data)
         break;
     case ',':
         mr_lexer_token_set(MR_TOKEN_COMMA, 1);
+        break;
+    case '.':
+        mr_lexer_generate_dot(data);
+        if (data->flag)
+            return;
+
         break;
     case ':':
         mr_lexer_token_set(MR_TOKEN_COLON, 1);
