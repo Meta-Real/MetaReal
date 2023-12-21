@@ -34,12 +34,15 @@ typedef struct __MR_LEXER_T mr_lexer_t;
  * the function returns an error. \n
  * The function reads the file in chunks in order to save memory for other processes. \n
  * @param res
- * The result of the lexer process (it contains both the error and the tokens list).
+ * Result of the lexer process (it contains both the error and the tokens list).
  * @param code
  * The source code.
- * @return It returns the code which indicates if the process was successful or not. \n
+ * @param alloc
+ * Default allocation size. \n
+ * The \a tokens list will be allocated and reallocated with respect to this parameter.
+ * @return It returns a code which indicates if the process was successful or not. \n
  * If the process was successful, it returns 0. Otherwise, it returns the error code.
 */
-mr_byte_t mr_lexer(mr_lexer_t *res, mr_str_ct code);
+mr_byte_t mr_lexer(mr_lexer_t *res, mr_str_ct code, mr_size_t alloc);
 
 #endif /* __MR_LEXER__ */

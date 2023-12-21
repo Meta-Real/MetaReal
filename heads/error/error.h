@@ -31,18 +31,20 @@ struct __MR_ILLEGAL_CHR_T
 typedef struct __MR_ILLEGAL_CHR_T mr_illegal_chr_t;
 
 /**
+ * It displays the \a error in the <em>errstream</em>. \n
+ * Example of the illegal character error:
  * <pre>
- * It displays the \a error in the <em>errstream</em>.
- * Example of the illegal character error: \n
  * Illegal Character Error: '@'
  * File "test.mr", line 4 \n
  * a += 4 * 3 @
- *            ^ \n
- * Example of the expected character error: \n
+ *            ^
+ * </pre>
+ * Example of the expected character error:
+ * <pre>
  * Expected Character Error: '"'
  * File "test.mr", line 7 \n
  * a = "Hello World
- *                 ^ \n
+ *                 ^
  * </pre>
  * The \a errstream is \a stderr by default and
  * can be changed with the dollar method <em>$set_errstream</em>.

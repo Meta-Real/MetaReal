@@ -10,22 +10,26 @@
 #include <consts.h>
 #include <error.h>
 
+#include <time.h>
+
 /**
- * <pre>
- * It compiles the \a code according to the MetaReal compile rules.
+ * It compiles the \a code according to the MetaReal compile rules. \n
  * Order of compilation:
+ * <pre>
  *     [code] -> lexer -> parser -> optimizer -> generator -> assembler -> linker -> [executable]
- * Also, the debugger will debug the \a code during the compilation process (if enabled).
- * Dollar methods are handled with a different mechanism in the optimization step.
  * </pre>
+ * Also, the debugger will debug the \a code during the compilation process (if enabled). \n
+ * Dollar methods are handled with a different mechanism in the optimization step.
  * @param fname
- * The name of the source file (for displaying errors).
+ * Name of the source file (for displaying errors).
  * @param code
  * The source code.
+ * @param size
+ * Size of the source code in characters.
  * @return It returns the code which indicates if the process was successful or not. \n
  * If the process was successful, it returns 0. Otherwise, it returns the error code.
 */
-mr_byte_t mr_compile(mr_str_ct fname, mr_str_ct code);
+mr_byte_t mr_compile(mr_str_ct fname, mr_str_ct code, mr_size_t size);
 
 /**
  * It prints out the help information (called with the \--help flag).
@@ -100,7 +104,7 @@ int main(int argc, mr_str_ct argv[])
         fclose(file);
         code[size] = '\0';
 
-        mr_byte_t retcode = mr_compile(argv[1], code);
+        mr_byte_t retcode = mr_compile(argv[1], code, size);
         mr_free(code);
 
         if (retcode == ERROR_NOT_ENOUGH_MEMORY)
@@ -116,12 +120,12 @@ int main(int argc, mr_str_ct argv[])
     return ERROR_BAD_COMMAND;
 }
 
-mr_byte_t mr_compile(mr_str_ct fname, mr_str_ct code)
+mr_byte_t mr_compile(mr_str_ct fname, mr_str_ct code, mr_size_t size)
 {
     mr_lexer_t lexer;
     mr_byte_t retcode;
 
-    retcode = mr_lexer(&lexer, code);
+    retcode = mr_lexer(&lexer, code, size / MR_LEXER_TOKENS_CHUNK + 1);
     if (retcode != NO_ERROR)
         return retcode;
     if (!lexer.tokens)

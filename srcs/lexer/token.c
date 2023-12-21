@@ -12,7 +12,8 @@ mr_str_ct mr_token_label[MR_TOKEN_COUNT] =
     "TOKEN_EOF", "TOKEN_NEWLINE",
     "TOKEN_IDENTIFIER",
     "TOKEN_INT", "TOKEN_FLOAT", "TOKEN_IMAGINARY",
-    "TOKEN_CHR", "TOKEN_STR", "TOKEN_FSTR_START", "TOKEN_FSTR_END",
+    "TOKEN_CHR", "TOKEN_STR", "TOKEN_FSTR", "TOKEN_FSTR_START",
+"TOKEN_FSTR_END",
     "TOKEN_MULTIPLY", "TOKEN_DIVIDE", "TOKEN_MODULO", "TOKEN_QUOTIENT",
 "TOKEN_POWER",
     "TOKEN_B_AND", "TOKEN_B_OR", "TOKEN_B_XOR", "TOKEN_L_SHIFT",
@@ -99,7 +100,7 @@ void mr_token_print(mr_token_t *tokens)
         fputs(mr_token_label[tokens->type], stdout);
 
         if (tokens->type == MR_TOKEN_CHR)
-            fprintf(stdout, ": %c", (mr_chr_t)tokens->size);
+            fprintf(stdout, ": '%c'", (mr_chr_t)tokens->size);
         else if (tokens->value)
         {
             fputs(": ", stdout);

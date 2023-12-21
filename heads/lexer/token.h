@@ -44,13 +44,14 @@ typedef struct __MR_TOKEN_T mr_token_t;
 /**
  * @enum __MR_TOKEN_ENUM
  * The list of valid token types. \n
- * The <em>MR_TOKEN_PLUS</em>, <em>MR_TOKEN_MINUS<em>, <em>MR_TOKEN_B_NOT</em>, and \a MR_TOKEN_NOT_K
+ * The <em>MR_TOKEN_PLUS</em>, <em>MR_TOKEN_MINUS<em>,
+ * <em>MR_TOKEN_B_NOT</em>, and <em>MR_TOKEN_NOT_K</em>
  * are placed together for performance reasons (see the \a mr_parser_factor function).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_EOF
  * The <em>end of file</em> token type. \n
  * This token must be present at the end of the tokens list (null terminator).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_NEWLINE
- * The \a newline and the \a semicolon token type ('\n' and ';' equivalent).
+ * The \a newline and the \a semicolon token type ('\\n' and ';' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_IDENTIFIER
  * The \a identifier token type. The \a identifier token is a word.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_INT
@@ -63,6 +64,8 @@ typedef struct __MR_TOKEN_T mr_token_t;
  * The \a character token type. The \a character token is a word.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_STR
  * The \a string token type. The \a string token is a word.
+ * @var __MR_TOKEN_ENUM::MR_TOKEN_FSTR
+ * The <em>formatted string</em> token type. The <em>formatted string</em> token is a word.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_FSTR_START
  * The <em>start of the formatted string</em> token type. \n
  * This token contains the information about the start and end position of the string.
@@ -282,6 +285,7 @@ enum __MR_TOKEN_ENUM
     MR_TOKEN_IMAGINARY,
     MR_TOKEN_CHR,
     MR_TOKEN_STR,
+    MR_TOKEN_FSTR,
     MR_TOKEN_FSTR_START,
     MR_TOKEN_FSTR_END,
 

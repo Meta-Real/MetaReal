@@ -10,16 +10,14 @@ Download and install [MSYS2](https://www.msys2.org). \
 Install gcc, cmake, and make in the MSYS2 mingw64 terminal window.
 
 ```bash
-pacman -S gcc
-pacman -S cmake
-pacman -S make
+pacman -S gcc cmake make
 ```
 
-The rest of the steps are identical between different operating systems.
+Rest of the steps are identical between different operating systems.
 
 ### MetaReal Installation
 
-Go to the project directory and open up the terminal window (MSYS2 mingw64 terminal window in Windows). \
+Go to the project directory and open up a terminal window (MSYS2 mingw64 terminal window in Windows). \
 Create a directory called `build` and open it.
 
 ```bash

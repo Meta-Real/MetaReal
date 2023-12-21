@@ -1,6 +1,6 @@
 /**
  * @file alloc.h
- * This file contains all the functions and processes that work with the memory.
+ * This file contains all the functions and processes that work with memory.
 */
 
 #ifndef __MR_ALLOC__
@@ -13,8 +13,8 @@
  * It allocates \a size bytes from memory and returns the pointer pointing to the allocated section. \n
  * The function returns NULL if the allocation process fails.
  * @param size
- * The size of the allocated block in bytes.
- * @return The pointer pointing to the allocated block.
+ * Size of the allocated block in bytes.
+ * @return A pointer pointing to the allocated block.
 */
 inline mr_ptr_t mr_alloc(mr_size_t size)
 {
@@ -26,10 +26,10 @@ inline mr_ptr_t mr_alloc(mr_size_t size)
  * The returned pointer is aligned by the \a align parameter. \n
  * The function returns NULL if the allocation process fails.
  * @param size
- * The size of the allocated block in bytes.
+ * Size of the allocated block in bytes.
  * @param align
- * The alignment of the allocated block (must be a power of 2).
- * @return The aligned pointer pointing to the allocated block.
+ * Alignment of the allocated block (must be a power of 2).
+ * @return An aligned pointer pointing to the allocated block.
 */
 inline mr_ptr_t mr_aligned_alloc(mr_size_t size, mr_size_t align)
 {
@@ -46,8 +46,8 @@ inline mr_ptr_t mr_aligned_alloc(mr_size_t size, mr_size_t align)
  * @param block
  * The allocated block.
  * @param size
- * The new size of the new allocated block in bytes.
- * @return The new pointer pointing to the reallocated block.
+ * New size of the new allocated block in bytes.
+ * @return A pointer pointing to the reallocated block.
 */
 inline mr_ptr_t mr_realloc(mr_ptr_t block, mr_size_t size)
 {
@@ -61,10 +61,10 @@ inline mr_ptr_t mr_realloc(mr_ptr_t block, mr_size_t size)
  * @param block
  * The allocated block (must be aligned).
  * @param size
- * The new size of the new allocated block in bytes.
+ * New size of the new allocated block in bytes.
  * @param align
- * The alignment of the allocated block (must be a power of 2).
- * @return The new pointer pointing to the reallocated block.
+ * Alignment of the allocated block (must be a power of 2).
+ * @return An aligned pointer pointing to the reallocated block.
 */
 inline mr_ptr_t mr_aligned_realloc(mr_ptr_t block, mr_size_t size, mr_size_t align)
 {
