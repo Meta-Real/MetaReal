@@ -1,6 +1,6 @@
 /**
  * @file error.c
- * This file contains the file definitions of the "error.h" file.
+ * This file contains definitions of the "error.h" file.
 */
 
 #include <error/error.h>

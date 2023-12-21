@@ -1,7 +1,7 @@
 /**
  * @file token.h
- * Definitions of the tokens which are used by the lexer to organize the code. \n
- * All the things defined in \a token.c and this file have the prefix <em>mr_token</em>.
+ * Definitions of the token data structure which are used by the lexer to organize code. \n
+ * All things defined in \a token.c and this file have the \a mr_token prefix.
 */
 
 #ifndef __MR_TOKEN__
@@ -11,24 +11,24 @@
 
 /**
  * @struct __MR_TOKEN_T
- * The word equivalent of the compilation process. \n
+ * Word equivalent in the compilation process. \n
  * The token contains all the information needed about a code element. \n
  * There are two types of tokens: \n
  * 1. Symbols: tokens that don't have a value and only their type is important. \n
  *    Examples: plus sign, equal sign, semicolon, keywords, types, etc. \n
  * 2. Words: tokens that have a value and their value can change according to the code. \n
  *    Examples: numbers (int, float, complex), strings, identifiers, etc. \n
- * Tokens only hold the information about one symbol or word. Not the grammar.
+ * Tokens only hold the information about one symbol or word at a time. Not the grammar.
  * @var mr_byte_t __MR_TOKEN_T::type
- * The type of the token.
+ * Type of the \a token.
  * @var mr_str_t __MR_TOKEN_T::value
- * The value of the token (if the token is a word, NULL otherwise).
+ * Value of the \a token (will be NULL if the token is a symbol).
  * @var mr_size_t __MR_TOKEN_T::size
- * The size of the \a value (if the token is a word, undefined otherwise).
+ * Size of the \a value (will be undefined if the token is a symbol).
  * @var mr_pos_t __MR_TOKEN_T::poss
- * The starting position of the token.
+ * Starting position of the token.
  * @var mr_pos_t __MR_TOKEN_T::pose
- * The ending position of the token.
+ * Ending position of the token.
 */
 struct __MR_TOKEN_T
 {
@@ -43,8 +43,8 @@ typedef struct __MR_TOKEN_T mr_token_t;
 
 /**
  * @enum __MR_TOKEN_ENUM
- * The list of valid token types. \n
- * The <em>MR_TOKEN_PLUS</em>, <em>MR_TOKEN_MINUS<em>,
+ * Complete list of valid token types. \n
+ * Note: <em>MR_TOKEN_PLUS</em>, <em>MR_TOKEN_MINUS<em>,
  * <em>MR_TOKEN_B_NOT</em>, and <em>MR_TOKEN_NOT_K</em>
  * are placed together for performance reasons (see the \a mr_parser_factor function).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_EOF
@@ -411,40 +411,88 @@ enum __MR_TOKEN_ENUM
     MR_TOKEN_TYPE_T
 };
 
+/**
+ * Number of valid token types.
+*/
 #define MR_TOKEN_COUNT (MR_TOKEN_TYPE_T + 1)
 
+/**
+ * Padding for the keyword tokens. \n
+ * Used by the keyword detection subroutine to assign the correct token type for a keyword.
+*/
 #define MR_TOKEN_KEYWORD_PAD MR_TOKEN_NOT_K
+
+/**
+ * Number of valid keywords.
+*/
 #define MR_TOKEN_KEYWORD_COUNT (MR_TOKEN_CONTINUE_K - MR_TOKEN_KEYWORD_PAD + 1)
+
+/**
+ * Maximum size of a keyword (<em>continue</em>). \n
+ * Used by the keyword detection subroutine to optimize the search process.
+*/
 #define MR_TOKEN_KEYWORD_MAXSIZE 8
 
+/**
+ * Padding for the type tokens. \n
+ * Used by the type detection subroutine to assign the correct token type for a type.
+*/
 #define MR_TOKEN_TYPE_PAD MR_TOKEN_OBJECT_T
+
+/**
+ * Number of valid types.
+*/
 #define MR_TOKEN_TYPE_COUNT (MR_TOKEN_TYPE_T - MR_TOKEN_TYPE_PAD + 1)
+
+/**
+ * Maximum size of a type (<em>complex</em>). \n
+ * Used by the type detection subroutine to optimize the search process.
+*/
 #define MR_TOKEN_TYPE_MAXSIZE 7
 
+/**
+ * List of token labels (used by the \a mr_token_print function).
+*/
 extern mr_str_ct mr_token_label[MR_TOKEN_COUNT];
 
+/**
+ * List of keywords (used by the keyword detection subroutine).
+*/
 extern mr_str_ct mr_token_keyword[MR_TOKEN_KEYWORD_COUNT];
+
+/**
+ * List of keyword sizes. \n
+ * Used by the keyword detection subroutine to optimize the search process.
+*/
 extern mr_byte_t mr_token_keyword_size[MR_TOKEN_KEYWORD_COUNT];
 
+/**
+ * List of types (used by the type detection subroutine).
+*/
 extern mr_str_ct mr_token_type[MR_TOKEN_TYPE_COUNT];
+
+/**
+ * List of type sizes. \n
+ * Used by the type detection subroutine to optimize the search process.
+*/
 extern mr_byte_t mr_token_type_size[MR_TOKEN_TYPE_COUNT];
 
 /**
  * It deallocates the tokens list and its elements from memory. \n
  * The \a tokens must end with an EOF token (null terminator). \n
- * Only words value will be deallocated from memory.
+ * Only words value will be deallocated from memory (not symbols).
  * @param tokens
- * The list of tokens.
+ * List of tokens.
 */
 void mr_token_free(mr_token_t *tokens);
 
 /**
- * It prints out the tokens list into the <em>outstream</em>.
+ * It prints out the tokens list into <em>outstream</em>.
  * The \a tokens must end with an EOF token (null terminator). \n
- * The \a outstream is \a stdout by default and
- * can be changed with the dollar method <em>$set_outstream</em>.
+ * \a outstream is \a stdout by default and
+ * can be changed with the \a $set_outstream dollar method.
  * @param tokens
- * The list of tokens.
+ * List of tokens.
 */
 void mr_token_print(mr_token_t *tokens);
 

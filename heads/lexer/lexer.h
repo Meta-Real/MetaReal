@@ -1,8 +1,8 @@
 /**
  * @file lexer.h
- * This file contains the definitions of the lexer that
- * converts the content of the code into a list of tokens. \n
- * All the things defined in \a lexer.c and this file have the prefix <em>mr_lexer</em>.
+ * This file contains definitions of the lexer that
+ * converts contents of the code into a list of tokens. \n
+ * All things defined in \a lexer.c and this file have the \a mr_lexer prefix.
 */
 
 #ifndef __MR_LEXER__
@@ -14,12 +14,12 @@
 
 /**
  * @struct __MR_LEXER_T
- * The result of the \a mr_lexer function.
+ * Result of the \a mr_lexer function.
  * @var mr_token_t* __MR_LEXER_T::tokens
- * The list of tokens. \n
- * If there is an error in the code (illegal character error), the tokens list will be NULL.
+ * List of tokens. \n
+ * If there is an error in the code (illegal character error), the \a tokens list will be NULL.
  * @var mr_illegal_chr_t __MR_LEXER_T::error
- * The illegal character error (It will be filled if the \a tokens is NULL).
+ * Illegal character error (It will be filled with data if the \a tokens is NULL).
 */
 struct __MR_LEXER_T
 {
@@ -29,12 +29,11 @@ struct __MR_LEXER_T
 typedef struct __MR_LEXER_T mr_lexer_t;
 
 /**
- * It creates the list of tokens based on the <em>code</em>. \n
+ * It creates a list of tokens based on content of the <em>code</em>. \n
  * If there is an illegal character in the \a code or a character is missing,
- * the function returns an error. \n
- * The function reads the file in chunks in order to save memory for other processes. \n
+ * the function returns an error.
  * @param res
- * Result of the lexer process (it contains both the error and the tokens list).
+ * Result of the lexer process (it contains both error and tokens list).
  * @param code
  * The source code.
  * @param alloc

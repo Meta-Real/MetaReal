@@ -1,6 +1,6 @@
 /**
  * @file main.c
- * Main file of the compiler that aggregates all the compiler parts together. \n
+ * Main file of the compiler that aggregates all compiler parts together. \n
  * Command line prompts are also defined here.
 */
 
@@ -13,12 +13,12 @@
 #include <time.h>
 
 /**
- * It compiles the \a code according to the MetaReal compile rules. \n
+ * It compiles the \a code according to MetaReal compile rules. \n
  * Order of compilation:
  * <pre>
  *     [code] -> lexer -> parser -> optimizer -> generator -> assembler -> linker -> [executable]
  * </pre>
- * Also, the debugger will debug the \a code during the compilation process (if enabled). \n
+ * Also, debugger will debug the \a code during compilation process (if enabled). \n
  * Dollar methods are handled with a different mechanism in the optimization step.
  * @param fname
  * Name of the source file (for displaying errors).
@@ -26,13 +26,13 @@
  * The source code.
  * @param size
  * Size of the source code in characters.
- * @return It returns the code which indicates if the process was successful or not. \n
- * If the process was successful, it returns 0. Otherwise, it returns the error code.
+ * @return It returns a code which indicates if process was successful or not. \n
+ * If process was successful, it returns 0. Otherwise, it returns the error code.
 */
 mr_byte_t mr_compile(mr_str_ct fname, mr_str_ct code, mr_size_t size);
 
 /**
- * It prints out the help information (called with the \--help flag).
+ * It prints out the help information (called with a \--help flag).
 */
 void mr_print_help();
 

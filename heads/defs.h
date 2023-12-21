@@ -25,7 +25,7 @@ typedef const mr_chr_t *mr_str_ct;
  * @var mr_size_t __MR_POS_T::idx
  * Index of the position (used by the \a fseek function).
  * @var mr_size_t __MR_POS_T::ln
- * Line of the position (for the debugger to show information).
+ * Line of the position (for the debugger to show as an information).
 */
 struct __MR_POS_T
 {

@@ -1,7 +1,7 @@
 /**
  * @file error.h
- * This file contains all the error structures that the MetaReal default debugger supports.
- * All the things defined in \a error.c and this file have the prefix <em>mr_error</em>.
+ * This file contains all the error structures that MetaReal default debugger supports.
+ * All things defined in \a error.c and this file have the \a mr_error prefix.
 */
 
 #ifndef __MR_ERROR__
@@ -12,14 +12,14 @@
 
 /**
  * @struct __MR_ILLEGAL_CHR_T
- * The structure that holds the information about illegal or missing characters. \n
+ * The structure that holds information about illegal or missing characters. \n
  * This structure is used by the lexer.
  * @var mr_chr_t __MR_ILLEGAL_CHR_T::chr
  * The illegal or missing character.
  * @var mr_bool_t __MR_ILLEGAL_CHR_T::expected
  * It indicates whether the character is illegal (MR_FALSE) or is it missing (MR_TRUE).
  * @var mr_pos_t __MR_ILLEGAL_CHR_T::pos
- * The position of the error.
+ * Position of the error.
 */
 struct __MR_ILLEGAL_CHR_T
 {
@@ -31,27 +31,27 @@ struct __MR_ILLEGAL_CHR_T
 typedef struct __MR_ILLEGAL_CHR_T mr_illegal_chr_t;
 
 /**
- * It displays the \a error in the <em>errstream</em>. \n
- * Example of the illegal character error:
+ * It displays the \a error in <em>errstream</em>. \n
+ * Example of an illegal character error:
  * <pre>
  * Illegal Character Error: '@'
  * File "test.mr", line 4 \n
  * a += 4 * 3 @
  *            ^
  * </pre>
- * Example of the expected character error:
+ * Example of an expected character error:
  * <pre>
  * Expected Character Error: '"'
  * File "test.mr", line 7 \n
  * a = "Hello World
  *                 ^
  * </pre>
- * The \a errstream is \a stderr by default and
- * can be changed with the dollar method <em>$set_errstream</em>.
+ * \a errstream is \a stderr by default and
+ * can be changed with the \a $set_errstream dollar method.
  * @param error
- * The illegal character error that needs to be displayed.
+ * Illegal character error that needs to be displayed.
  * @param fname
- * The name of the source file.
+ * Name of the source file.
  * @param code
  * The source code.
 */
