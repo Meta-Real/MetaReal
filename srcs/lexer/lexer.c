@@ -47,7 +47,7 @@
 
 /**
  * @def mr_lexer_token_set(typ, inc)
- * Creates a new token with a given type. \n
+ * It creates a new token with a given type. \n
  * Value of the created token is NULL (it's a symbol).
  * @param typ
  * Type of the token that needs to be created.
@@ -67,6 +67,19 @@
         data->size++;                \
     } while (0)
 
+/**
+ * @def mr_lexer_token_setd(typ1, typ2, chr)
+ * It creates a new token based on two different types. \n
+ * The \a chr parameter determines which of the two should be considered as the token type. \n
+ * Type1 structure: `[base][chr]` \n
+ * Type2 structure: `[base]`
+ * @param typ1
+ * Type of the first case.
+ * @param typ2
+ * Type of the second case.
+ * @param chr
+ * Difference of the two tokens.
+*/
 #define mr_lexer_token_setd(typ1, typ2, chr)      \
     do                                            \
     {                                             \
@@ -76,6 +89,25 @@
             mr_lexer_token_set(typ2, 1);          \
     } while (0)
 
+/**
+ * @def mr_lexer_token_sett(typ1, typ2, typ3, chr1, chr2)
+ * It creates a new token based on three different types. \n
+ * The \a chr1 and \a chr2 parameters determine which of the
+ * three should be considered as the token type. \n
+ * Type1 structure: `[base][chr1]` \n
+ * Type2 structure: `[base][chr2]` \n
+ * Type3 structure: `[base]`
+ * @param typ1
+ * Type of the first case.
+ * @param typ2
+ * Type of the second case.
+ * @param typ3
+ * Type of the third case.
+ * @param chr1
+ * Character that determines first case.
+ * @param chr2
+ * Character that determines the second case.
+*/
 #define mr_lexer_token_sett(typ1, typ2, typ3, chr1, chr2) \
     do                                                    \
     {                                                     \
@@ -93,6 +125,25 @@
         }                                                 \
     } while (0)
 
+/**
+ * @def mr_lexer_token_settl(typ1, typ2, typ3, chr1, chr2)
+ * It creates a new token based on three different types. \n
+ * The \a chr1 and \a chr2 parameters determine which of the
+ * three should be considered as the token type. \n
+ * Type1 structure: `[base][chr1][chr2]` \n
+ * Type2 structure: `[base][chr1]` \n
+ * Type3 structure: `[base]`
+ * @param typ1
+ * Type of the first case.
+ * @param typ2
+ * Type of the second case.
+ * @param typ3
+ * Type of the third case.
+ * @param chr1
+ * Character that determines first case.
+ * @param chr2
+ * Character that determines the second case.
+*/
 #define mr_lexer_token_settl(typ1, typ2, typ3, chr1, chr2) \
     do                                                     \
     {                                                      \
@@ -107,6 +158,30 @@
             mr_lexer_token_set(typ3, 1);                   \
     } while (0)
 
+/**
+ * @def mr_lexer_token_setq(typ1, typ2, typ3, typ4, chr1, chr2, chr3)
+ * It creates a new token based on four different types. \n
+ * The <em>chr1</em>, <em>chr2</em>, and \a chr3 parameters determine which of the
+ * four should be considered as the token type. \n
+ * Type1 structure: `[base][chr1]` \n
+ * Type2 structure: `[base][chr2][chr3]` \n
+ * Type3 structure: `[base][chr2]`
+ * Type4 structure: `[base]`
+ * @param typ1
+ * Type of the first case.
+ * @param typ2
+ * Type of the second case.
+ * @param typ3
+ * Type of the third case.
+ * @param typ4
+ * Type of the forth case.
+ * @param chr1
+ * Character that determines first case.
+ * @param chr2
+ * Character that determines the second and third case.
+ * @param chr3
+ * Character that determines the second case.
+*/
 #define mr_lexer_token_setq(typ1, typ2, typ3, typ4, chr1, chr2, chr3) \
     do                                                                \
     {                                                                 \
@@ -181,7 +256,7 @@
 
 /**
  * @def mr_lexer_add_newline(prev)
- * Determines that a newline token should be added or not.
+ * It determines that a newline token should be added or not.
  * @param prev
  * Type of the previous token.
  * @return If a newline should be added, It returns \a MR_TRUE and \a MR_FALSE otherwise.
@@ -193,7 +268,7 @@
 
 /**
  * @def mr_lexer_escape_chr
- * Replaces characters with escape sequences
+ * It replaces characters with escape sequences
  * (used by the <em>mr_lexer_generate_chr</em>, <em>mr_lexer_generate_str</em>,
  * and \a mr_lexer_generate_fstr functions). \n
  * If the current character is a newline ('\\n'),
@@ -235,7 +310,7 @@
     } while (0)
 
 /**
- * Subroutine for the \a mr_lexer_generate_str and <em>mr_lexer_generate_fstr</em>.
+ * The subroutine for \a mr_lexer_generate_str and <em>mr_lexer_generate_fstr</em> functions.
  * @param exalloc
  * Extra allocation for the token value ( \a MR_TOKEN_STR or <em>MR_TOKEN_FSTR</em>). \n
  * If size of the value reaches its allocated limit, \a exalloc is used for allocation extra memory.
