@@ -130,7 +130,7 @@ mr_byte_t mr_compile(mr_str_ct fname, mr_str_ct code, mr_size_t size)
         return retcode;
     if (!lexer.tokens)
     {
-        mr_error_illegal_chr_print(&lexer.error, fname, code);
+        mr_illegal_chr_print(&lexer.error, fname, code);
         return ERROR_BAD_FORMAT;
     }
 

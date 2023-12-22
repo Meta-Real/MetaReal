@@ -354,23 +354,23 @@
 /**
  * @struct __MR_LEXER_MATCH_T
  * Input of the \a mr_lexer_match function.
- * @var __MR_LEXER_MATCH_T::flag
+ * @var mr_byte_t __MR_LEXER_MATCH_T::flag
  * The flag indicates that the matching process succeeded or failed. \n
  * If the process succeeded, flag will be 0.
  * Otherwise, its value will be the error code (<em>__MR_LEXER_MATCH_FLAG_ENUM</em>).
- * @var __MR_LEXER_MATCH_T::tokens
+ * @var mr_token_t* __MR_LEXER_MATCH_T::tokens
  * List of tokens.
- * @var __MR_LEXER_MATCH_T::size
+ * @var mr_size_t __MR_LEXER_MATCH_T::size
  * Size of the \a tokens list.
- * @var __MR_LEXER_MATCH_T::alloc
+ * @var mr_size_t __MR_LEXER_MATCH_T::alloc
  * Allocated size of the \a tokens list. \n
  * It indicates maximum number of tokens that can be stored in the current \a tokens list.
- * @var __MR_LEXER_MATCH_T::exalloc
+ * @var mr_size_t __MR_LEXER_MATCH_T::exalloc
  * Extra allocation size. \n
  * If \a size reaches the \a alloc limit, the \a exalloc is used for allocating extra memory.
- * @var __MR_LEXER_MATCH_T::code
+ * @var mr_str_ct __MR_LEXER_MATCH_T::code
  * The source code.
- * @var __MR_LEXER_MATCH_T::pos
+ * @var mr_pos_t __MR_LEXER_MATCH_T::pos
  * A position that indicates index of the current character.
 */
 struct __MR_LEXER_MATCH_T
