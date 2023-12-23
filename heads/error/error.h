@@ -38,15 +38,15 @@ typedef struct __MR_ILLEGAL_CHR_T mr_illegal_chr_t;
  * This field will be NULL if the thrown error is a general invalid syntax error.
  * @var mr_pos_t __MR_INVALID_SYNTAX_T::poss
  * Starting postion of the error.
- * @var mr_pos_t __MR_INVALID_SYNTAX_T::pose
- * Ending position of the error.
+ * @var mr_long_t __MR_INVALID_SYNTAX_T::eidx
+ * Index of the end of the error.
 */
 struct __MR_INVALID_SYNTAX_T
 {
     mr_str_ct detail;
 
     mr_pos_t poss;
-    mr_pos_t pose;
+    mr_long_t eidx;
 };
 typedef struct __MR_INVALID_SYNTAX_T mr_invalid_syntax_t;
 
@@ -111,4 +111,4 @@ void mr_illegal_chr_print(mr_illegal_chr_t *error, mr_str_ct fname, mr_str_ct co
 */
 void mr_invalid_syntax_print(mr_invalid_syntax_t *error, mr_str_ct fname, mr_str_ct code);
 
-#endif /* __MR_ERROR__ */
+#endif

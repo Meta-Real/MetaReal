@@ -1,6 +1,6 @@
 /**
  * @file token.h
- * Definitions of the token data structure which are used by the lexer to organize code. \n
+ * Definitions of the token data structure which is used by the lexer to organize code. \n
  * All things defined in \a token.c and this file have the \a mr_token prefix.
 */
 
@@ -23,23 +23,25 @@
  * Type of the \a token.
  * @var mr_str_t __MR_TOKEN_T::value
  * Value of the \a token (will be NULL if the token is a symbol).
- * @var mr_size_t __MR_TOKEN_T::size
+ * @var mr_short_t __MR_TOKEN_T::size
  * Size of the \a value (will be undefined if the token is a symbol).
  * @var mr_pos_t __MR_TOKEN_T::poss
  * Starting position of the token.
- * @var mr_pos_t __MR_TOKEN_T::pose
- * Ending position of the token.
+ * @var mr_long_t __MR_TOKEN_T::eidx
+ * Index of the end of the token.
 */
+#pragma pack(push, 1)
 struct __MR_TOKEN_T
 {
     mr_byte_t type;
     mr_str_t value;
-    mr_size_t size;
+    mr_short_t size;
 
     mr_pos_t poss;
-    mr_pos_t pose;
+    mr_long_t eidx;
 };
 typedef struct __MR_TOKEN_T mr_token_t;
+#pragma pack(pop)
 
 /**
  * @enum __MR_TOKEN_ENUM
@@ -48,230 +50,230 @@ typedef struct __MR_TOKEN_T mr_token_t;
  * <em>MR_TOKEN_B_NOT</em>, and <em>MR_TOKEN_NOT_K</em>
  * are placed together for performance reasons (see the \a mr_parser_factor function).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_EOF
- * The <em>end of file</em> token type. \n
- * This token must be present at the end of the tokens list (null terminator).
+ * <em>end of file</em> token type. \n
+ * This token must be present at the end of \a tokens list (null terminator).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_NEWLINE
- * The \a newline and the \a semicolon token type ('\\n' and ';' equivalent).
+ * \a newline and \a semicolon token type ('\\n' and ';' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_IDENTIFIER
- * The \a identifier token type. The \a identifier token is a word.
+ * \a identifier token type. The \a identifier token is a word.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_INT
- * The \a integer token type. The \a integer token is a word.
+ * \a integer token type. The \a integer token is a word.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_FLOAT
- * The <em>float number</em> token type. The <em>float number</em> token is a word.
+ * <em>float number</em> token type. The <em>float number</em> token is a word.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_IMAGINARY
- * The <em>imaginary number</em> token type. The <em>imaginary number</em> token is a word.
+ * <em>imaginary number</em> token type. The <em>imaginary number</em> token is a word.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_CHR
- * The \a character token type. The \a character token is a word.
+ * \a character token type. The \a character token is a word.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_STR
- * The \a string token type. The \a string token is a word.
+ * \a string token type. The \a string token is a word.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_FSTR
- * The <em>formatted string</em> token type. The <em>formatted string</em> token is a word.
+ * <em>formatted string</em> token type. The <em>formatted string</em> token is a word.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_FSTR_START
- * The <em>start of the formatted string</em> token type. \n
+ * <em>start of the formatted string</em> token type. \n
  * This token contains the information about the start and end position of the string.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_FSTR_END
- * The <em>end of the formatted string</em> token type. \n
+ * <em>end of the formatted string</em> token type. \n
  * This token only indicates the end of the string. Not its ending position.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_PLUS
- * The \a plus token type ('+' equivalent).
+ * \a plus token type ('+' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_MINUS
- * The \a minus token type ('-' equivalent).
+ * \a minus token type ('-' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_MULTIPLY
- * The \a multiply token type ('*' equivalent).
+ * \a multiply token type ('*' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_DIVIDE
- * The \a divide token type ('/' equivalent).
+ * \a divide token type ('/' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_MODULO
- * The \a modulo token type ('%' equivalent).
+ * \a modulo token type ('%' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_QUOTIENT
- * The \a quotient token type ('//' equivalent).
+ * \a quotient token type ('//' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_POWER
- * The \a power token type ('**' equivalent).
+ * \a power token type ('**' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_B_AND
- * The <em>binary and</em> token type ('&' equivalent).
+ * <em>binary and</em> token type ('&' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_B_OR
- * The <em>binary or</em> token type ('|' equivalent).
+ * <em>binary or</em> token type ('|' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_B_XOR
- * The <em>binary xor</em> token type ('^' equivalent).
+ * <em>binary xor</em> token type ('^' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_L_SHIFT
- * The <em>left shift</em> token type ('<<' equivalent).
+ * <em>left shift</em> token type ('<<' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_R_SHIFT
- * The <em>right shift</em> token type ('>>' equivalent).
+ * <em>right shift</em> token type ('>>' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_B_NOT
- * The <em>binary not</em> token type ('~' equivalent).
+ * <em>binary not</em> token type ('~' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_EQUAL
- * The \a equal token type ('==' equivalent).
+ * \a equal token type ('==' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_NEQUAL
- * The <em>not equal</em> token type ('!=' equivalent).
+ * <em>not equal</em> token type ('!=' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_EX_EQUAL
- * The <em>exactly equal</em> token type ('===' equivalent).
+ * <em>exactly equal</em> token type ('===' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_EX_NEQUAL
- * The <em>exactly not equal</em> token type ('!==' equivalent).
+ * <em>exactly not equal</em> token type ('!==' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_LESS
- * The <em>less than</em> token type ('<' equivalent).
+ * <em>less than</em> token type ('<' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_GREATER
- * The <em>greater than</em> token type ('>' equivalent).
+ * <em>greater than</em> token type ('>' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_LESS_EQUAL
- * The <em>less than or equal to</em> token type ('<=' equivalent).
+ * <em>less than or equal to</em> token type ('<=' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_GREATER_EQUAL
- * The <em>greater than or equal to</em> token type ('>=' equivalent).
+ * <em>greater than or equal to</em> token type ('>=' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_INCREMENT
- * The \a increment token type ('++' equivalent).
+ * \a increment token type ('++' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_DECREMENT
- * The \a decrement token type ('--' equivalent).
+ * \a decrement token type ('--' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_ASSIGN
- * The \a assign token type ('=' equivalent).
+ * \a assign token type ('=' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_LINK
- * The \a link token type ('->' equivalent).
+ * \a link token type ('->' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_PLUS_ASSIGN
- * The <em>plus and assign</em> token type ('+=' equivalent).
+ * <em>plus and assign</em> token type ('+=' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_MINUS_ASSIGN
- * The <em>minus and assign</em> token type ('-=' equivalent).
+ * <em>minus and assign</em> token type ('-=' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_MULTIPLY_ASSIGN
- * The <em>multiply and assign</em> token type ('*=' equivalent).
+ * <em>multiply and assign</em> token type ('*=' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_DIVIDE_ASSIGN
- * The <em>divide and assign</em> token type ('/=' equivalent).
+ * <em>divide and assign</em> token type ('/=' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_MODULO_ASSIGN
- * The <em>modulo and assign</em> token type ('%=' equivalent).
+ * <em>modulo and assign</em> token type ('%=' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_QUOTIENT_ASSIGN
- * The <em>quotient and assign</em> token type ('//=' equivalent).
+ * <em>quotient and assign</em> token type ('//=' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_POWER_ASSIGN
- * The <em>power and assign</em> token type ('**=' equivalent).
+ * <em>power and assign</em> token type ('**=' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_B_AND_ASSIGN
- * The <em>binary and and assign</em> token type ('&=' equivalent).
+ * <em>binary and and assign</em> token type ('&=' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_B_OR_ASSIGN
- * The <em>binary or and assign</em> token type ('|=' equivalent).
+ * <em>binary or and assign</em> token type ('|=' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_B_XOR_ASSIGN
- * The <em>binary xor and assign</em> token type ('^=' equivalent).
+ * <em>binary xor and assign</em> token type ('^=' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_L_SHIFT_ASSIGN
- * The <em>left shift and assign</em> token type ('<<=' equivalent).
+ * <em>left shift and assign</em> token type ('<<=' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_R_SHIFT_ASSIGN
- * The <em>right shift and assign</em> token type ('>>=' equivalent).
+ * <em>right shift and assign</em> token type ('>>=' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_L_PAREN
- * The <em>left parentheses</em> token type ('(' equivalent).
+ * <em>left parentheses</em> token type ('(' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_R_PAREN
- * The <em>right parentheses</em> token type (')' equivalent).
+ * <em>right parentheses</em> token type (')' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_L_SQUARE
- * The <em>left square bracket</em> token type ('[' equivalent).
+ * <em>left square bracket</em> token type ('[' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_R_SQUARE
- * The <em>right square bracket</em> token type (']' equivalent).
+ * <em>right square bracket</em> token type (']' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_L_CURLY
- * The <em>left curly bracket</em> token type ('{' equivalent).
+ * <em>left curly bracket</em> token type ('{' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_R_CURLY
- * The <em>right curly bracket</em> token type ('}' equivalent).
+ * <em>right curly bracket</em> token type ('}' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_COMMA
- * The \a comma token type (',' equivalent).
+ * \a comma token type (',' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_DOT
- * The \a dot token type ('.' equivalent).
+ * \a dot token type ('.' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_COLON
- * The \a colon token type (':' equivalent).
+ * \a colon token type (':' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_QUESTION
- * The <em>question mark</em> token type ('?' equivalent).
+ * <em>question mark</em> token type ('?' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_DOLLAR
- * The <em>dollar sign</em> token type ('$' equivalent).
+ * <em>dollar sign</em> token type ('$' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_ELLIPSIS
- * The \a ellipsis token type ('...' equivalent).
+ * \a ellipsis token type ('...' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_TRUE_K
- * The \b true keyword token type.
+ * \b true keyword token type.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_FALSE_K
- * The \b false keyword token type.
+ * \b false keyword token type.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_NONE_K
- * The \b none keyword token type.
+ * \b none keyword token type.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_FUNC_K
- * The \b func keyword token type.
+ * \b func keyword token type.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_STRUCT_K
- * The \b struct keyword token type.
+ * \b struct keyword token type.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_CLASS_K
- * The \b class keyword token type.
+ * \b class keyword token type.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_ENUM_K
- * The \b enum keyword token type.
+ * \b enum keyword token type.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_PRIVATE_K
- * The \b private keyword token type.
+ * \b private keyword token type.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_PUBLIC_K
- * The \b public keyword token type.
+ * \b public keyword token type.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_LOCAL_K
- * The \b local keyword token type.
+ * \b local keyword token type.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_GLOBAL_K
- * The \b global keyword token type.
+ * \b global keyword token type.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_CONST_K
- * The \b const keyword token type.
+ * \b const keyword token type.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_STATIC_K
- * The \b static keyword token type.
+ * \b static keyword token type.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_IS_K
- * The \b is keyword token type.
+ * \b is keyword token type.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_ARE_K
- * The \b are keyword token type.
+ * \b are keyword token type.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_IN_K
- * The \b in keyword token type.
+ * \b in keyword token type.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_AND_K
- * The \b and keyword and the \a and token type ('&&' equivalent).
+ * \b and keyword and \a and token type ('&&' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_OR_K
- * The \b or keyword and the \a or token type ('||' equivalent).
+ * \b or keyword and \a or token type ('||' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_NOT_K
- * The \b not keyword and the \a not token type ('!' equivalent).
+ * \b not keyword and \a not token type ('!' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_IF_K
- * The \b if keyword token type.
+ * \b if keyword token type.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_ELIF_K
- * The \b elif keyword token type.
+ * \b elif keyword token type.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_ELSE_K
- * The \b else keyword token type.
+ * \b else keyword token type.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_SWITCH_K
- * The \b switch keyword token type.
+ * \b switch keyword token type.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_CASE_K
- * The \b case keyword token type.
+ * \b case keyword token type.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_DEFAULT_K
- * The \b default keyword token type.
+ * \b default keyword token type.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_FOR_K
- * The \b for keyword token type.
+ * \b for keyword token type.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_TO_K
- * The \b to keyword token type.
+ * \b to keyword token type.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_STEP_K
- * The \b step keyword token type.
+ * \b step keyword token type.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_WHILE_K
- * The \b while keyword token type.
+ * \b while keyword token type.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_DO_K
- * The \b do keyword token type.
+ * \b do keyword token type.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_TRY_K
- * The \b try keyword token type.
+ * \b try keyword token type.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_EXCEPT_K
- * The \b except keyword token type.
+ * \b except keyword token type.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_FINALLY_K
- * The \b finally keyword token type.
+ * \b finally keyword token type.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_RAISE_K
- * The \b raise keyword token type.
+ * \b raise keyword token type.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_IMPORT_K
- * The \b import keyword token type.
+ * \b import keyword token type.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_INCLUDE_K
- * The \b include keyword token type.
+ * \b include keyword token type.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_RETURN_K
- * The \b return keyword token type.
+ * \b return keyword token type.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_BREAK_K
- * The \b break keyword token type.
+ * \b break keyword token type.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_CONTINUE_K
- * The \b continue keyword token type.
+ * \b continue keyword token type.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_OBJECT_T
- * The \b object type token type.
+ * \b object type token type.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_INT_T
- * The \b int type token type.
+ * \b int type token type.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_FLOAT_T
- * The \b float type token type.
+ * \b float type token type.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_COMPLEX_T
- * The \b complex type token type.
+ * \b complex type token type.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_BOOL_T
- * The \b bool type token type.
+ * \b bool type token type.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_CHAR_T
- * The \b char type token type.
+ * \b char type token type.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_STR_T
- * The \b str type token type.
+ * \b str type token type.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_LIST_T
- * The \b list type token type.
+ * \b list type token type.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_TUPLE_T
- * The \b tuple type token type.
+ * \b tuple type token type.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_DICT_T
- * The \b dict type token type.
+ * \b dict type token type.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_SET_T
- * The \b set type token type.
+ * \b set type token type.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_TYPE_T
- * The \b type type token type.
+ * \b type type token type.
 */
 enum __MR_TOKEN_ENUM
 {
@@ -496,4 +498,4 @@ void mr_token_free(mr_token_t *tokens);
 */
 void mr_token_print(mr_token_t *tokens);
 
-#endif /* __MR_TOKEN__ */
+#endif

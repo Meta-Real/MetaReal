@@ -101,4 +101,4 @@ inline void mr_aligned_free(mr_ptr_t block)
 #endif
 }
 
-#endif /* __MR_ALLOC__ */
+#endif

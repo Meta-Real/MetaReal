@@ -76,4 +76,4 @@
 */
 #define MR_LEXER_FSTR_SIZE 128
 
-#endif /* __MR_CONSTS__ */
+#endif

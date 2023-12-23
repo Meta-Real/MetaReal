@@ -1,6 +1,6 @@
 /**
  * @file token.c
- * This file contains definitions of the "token.h" file.
+ * This file contains definitions of the \a token.h file.
 */
 
 #include <lexer/token.h>

@@ -15,6 +15,7 @@ set(CMAKE_C_FLAGS_RELEASE "-O3")
 
 add_executable(MetaReal srcs/main.c srcs/error/error.c
     srcs/lexer/lexer.c srcs/lexer/token.c)
+#    srcs/parser/parser.c srcs/parser/node.c)
 
 target_include_directories(MetaReal PUBLIC "heads")
 

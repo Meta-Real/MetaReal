@@ -29,7 +29,7 @@
  * @return It returns a code which indicates if process was successful or not. \n
  * If process was successful, it returns 0. Otherwise, it returns the error code.
 */
-mr_byte_t mr_compile(mr_str_ct fname, mr_str_ct code, mr_size_t size);
+mr_byte_t mr_compile(mr_str_ct fname, mr_str_ct code, mr_long_t size);
 
 /**
  * It prints out the help information (called with a \--help flag).
@@ -83,7 +83,7 @@ int main(int argc, mr_str_ct argv[])
         }
 
         fseek(file, 0, SEEK_END);
-        mr_size_t size = ftell(file);
+        mr_long_t size = ftell(file);
         rewind(file);
 
         if (!size)
@@ -120,11 +120,13 @@ int main(int argc, mr_str_ct argv[])
     return ERROR_BAD_COMMAND;
 }
 
-mr_byte_t mr_compile(mr_str_ct fname, mr_str_ct code, mr_size_t size)
+mr_byte_t mr_compile(mr_str_ct fname, mr_str_ct code, mr_long_t size)
 {
     mr_lexer_t lexer;
     mr_byte_t retcode;
 
+    struct timeval s;
+    mingw_gettimeofday(&s, NULL);
     retcode = mr_lexer(&lexer, code, size / MR_LEXER_TOKENS_CHUNK + 1);
     if (retcode != NO_ERROR)
         return retcode;
@@ -133,6 +135,9 @@ mr_byte_t mr_compile(mr_str_ct fname, mr_str_ct code, mr_size_t size)
         mr_illegal_chr_print(&lexer.error, fname, code);
         return ERROR_BAD_FORMAT;
     }
+    struct timeval e;
+    mingw_gettimeofday(&e, NULL);
+    printf("%lf\n", (e.tv_sec - s.tv_sec) * 1000 + (e.tv_usec - s.tv_usec) / 1000.0);
 
     mr_token_print(lexer.tokens);
     mr_token_free(lexer.tokens);
