@@ -5,6 +5,7 @@
 */
 
 #include <lexer/lexer.h>
+#include <parser/parser.h>
 #include <alloc.h>
 #include <string.h>
 #include <consts.h>
@@ -122,25 +123,35 @@ int main(int argc, mr_str_ct argv[])
 
 mr_byte_t mr_compile(mr_str_ct fname, mr_str_ct code, mr_long_t size)
 {
-    mr_lexer_t lexer;
-    mr_byte_t retcode;
-
     struct timeval s;
     mingw_gettimeofday(&s, NULL);
-    retcode = mr_lexer(&lexer, code, size / MR_LEXER_TOKENS_CHUNK + 1);
+
+    mr_lexer_t lexer;
+    mr_byte_t retcode = mr_lexer(&lexer, code, size / MR_LEXER_TOKENS_CHUNK + 1);
     if (retcode != NO_ERROR)
         return retcode;
     if (!lexer.tokens)
     {
-        mr_illegal_chr_print(&lexer.error, fname, code);
+        mr_illegal_chr_print(&lexer.error, fname, code, size);
         return ERROR_BAD_FORMAT;
     }
+
+    mr_parser_t parser;
+    retcode = mr_parser(&parser, lexer.tokens);
+    if (retcode != NO_ERROR)
+        return retcode;
+    if (!parser.nodes)
+    {
+        mr_invalid_syntax_print(&parser.error, fname, code, size);
+        return ERROR_BAD_FORMAT;
+    }
+
     struct timeval e;
     mingw_gettimeofday(&e, NULL);
-    printf("%lf\n", (e.tv_sec - s.tv_sec) * 1000 + (e.tv_usec - s.tv_usec) / 1000.0);
+    printf("%lf milliseconds\n", (e.tv_sec - s.tv_sec) * 1000 + (e.tv_usec - s.tv_usec) / 1000.0);
 
-    mr_token_print(lexer.tokens);
-    mr_token_free(lexer.tokens);
+    mr_nodes_print(parser.nodes, parser.size);
+    mr_nodes_free(parser.nodes, parser.size);
     return NO_ERROR;
 }
 
