@@ -6,7 +6,7 @@
 #include <error/error.h>
 
 void mr_illegal_chr_print(mr_illegal_chr_t *error,
-    mr_str_ct fname, mr_str_ct code, mr_size_t size)
+    mr_str_ct fname, mr_str_ct code, mr_long_t size)
 {
     if (error->expected)
         fprintf(stderr, "\nExpected Character Error: '%c'\n", error->chr);
@@ -41,7 +41,7 @@ void mr_illegal_chr_print(mr_illegal_chr_t *error,
 }
 
 void mr_invalid_syntax_print(mr_invalid_syntax_t *error,
-    mr_str_ct fname, mr_str_ct code, mr_size_t size)
+    mr_str_ct fname, mr_str_ct code, mr_long_t size)
 {
     if (error->detail)
         fprintf(stderr, "\nInvalid Syntax Error: %s\n", error->detail);

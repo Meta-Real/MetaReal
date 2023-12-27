@@ -78,7 +78,7 @@ typedef struct __MR_INVALID_SYNTAX_T mr_invalid_syntax_t;
  * Size of the source code.
 */
 void mr_illegal_chr_print(mr_illegal_chr_t *error,
-    mr_str_ct fname, mr_str_ct code, mr_size_t size);
+    mr_str_ct fname, mr_str_ct code, mr_long_t size);
 
 /**
  * It displays the \a error in <em>errstream</em>. \n
@@ -115,6 +115,6 @@ void mr_illegal_chr_print(mr_illegal_chr_t *error,
  * Size of the source code.
 */
 void mr_invalid_syntax_print(mr_invalid_syntax_t *error,
-    mr_str_ct fname, mr_str_ct code, mr_size_t size);
+    mr_str_ct fname, mr_str_ct code, mr_long_t size);
 
 #endif

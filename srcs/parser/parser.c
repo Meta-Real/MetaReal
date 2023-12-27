@@ -7,6 +7,17 @@
 #include <alloc.h>
 #include <error.h>
 
+/**
+ * @def mr_parser_bin_op(func1, func2, cond)
+ * It handles binary operation formats.
+ * @param func1
+ * First function for getting the left node to generate the binary operation node.
+ * @param func2
+ * Second function for getting the right node to generate the binary operation node.
+ * @param cond
+ * Condition which indicates the node should be created or not. \n
+ * The \a cond parameter is a list of valid token types for the \a op field.
+*/
 #define mr_parser_bin_op(func1, func2, cond)                                 \
     do                                                                       \
     {                                                                        \
@@ -46,13 +57,55 @@
         return NO_ERROR;                                                     \
     } while (0)
 
+/**
+ * It handles addition `+` and subtraction `-` nodes.
+ * @param res
+ * Result of the \a mr_parser function passed as a pointer.
+ * @param tokens
+ * The list of tokens passed as a pointer.
+ * @return It returns a code which indicates if the process was successful or not. \n
+ * If the process was successful, it returns 0. Otherwise, it returns the error code.
+*/
 mr_byte_t mr_parser_expr(mr_parser_t *res, mr_token_t **tokens);
+
+/**
+ * It handles multiplication `*`, division `/`,
+ * modulo `%`, and quotient `//` operation nodes.
+ * @param res
+ * Result of the \a mr_parser function passed as a pointer.
+ * @param tokens
+ * The list of tokens passed as a pointer.
+ * @return It returns a code which indicates if the process was successful or not. \n
+ * If the process was successful, it returns 0. Otherwise, it returns the error code.
+*/
 mr_byte_t mr_parser_term(mr_parser_t *res, mr_token_t **tokens);
+
+/**
+ * It handles positive (+), negative (-),
+ * binary not (~), and logical not (!, not) unary operation nodes.
+ * @param res
+ * Result of the \a mr_parser function passed as a pointer.
+ * @param tokens
+ * The list of tokens passed as a pointer.
+ * @return It returns a code which indicates if the process was successful or not. \n
+ * If the process was successful, it returns 0. Otherwise, it returns the error code.
+*/
 mr_byte_t mr_parser_factor(mr_parser_t *res, mr_token_t **tokens);
+
 mr_byte_t mr_parser_call(mr_parser_t *res, mr_token_t **tokens);
+
+/**
+ * It data types, parentheses, statements, and dollar functions.
+ * @param res
+ * Result of the \a mr_parser function passed as a pointer.
+ * @param tokens
+ * The list of tokens passed as a pointer.
+ * @return It returns a code which indicates if the process was successful or not. \n
+ * If the process was successful, it returns 0. Otherwise, it returns the error code.
+*/
 mr_byte_t mr_parser_core(mr_parser_t *res, mr_token_t **tokens);
 
-mr_byte_t mr_parser(mr_parser_t *res, mr_token_t *tokens)
+mr_byte_t mr_parser(mr_parser_t *res, mr_token_t *tokens, mr_long_t alloc)
 {
     res->nodes = mr_alloc(sizeof(mr_node_t));
     if (!res->nodes)

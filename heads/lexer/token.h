@@ -20,7 +20,7 @@
  *    Examples: numbers (int, float, complex), strings, identifiers, etc. \n
  * Tokens only hold the information about one symbol or word at a time. Not the grammar.
  * @var mr_byte_t __MR_TOKEN_T::type
- * Type of the \a token.
+ * Type of the <em>token</em>.
  * @var mr_str_t __MR_TOKEN_T::value
  * Value of the \a token (will be NULL if the token is a symbol).
  * @var mr_short_t __MR_TOKEN_T::size
@@ -40,8 +40,8 @@ struct __MR_TOKEN_T
     mr_pos_t poss;
     mr_long_t eidx;
 };
-typedef struct __MR_TOKEN_T mr_token_t;
 #pragma pack(pop)
+typedef struct __MR_TOKEN_T mr_token_t;
 
 /**
  * @enum __MR_TOKEN_ENUM

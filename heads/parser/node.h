@@ -11,15 +11,45 @@
 #include <lexer/token.h>
 #include <defs.h>
 
+/** 
+ * @struct __MR_NODE_T
+ * Sentence equivalent in the compilation process. \n
+ * The node contains all the information needed about
+ * an statement and the grammar of that statement.
+ * @var mr_byte_t __MR_NODE_T::type
+ * Type of the <em>node</em>.
+ * @var mr_ptr_t __MR_NODE_T::value
+ * Value of the <em>node</em>.
+*/
 #pragma pack(push, 1)
 struct __MR_NODE_T
 {
     mr_byte_t type;
     mr_ptr_t value;
 };
-typedef struct __MR_NODE_T mr_node_t;
 #pragma pack(pop)
+typedef struct __MR_NODE_T mr_node_t;
 
+/**
+ * @enum __MR_NODE_ENUM
+ * Complete list of valid node types.
+ * @var __MR_NODE_ENUM::MR_NODE_NULL
+ * \a NULL node type.
+ * @var __MR_NODE_ENUM::MR_NODE_INT
+ * \a Integer node type.
+ * @var __MR_NODE_ENUM::MR_NODE_FLOAT
+ * \a Float node type.
+ * @var __MR_NODE_ENUM::MR_NODE_IMAG
+ * \a Imaginary node type.
+ * @var __MR_NODE_ENUM::MR_NODE_BINARY_OP
+ * <em>Binary operation</em> node type.
+ * @var __MR_NODE_ENUM::MR_NODE_UNARY_OP
+ * <em>Unary operation</em> node type.
+ * @var __MR_NODE_ENUM::MR_NODE_FUNC_CALL
+ * <em>Function call</em> node type.
+ * @var __MR_NODE_ENUM::MR_NODE_DOLLAR_METHOD
+ * <em>Dollar method call</em> node type.
+*/
 enum __MR_NODE_ENUM
 {
     MR_NODE_NULL,
@@ -44,8 +74,8 @@ struct __MR_NODE_DATA_T
     mr_pos_t poss;
     mr_long_t eidx;
 };
-typedef struct __MR_NODE_DATA_T mr_node_data_t;
 #pragma pack(pop)
+typedef struct __MR_NODE_DATA_T mr_node_data_t;
 
 #pragma pack(push, 1)
 struct __MR_NODE_BINARY_OP_T
@@ -55,8 +85,8 @@ struct __MR_NODE_BINARY_OP_T
     mr_node_t left;
     mr_node_t right;
 };
-typedef struct __MR_NODE_BINARY_OP_T mr_node_binary_op_t;
 #pragma pack(pop)
+typedef struct __MR_NODE_BINARY_OP_T mr_node_binary_op_t;
 
 #pragma pack(push, 1)
 struct __MR_NODE_UNARY_OP_T
@@ -66,8 +96,8 @@ struct __MR_NODE_UNARY_OP_T
 
     mr_pos_t poss;
 };
-typedef struct __MR_NODE_UNARY_OP_T mr_node_unary_op_t;
 #pragma pack(pop)
+typedef struct __MR_NODE_UNARY_OP_T mr_node_unary_op_t;
 
 struct __MR_NODE_CALL_ARG_T
 {
@@ -86,8 +116,8 @@ struct __MR_NODE_FUNC_CALL_T
 
     mr_long_t eidx;
 };
-typedef struct __MR_NODE_FUNC_CALL_T mr_node_func_call_t;
 #pragma pack(pop)
+typedef struct __MR_NODE_FUNC_CALL_T mr_node_func_call_t;
 
 #pragma pack(push, 1)
 struct __MR_NODE_DOLLAR_METHOD_T
@@ -99,8 +129,8 @@ struct __MR_NODE_DOLLAR_METHOD_T
 
     mr_pos_t poss;
 };
-typedef struct __MR_NODE_DOLLAR_METHOD_T mr_node_dollar_method_t;
 #pragma pack(pop)
+typedef struct __MR_NODE_DOLLAR_METHOD_T mr_node_dollar_method_t;
 
 void mr_node_free(mr_node_t *node);
 void mr_nodes_free(mr_node_t *nodes, mr_long_t size);

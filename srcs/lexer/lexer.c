@@ -165,7 +165,7 @@
  * four should be considered as the token type. \n
  * Type1 structure: `[base][chr1]` \n
  * Type2 structure: `[base][chr2][chr3]` \n
- * Type3 structure: `[base][chr2]`
+ * Type3 structure: `[base][chr2]` \n
  * Type4 structure: `[base]`
  * @param typ1
  * Type of the first case.
