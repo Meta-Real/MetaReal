@@ -7,8 +7,14 @@
 #include <stdio.h>
 #include <alloc.h>
 
+/**
+ * Number of valid nodes.
+*/
 #define MR_NODE_COUNT (MR_NODE_EX_DOLLAR_METHOD + 1)
 
+/**
+ * List of node labels (used by the \a mr_node_print function).
+*/
 mr_str_ct mr_node_label[MR_NODE_COUNT] =
 {
     "NODE_NULL",
@@ -18,6 +24,13 @@ mr_str_ct mr_node_label[MR_NODE_COUNT] =
     "NODE_DOLLAR_METHOD", "NODE_EX_DOLLAR_METHOD"
 };
 
+/**
+ * It prints out a single node passed as a pointer into <em>outstream</em>. \n
+ * \a outstream is \a stdout by default and
+ * can be changed with the \a $set_outstream dollar method.
+ * @param node
+ * A node that needs to be printed.
+*/
 void mr_node_print(mr_node_t *node);
 
 static inline void mr_node_data_free(mr_node_data_t *node)

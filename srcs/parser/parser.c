@@ -8,6 +8,11 @@
 #include <consts.h>
 #include <error.h>
 
+/**
+ * @def mr_parser_free
+ * It deallocates the remaining list of tokens and its values. \n
+ * Also, it deallocates the generated list of nodes.
+*/
 #define mr_parser_free                        \
     do                                        \
     {                                         \
@@ -73,7 +78,7 @@
  * @param res
  * Result of the \a mr_parser function passed as a pointer.
  * @param tokens
- * The list of tokens passed as a pointer.
+ * List of tokens passed as a pointer.
  * @return It returns a code which indicates if the process was successful or not. \n
  * If the process was successful, it returns 0. Otherwise, it returns the error code.
 */
@@ -85,7 +90,7 @@ mr_byte_t mr_parser_expr(mr_parser_t *res, mr_token_t **tokens);
  * @param res
  * Result of the \a mr_parser function passed as a pointer.
  * @param tokens
- * The list of tokens passed as a pointer.
+ * List of tokens passed as a pointer.
  * @return It returns a code which indicates if the process was successful or not. \n
  * If the process was successful, it returns 0. Otherwise, it returns the error code.
 */
@@ -97,7 +102,7 @@ mr_byte_t mr_parser_term(mr_parser_t *res, mr_token_t **tokens);
  * @param res
  * Result of the \a mr_parser function passed as a pointer.
  * @param tokens
- * The list of tokens passed as a pointer.
+ * List of tokens passed as a pointer.
  * @return It returns a code which indicates if the process was successful or not. \n
  * If the process was successful, it returns 0. Otherwise, it returns the error code.
 */
@@ -106,16 +111,25 @@ mr_byte_t mr_parser_factor(mr_parser_t *res, mr_token_t **tokens);
 mr_byte_t mr_parser_call(mr_parser_t *res, mr_token_t **tokens);
 
 /**
- * It data types, parentheses, statements, and dollar functions.
+ * It handles data types, parentheses, statements, and dollar functions.
  * @param res
  * Result of the \a mr_parser function passed as a pointer.
  * @param tokens
- * The list of tokens passed as a pointer.
+ * List of tokens passed as a pointer.
  * @return It returns a code which indicates if the process was successful or not. \n
  * If the process was successful, it returns 0. Otherwise, it returns the error code.
 */
 mr_byte_t mr_parser_core(mr_parser_t *res, mr_token_t **tokens);
 
+/**
+ * It generates dollar methods (both \a DOLLAR_METHOD and \a EX_DOLLAR_METHOD versions).
+ * @param res
+ * Result of the \a mr_parser function passed as a pointer.
+ * @param tokens
+ * List of tokens passed as a pointer.
+ * @return It returns a code which indicates if the process was successful or not. \n
+ * If the process was successful, it returns 0. Otherwise, it returns the error code.
+*/
 mr_byte_t mr_parser_handle_dollar_method(mr_parser_t *res, mr_token_t **tokens);
 
 mr_byte_t mr_parser(mr_parser_t *res, mr_token_t *tokens, mr_long_t alloc)
@@ -246,8 +260,7 @@ mr_byte_t mr_parser_core(mr_parser_t *res, mr_token_t **tokens)
         return mr_parser_handle_dollar_method(res, tokens);
     }
 
-    res->error = (mr_invalid_syntax_t){NULL,
-        (*tokens)->poss, (*tokens)->eidx};
+    res->error = (mr_invalid_syntax_t){NULL, (*tokens)->poss, (*tokens)->eidx};
     return ERROR_BAD_FORMAT;
 }
 

@@ -143,9 +143,31 @@ struct __MR_NODE_EX_DOLLAR_METHOD_T
 };
 typedef struct __MR_NODE_EX_DOLLAR_METHOD_T mr_node_ex_dollar_method_t;
 
+/**
+ * It deallocates a single node passed as a pointer.
+ * @param node
+ * Node that needs to be deallocated.
+*/
 void mr_node_free(mr_node_t *node);
+
+/**
+ * It deallocates the nodes list and its elements from memory according to its size.
+ * @param nodes
+ * List of nodes.
+ * @param size
+ * Size of the \a nodes list.
+*/
 void mr_nodes_free(mr_node_t *nodes, mr_long_t size);
 
+/**
+ * It prints out the nodes list into \a outstream according to its size. \n
+ * \a outstream is \a stdout by default and
+ * can be changed with the \a $set_outstream dollar method.
+ * @param nodes
+ * List of nodes.
+ * @param size
+ * Size of the \a nodes list.
+*/
 void mr_nodes_print(mr_node_t *nodes, mr_long_t size);
 
 #endif
