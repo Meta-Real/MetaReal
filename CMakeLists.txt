@@ -24,4 +24,5 @@ target_link_libraries(MetaReal mpfr)
 target_link_libraries(MetaReal mpc)
 target_link_libraries(MetaReal mrfstr)
 
-add_custom_command(TARGET MetaReal POST_BUILD COMMAND "${CMAKE_COMMAND}" -E copy $<TARGET_FILE:MetaReal> ..)
+add_custom_command(TARGET MetaReal POST_BUILD COMMAND "${CMAKE_COMMAND}"
+    -E copy $<TARGET_FILE:MetaReal> ..)

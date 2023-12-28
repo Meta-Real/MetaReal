@@ -7,14 +7,15 @@
 #include <stdio.h>
 #include <alloc.h>
 
-#define MR_NODE_COUNT (MR_NODE_DOLLAR_METHOD + 1)
+#define MR_NODE_COUNT (MR_NODE_EX_DOLLAR_METHOD + 1)
 
 mr_str_ct mr_node_label[MR_NODE_COUNT] =
 {
     "NODE_NULL",
     "NODE_INT", "NODE_FLOAT", "NODE_IMAG",
     "NODE_BINARY_OP", "NODE_UNARY_OP",
-    "NODE_FUNC_CALL", "NODE_DOLLAR_METHOD"
+    "NODE_FUNC_CALL",
+    "NODE_DOLLAR_METHOD", "NODE_EX_DOLLAR_METHOD"
 };
 
 void mr_node_print(mr_node_t *node);
@@ -64,10 +65,11 @@ static inline void mr_node_func_call_free(mr_node_func_call_t *node)
     {
         arg = node->args + node->size;
         mr_node_free(&arg->value);
-        mr_node_data_free(&arg->name);
+        mr_free(arg->name.data);
     }
 
     mr_node_free(&node->func);
+    mr_free(node);
 }
 
 static inline void mr_node_func_call_print(mr_node_func_call_t *node)
@@ -109,7 +111,8 @@ static inline void mr_node_func_call_print(mr_node_func_call_t *node)
 static inline void mr_node_dollar_method_free(mr_node_dollar_method_t *node)
 {
     mr_nodes_free(node->args, node->size);
-    mr_node_data_free(&node->name);
+    mr_free(node->name.data);
+    mr_free(node);
 }
 
 static inline void mr_node_dollar_method_print(mr_node_dollar_method_t *node)
@@ -130,6 +133,17 @@ static inline void mr_node_dollar_method_print(mr_node_dollar_method_t *node)
     putchar('}');
 }
 
+static inline void mr_node_ex_dollar_method_free(mr_node_ex_dollar_method_t *node)
+{
+    mr_free(node->name.data);
+    mr_free(node);
+}
+
+static inline void mr_node_ex_dollar_method_print(mr_node_ex_dollar_method_t *node)
+{
+    mr_node_data_print(&node->name);
+}
+
 void mr_node_free(mr_node_t *node)
 {
     switch (node->type)
@@ -138,7 +152,7 @@ void mr_node_free(mr_node_t *node)
         return;
     case MR_NODE_INT:
     case MR_NODE_FLOAT:
-    case MR_NODE_IMAG:
+    case MR_NODE_IMAGINARY:
         mr_node_data_free(node->value);
         return;
     case MR_NODE_BINARY_OP:
@@ -152,6 +166,9 @@ void mr_node_free(mr_node_t *node)
         return;
     case MR_NODE_DOLLAR_METHOD:
         mr_node_dollar_method_free(node->value);
+        return;
+    case MR_NODE_EX_DOLLAR_METHOD:
+        mr_node_ex_dollar_method_free(node->value);
         return;
     }
 }
@@ -186,7 +203,7 @@ void mr_node_print(mr_node_t *node)
     {
     case MR_NODE_INT:
     case MR_NODE_FLOAT:
-    case MR_NODE_IMAG:
+    case MR_NODE_IMAGINARY:
         mr_node_data_print(node->value);
         break;
     case MR_NODE_BINARY_OP:
@@ -200,6 +217,9 @@ void mr_node_print(mr_node_t *node)
         break;
     case MR_NODE_DOLLAR_METHOD:
         mr_node_dollar_method_print(node->value);
+        break;
+    case MR_NODE_EX_DOLLAR_METHOD:
+        mr_node_ex_dollar_method_print(node->value);
         break;
     }
 

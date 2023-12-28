@@ -39,7 +39,7 @@ typedef struct __MR_NODE_T mr_node_t;
  * \a Integer node type.
  * @var __MR_NODE_ENUM::MR_NODE_FLOAT
  * \a Float node type.
- * @var __MR_NODE_ENUM::MR_NODE_IMAG
+ * @var __MR_NODE_ENUM::MR_NODE_IMAGINARY
  * \a Imaginary node type.
  * @var __MR_NODE_ENUM::MR_NODE_BINARY_OP
  * <em>Binary operation</em> node type.
@@ -49,6 +49,8 @@ typedef struct __MR_NODE_T mr_node_t;
  * <em>Function call</em> node type.
  * @var __MR_NODE_ENUM::MR_NODE_DOLLAR_METHOD
  * <em>Dollar method call</em> node type.
+ * @var__MR_NODE_ENUM::MR_NODE_EX_DOLLAR_METHOD
+ * <em>Exclusive dollar method call</em> node type with an empty list of parameters.
 */
 enum __MR_NODE_ENUM
 {
@@ -56,13 +58,15 @@ enum __MR_NODE_ENUM
 
     MR_NODE_INT,
     MR_NODE_FLOAT,
-    MR_NODE_IMAG,
+    MR_NODE_IMAGINARY,
 
     MR_NODE_BINARY_OP,
     MR_NODE_UNARY_OP,
 
     MR_NODE_FUNC_CALL,
-    MR_NODE_DOLLAR_METHOD
+
+    MR_NODE_DOLLAR_METHOD,
+    MR_NODE_EX_DOLLAR_METHOD
 };
 
 #pragma pack(push, 1)
@@ -131,6 +135,13 @@ struct __MR_NODE_DOLLAR_METHOD_T
 };
 #pragma pack(pop)
 typedef struct __MR_NODE_DOLLAR_METHOD_T mr_node_dollar_method_t;
+
+struct __MR_NODE_EX_DOLLAR_METHOD_T
+{
+    mr_node_data_t name;
+    mr_pos_t poss;
+};
+typedef struct __MR_NODE_EX_DOLLAR_METHOD_T mr_node_ex_dollar_method_t;
 
 void mr_node_free(mr_node_t *node);
 void mr_nodes_free(mr_node_t *nodes, mr_long_t size);

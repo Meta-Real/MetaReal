@@ -76,4 +76,23 @@
 */
 #define MR_LEXER_FSTR_SIZE 128
 
+/* Parser */
+
+/**
+ * Default size of the nodes chunk. \n
+ * This number is used to calculate allocation size of the \a nodes list. \n
+ * Formula: `AllocationSize = SourceCodeSize / MR_PARSER_NODES_CHUNK`
+*/
+#define MR_PARSER_NODES_CHUNK 64
+
+/**
+ * Default size of a <em>dollar method</em> parameter list.
+*/
+#define MR_PARSER_DOLLAR_METHOD_SIZE 4
+
+/**
+ * Maximum size of a <em>dollar method</em> parameter list.
+*/
+#define MR_PARSER_DOLLAR_METHOD_MAX (MR_PARSER_DOLLAR_METHOD_SIZE * 4)
+
 #endif
