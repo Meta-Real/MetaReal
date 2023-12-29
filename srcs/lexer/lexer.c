@@ -15,12 +15,17 @@
  * The tokens list doesn't have to be terminated with an EOF token. \n
  * This macro should only be called from the \a mr_lexer function.
 */
-#define mr_lexer_tokens_free                       \
-    do                                             \
-    {                                              \
-        while (data.size--)                        \
-            mr_free(data.tokens[data.size].value); \
-        mr_free(data.tokens);                      \
+#define mr_lexer_tokens_free                                                       \
+    do                                                                             \
+    {                                                                              \
+        mr_token_t *token;                                                         \
+        while (data.size--)                                                        \
+        {                                                                          \
+            token = data.tokens + data.size;                                       \
+            if (token->type != MR_TOKEN_IDENTIFIER && token->type != MR_TOKEN_CHR) \
+                mr_free(token->value);                                             \
+        }                                                                          \
+        mr_free(data.tokens);                                                      \
     } while (0)
 
 /**
@@ -59,11 +64,10 @@
     {                                \
         token->type = typ;           \
         token->value = NULL;         \
+        token->size = inc;           \
+        token->idx = data->idx;      \
                                      \
-        token->poss = data->pos;     \
-        data->pos.idx += inc;        \
-        token->eidx = data->pos.idx; \
-                                     \
+        data->idx += inc;            \
         data->size++;                \
     } while (0)
 
@@ -80,13 +84,13 @@
  * @param chr
  * Difference of the two tokens.
 */
-#define mr_lexer_token_setd(typ1, typ2, chr)      \
-    do                                            \
-    {                                             \
-        if (data->code[data->pos.idx + 1] == chr) \
-            mr_lexer_token_set(typ1, 2);          \
-        else                                      \
-            mr_lexer_token_set(typ2, 1);          \
+#define mr_lexer_token_setd(typ1, typ2, chr)  \
+    do                                        \
+    {                                         \
+        if (data->code[data->idx + 1] == chr) \
+            mr_lexer_token_set(typ1, 2);      \
+        else                                  \
+            mr_lexer_token_set(typ2, 1);      \
     } while (0)
 
 /**
@@ -111,7 +115,7 @@
 #define mr_lexer_token_sett(typ1, typ2, typ3, chr1, chr2) \
     do                                                    \
     {                                                     \
-        switch (data->code[data->pos.idx + 1])            \
+        switch (data->code[data->idx + 1])                \
         {                                                 \
         case chr1:                                        \
             mr_lexer_token_set(typ1, 2);                  \
@@ -147,9 +151,9 @@
 #define mr_lexer_token_settl(typ1, typ2, typ3, chr1, chr2) \
     do                                                     \
     {                                                      \
-        if (data->code[data->pos.idx + 1] == chr1)         \
+        if (data->code[data->idx + 1] == chr1)             \
         {                                                  \
-            if (data->code[data->pos.idx + 2] == chr2)     \
+            if (data->code[data->idx + 2] == chr2)         \
                 mr_lexer_token_set(typ1, 3);               \
             else                                           \
                 mr_lexer_token_set(typ2, 2);               \
@@ -185,13 +189,13 @@
 #define mr_lexer_token_setq(typ1, typ2, typ3, typ4, chr1, chr2, chr3) \
     do                                                                \
     {                                                                 \
-        switch (data->code[data->pos.idx + 1])                        \
+        switch (data->code[data->idx + 1])                            \
         {                                                             \
         case chr1:                                                    \
             mr_lexer_token_set(typ1, 2);                              \
             break;                                                    \
         case chr2:                                                    \
-            if (data->code[data->pos.idx + 2] == chr3)                \
+            if (data->code[data->idx + 2] == chr3)                    \
                 mr_lexer_token_set(typ2, 3);                          \
             else                                                      \
                 mr_lexer_token_set(typ3, 2);                          \
@@ -228,31 +232,16 @@
 /**
  * @def mr_lexer_skip_spaces(code, idx)
  * It skips space characters (' ', '\t', and '\r') from the \a code and advances <em>idx</em>.
+ * @param chr
+ * Current character of the code.
  * @param code
  * The source code.
  * @param idx
  * Index of the current character ( \a idx field of \a pos structure).
 */
-#define mr_lexer_skip_spaces(code, idx)                                \
-    while (code[idx] == ' ' || code[idx] == '\t' || code[idx] == '\r') \
-        idx++
-
-/**
- * @def mr_lexer_skip_newlines(code, idx, ln)
- * It skips newlines ('\\n') from the \a code and advances \a idx and <em>ln</em>.
- * @param code
- * The source code
- * @param idx
- * Index of the current character ( \a idx field of \a pos structure).
- * @param ln
- * Current line of the \a code ( \a ln field of \a pos structure).
-*/
-#define mr_lexer_skip_newlines(code, idx, ln) \
-    while (code[idx] == '\n')                 \
-    {                                         \
-        idx++;                                \
-        ln++;                                 \
-    }
+#define mr_lexer_skip_spaces(chr, code, idx)         \
+    while (chr == ' ' || chr == '\t' || chr == '\r') \
+        chr = code[++idx]
 
 /**
  * @def mr_lexer_add_newline(prev)
@@ -303,9 +292,6 @@
         case 'v':           \
             chr = '\v';     \
             break;          \
-        case '\n':          \
-            data->pos.ln++; \
-            break;          \
         }                   \
     } while (0)
 
@@ -329,7 +315,7 @@
                                                                            \
         if (chr == '\\' && esc)                                            \
         {                                                                  \
-            chr = data->code[++data->pos.idx];                             \
+            chr = data->code[++data->idx];                                 \
             if (chr == '\0')                                               \
             {                                                              \
                 data->flag = MR_LEXER_MATCH_FLAG_MISSING;                  \
@@ -341,14 +327,12 @@
                                                                            \
             mr_lexer_escape_chr;                                           \
         }                                                                  \
-        else if (chr == '\n')                                              \
-            data->pos.ln++;                                                \
                                                                            \
         if (token->size == alloc)                                          \
             mr_lexer_value_realloc((alloc += exalloc) * sizeof(mr_chr_t)); \
                                                                            \
         token->value[token->size++] = chr;                                 \
-        chr = data->code[++data->pos.idx];                                 \
+        chr = data->code[++data->idx];                                     \
     } while (0)
 
 /**
@@ -370,8 +354,8 @@
  * If \a size reaches the \a alloc limit, the \a exalloc is used for allocating extra memory.
  * @var mr_str_ct __MR_LEXER_MATCH_T::code
  * The source code.
- * @var mr_pos_t __MR_LEXER_MATCH_T::pos
- * A position that indicates index of the current character.
+ * @var mr_long_t __MR_LEXER_MATCH_T::idx
+ * An index for the current character of the code.
 */
 struct __MR_LEXER_MATCH_T
 {
@@ -383,7 +367,7 @@ struct __MR_LEXER_MATCH_T
     mr_long_t exalloc;
 
     mr_str_ct code;
-    mr_pos_t pos;
+    mr_long_t idx;
 };
 typedef struct __MR_LEXER_MATCH_T mr_lexer_match_t;
 
@@ -495,26 +479,27 @@ mr_byte_t mr_lexer(mr_lexer_t *res, mr_str_ct code, mr_long_t alloc)
     data.exalloc = alloc;
 
     data.code = code;
-    data.pos = (mr_pos_t){0, 1};
+    data.idx = 0;
 
+    mr_chr_t chr = code[data.idx];
     while (1)
     {
-        mr_lexer_skip_spaces(code, data.pos.idx);
-        if (code[data.pos.idx] == '\n')
+        mr_lexer_skip_spaces(chr, code, data.idx);
+        if (chr == '\n')
         {
-            data.pos.idx++;
-            data.pos.ln++;
+            chr = code[++data.idx];
             continue;
         }
-        if (code[data.pos.idx] == ';')
+        if (chr == ';')
         {
-            data.pos.idx++;
+            chr = code[++data.idx];
             continue;
         }
 
-        if (code[data.pos.idx] == '#')
+        if (chr == '#')
         {
             mr_lexer_skip_comment(&data);
+            chr = code[data.idx];
             continue;
         }
 
@@ -522,7 +507,7 @@ mr_byte_t mr_lexer(mr_lexer_t *res, mr_str_ct code, mr_long_t alloc)
     }
 
     mr_token_t *block;
-    while (code[data.pos.idx] != '\0')
+    while (chr != '\0')
     {
         if (data.size == data.alloc)
         {
@@ -537,6 +522,8 @@ mr_byte_t mr_lexer(mr_lexer_t *res, mr_str_ct code, mr_long_t alloc)
         }
 
         mr_lexer_match(&data);
+        chr = code[data.idx];
+
         if (data.flag)
         {
             mr_lexer_tokens_free;
@@ -547,9 +534,9 @@ mr_byte_t mr_lexer(mr_lexer_t *res, mr_str_ct code, mr_long_t alloc)
             res->tokens = NULL;
 
             if (data.flag == MR_LEXER_MATCH_FLAG_ILLEGAL)
-                res->error = (mr_illegal_chr_t){code[data.pos.idx], MR_FALSE, data.pos};
+                res->error = (mr_illegal_chr_t){code[data.idx], MR_FALSE, data.idx};
             else
-                res->error = (mr_illegal_chr_t){data.alloc, MR_TRUE, data.pos};
+                res->error = (mr_illegal_chr_t){data.alloc, MR_TRUE, data.idx};
             return NO_ERROR;
         }
     }
@@ -566,11 +553,11 @@ mr_byte_t mr_lexer(mr_lexer_t *res, mr_str_ct code, mr_long_t alloc)
         data.tokens = block;
     }
 
-    data.tokens[data.size].type = MR_TOKEN_EOF;
-    data.tokens[data.size].value = NULL;
-    data.tokens[data.size].poss = data.pos;
-    data.pos.idx++;
-    data.tokens[data.size].eidx = data.pos.idx;
+    mr_token_t *token = data.tokens + data.size;
+    token->type = MR_TOKEN_EOF;
+    token->value = NULL;
+    token->size = 1;
+    token->idx = data.idx;
 
     res->tokens = data.tokens;
     return NO_ERROR;
@@ -579,12 +566,13 @@ mr_byte_t mr_lexer(mr_lexer_t *res, mr_str_ct code, mr_long_t alloc)
 void mr_lexer_match(mr_lexer_match_t *data)
 {
     mr_token_t *token = data->tokens + data->size;
-    mr_chr_t chr = data->code[data->pos.idx];
+    mr_chr_t chr = data->code[data->idx];
 
     if (chr == '#')
     {
         mr_lexer_skip_comment(data);
-        mr_lexer_skip_spaces(data->code, data->pos.idx);
+        chr = data->code[data->idx];
+        mr_lexer_skip_spaces(chr, data->code, data->idx);
         return;
     }
 
@@ -593,22 +581,13 @@ void mr_lexer_match(mr_lexer_match_t *data)
         mr_token_t *prev = token - 1;
         if (mr_lexer_add_newline(prev->type))
         {
-            token->type = MR_TOKEN_NEWLINE;
-            token->value = NULL;
-            token->poss = data->pos;
-            data->pos.idx++;
-            data->pos.ln++;
-            token->eidx = data->pos.idx;
-
-            data->size++;
+            mr_lexer_token_set(MR_TOKEN_NEWLINE, 1);
+            chr = data->code[data->idx];
         }
         else
-        {
-            data->pos.idx++;
-            data->pos.ln++;
-        }
+            chr = data->code[++data->idx];
 
-        mr_lexer_skip_spaces(data->code, data->pos.idx);
+        mr_lexer_skip_spaces(chr, data->code, data->idx);
         return;
     }
 
@@ -618,7 +597,8 @@ void mr_lexer_match(mr_lexer_match_t *data)
         if (data->flag)
             return;
 
-        mr_lexer_skip_spaces(data->code, data->pos.idx);
+        chr = data->code[data->idx];
+        mr_lexer_skip_spaces(chr, data->code, data->idx);
         return;
     }
 
@@ -626,11 +606,11 @@ void mr_lexer_match(mr_lexer_match_t *data)
     {
         mr_bool_t esc = MR_TRUE;
 
-        chr = data->code[data->pos.idx + 1];
+        chr = data->code[data->idx + 1];
         if (chr == '\\')
         {
             esc = MR_FALSE;
-            chr = data->code[data->pos.idx + 2];
+            chr = data->code[data->idx + 2];
         }
 
         if (chr == '\'' || chr == '"')
@@ -639,12 +619,13 @@ void mr_lexer_match(mr_lexer_match_t *data)
             if (data->flag)
                 return;
 
-            mr_lexer_skip_spaces(data->code, data->pos.idx);
+            chr = data->code[data->idx];
+            mr_lexer_skip_spaces(chr, data->code, data->idx);
             return;
         }
         else if (!esc)
         {
-            data->pos.idx++;
+            data->idx++;
             data->flag = MR_LEXER_MATCH_FLAG_ILLEGAL;
             return;
         }
@@ -653,7 +634,8 @@ void mr_lexer_match(mr_lexer_match_t *data)
         if (data->flag)
             return;
 
-        mr_lexer_skip_spaces(data->code, data->pos.idx);
+        chr = data->code[data->idx];
+        mr_lexer_skip_spaces(chr, data->code, data->idx);
         return;
     }
 
@@ -663,7 +645,8 @@ void mr_lexer_match(mr_lexer_match_t *data)
         if (data->flag)
             return;
 
-        mr_lexer_skip_spaces(data->code, data->pos.idx);
+        chr = data->code[data->idx];
+        mr_lexer_skip_spaces(chr, data->code, data->idx);
         return;
     }
 
@@ -672,17 +655,17 @@ void mr_lexer_match(mr_lexer_match_t *data)
     case ';':
         if ((token - 1)->type == MR_TOKEN_NEWLINE)
         {
-            data->pos.idx++;
+            data->idx++;
             break;
         }
 
         mr_lexer_token_set(MR_TOKEN_NEWLINE, 1);
         break;
     case '\\':
-        switch (data->code[data->pos.idx + 1])
+        switch (data->code[data->idx + 1])
         {
         case 'f':
-            chr = data->code[data->pos.idx + 2];
+            chr = data->code[data->idx + 2];
             if (chr == '\'' || chr == '"')
             {
                 mr_lexer_generate_fstr(data, MR_FALSE);
@@ -725,7 +708,7 @@ void mr_lexer_match(mr_lexer_match_t *data)
             '+', '=');
         break;
     case '-':
-        switch (data->code[data->pos.idx + 1])
+        switch (data->code[data->idx + 1])
         {
         case '=':
             mr_lexer_token_set(MR_TOKEN_MINUS_ASSIGN, 2);
@@ -843,65 +826,54 @@ void mr_lexer_match(mr_lexer_match_t *data)
         return;
     }
 
-    mr_lexer_skip_spaces(data->code, data->pos.idx);
+    chr = data->code[data->idx];
+    mr_lexer_skip_spaces(chr, data->code, data->idx);
 }
 
 void mr_lexer_skip_comment(mr_lexer_match_t *data)
 {
-    if (data->code[++data->pos.idx] != '*')
+    mr_chr_t chr = data->code[++data->idx];
+
+    if (chr != '*')
     {
-        while (data->code[data->pos.idx] != '\0' && data->code[data->pos.idx] != '\n')
-            data->pos.idx++;
+        while (chr != '\0' && chr != '\n')
+            chr = data->code[++data->idx];
 
         return;
     }
 
-    data->pos.idx++;
-    while (data->code[data->pos.idx] != '\0')
+    chr = data->code[++data->idx];
+    while (chr != '\0')
     {
-        if (data->code[data->pos.idx] == '*')
+        if (chr == '*')
         {
-            data->pos.idx++;
-            if (data->code[data->pos.idx] == '#')
+            chr = data->code[++data->idx];
+            if (chr == '#')
             {
-                data->pos.idx++;
+                data->idx++;
                 return;
             }
         }
 
-        if (data->code[data->pos.idx] == '\n')
-            data->pos.ln++;
-        data->pos.idx++;
+        chr = data->code[++data->idx];
     }
 }
 
 void mr_lexer_generate_identifier(mr_lexer_match_t *data)
 {
     mr_token_t *token = data->tokens + data->size;
-    token->value = mr_alloc(MR_LEXER_IDENTIFIER_SIZE * sizeof(mr_chr_t));
-    if (!token->value)
-    {
-        data->flag = MR_LEXER_MATCH_FLAG_MEMORY;
-        return;
-    }
 
-    token->poss = data->pos;
+    token->value = (mr_str_t)(data->code + data->idx);
     token->size = 0;
-    mr_short_t alloc = MR_LEXER_IDENTIFIER_SIZE;
+    token->idx = data->idx;
 
-    mr_str_t block;
-    mr_chr_t chr = data->code[data->pos.idx];
+    mr_chr_t chr;
     do
     {
-        if (token->size == alloc)
-            mr_lexer_value_realloc((alloc += MR_LEXER_IDENTIFIER_SIZE) * sizeof(mr_chr_t));
-
-        token->value[token->size++] = chr;
-        chr = data->code[++data->pos.idx];
+        token->size++;
+        chr = data->code[++data->idx];
     } while ((chr >= 'A' && chr <= 'Z') || (chr >= 'a' && chr <= 'z') ||
         (chr >= '0' && chr <= '9') || chr == '_');
-
-    token->eidx = data->pos.idx;
 
     mr_short_t i;
     if (token->size <= MR_TOKEN_KEYWORD_MAXSIZE)
@@ -910,8 +882,6 @@ void mr_lexer_generate_identifier(mr_lexer_match_t *data)
             if (token->size == mr_token_keyword_size[i] &&
                 !memcmp(token->value, mr_token_keyword[i], token->size))
             {
-                mr_free(token->value);
-
                 token->type = i + MR_TOKEN_KEYWORD_PAD;
                 token->value = NULL;
 
@@ -924,8 +894,6 @@ void mr_lexer_generate_identifier(mr_lexer_match_t *data)
                 if (token->size == mr_token_type_size[i] &&
                     !memcmp(token->value, mr_token_type[i], token->size))
                 {
-                    mr_free(token->value);
-
                     token->type = i + MR_TOKEN_TYPE_PAD;
                     token->value = NULL;
 
@@ -933,9 +901,6 @@ void mr_lexer_generate_identifier(mr_lexer_match_t *data)
                     return;
                 }
     }
-
-    if (token->size != alloc)
-        mr_lexer_value_realloc(token->size);
 
     token->type = MR_TOKEN_IDENTIFIER;
     data->size++;
@@ -954,18 +919,18 @@ void mr_lexer_generate_number(mr_lexer_match_t *data)
 
     token->type = MR_TOKEN_INT;
     token->size = 0;
-    token->poss = data->pos;
+    token->idx = data->idx;
 
     mr_bool_t is_float = MR_FALSE;
     mr_short_t alloc = MR_LEXER_NUMBER_SIZE;
 
     mr_str_t block;
-    mr_chr_t chr = data->code[data->pos.idx];
+    mr_chr_t chr = data->code[data->idx];
     do
     {
         if (chr == '_')
         {
-            data->pos.idx++;
+            chr = data->code[++data->idx];
             continue;
         }
 
@@ -984,7 +949,7 @@ void mr_lexer_generate_number(mr_lexer_match_t *data)
             mr_lexer_value_realloc((alloc += MR_LEXER_NUMBER_SIZE) * sizeof(mr_chr_t));
 
         token->value[token->size++] = chr;
-        chr = data->code[++data->pos.idx];
+        chr = data->code[++data->idx];
     } while (1);
 
     if (chr == 'e' || chr == 'E')
@@ -993,17 +958,16 @@ void mr_lexer_generate_number(mr_lexer_match_t *data)
             mr_lexer_value_realloc((alloc += MR_LEXER_NUMBER_EXP_SIZE) * sizeof(mr_chr_t));
 
         token->value[token->size++] = 'e';
-
-        chr = data->code[++data->pos.idx];
+        chr = data->code[++data->idx];
         if (chr == '+')
-            chr = data->code[++data->pos.idx];
+            chr = data->code[++data->idx];
         else if (chr == '-')
         {
             if (token->size == alloc)
                 mr_lexer_value_realloc((alloc += MR_LEXER_NUMBER_EXP_SIZE) * sizeof(mr_chr_t));
 
             token->value[token->size++] = '-';
-            chr = data->code[++data->pos.idx];
+            chr = data->code[++data->idx];
         }
 
         while (chr >= '0' && chr <= '9')
@@ -1012,7 +976,7 @@ void mr_lexer_generate_number(mr_lexer_match_t *data)
                 mr_lexer_value_realloc((alloc += MR_LEXER_NUMBER_EXP_SIZE) * sizeof(mr_chr_t));
 
             token->value[token->size++] = chr;
-            chr = data->code[++data->pos.idx];
+            chr = data->code[++data->idx];
         }
 
         token->type = MR_TOKEN_FLOAT;
@@ -1023,22 +987,22 @@ void mr_lexer_generate_number(mr_lexer_match_t *data)
 
     token->value[token->size] = '\0';
 
-    if (data->code[data->pos.idx] == 'i')
+    if (data->code[data->idx] == 'i')
     {
         token->type = MR_TOKEN_IMAGINARY;
-        data->pos.idx++;
+        data->idx++;
     }
 
-    token->eidx = data->pos.idx;
+    token->size = data->idx - token->idx;
     data->size++;
 }
 
 void mr_lexer_generate_chr(mr_lexer_match_t *data)
 {
-    mr_chr_t chr = data->code[data->pos.idx + 1];
+    mr_chr_t chr = data->code[data->idx + 1];
     if (chr != '\\')
     {
-        if (data->code[data->pos.idx + 2] != '\'')
+        if (data->code[data->idx + 2] != '\'')
         {
             mr_lexer_generate_str(data, MR_TRUE);
             return;
@@ -1047,19 +1011,15 @@ void mr_lexer_generate_chr(mr_lexer_match_t *data)
         mr_token_t *token = data->tokens + data->size++;
 
         token->type = MR_TOKEN_CHR;
-        token->value = NULL;
-        token->poss = data->pos;
-        token->size = data->code[++data->pos.idx];
+        token->value = (mr_str_t)(uintptr_t)chr;
+        token->size = 3;
+        token->idx = data->idx;
 
-        if (token->size == '\n')
-            data->pos.ln++;
-        data->pos.idx += 2;
-
-        token->eidx = data->pos.idx;
+        data->idx += 3;
         return;
     }
 
-    if (data->code[data->pos.idx + 3] != '\'')
+    if (data->code[data->idx + 3] != '\'')
     {
         mr_lexer_generate_str(data, MR_TRUE);
         return;
@@ -1068,33 +1028,31 @@ void mr_lexer_generate_chr(mr_lexer_match_t *data)
     mr_token_t *token = data->tokens + data->size++;
 
     token->type = MR_TOKEN_CHR;
-    token->value = NULL;
-    token->poss = data->pos;
+    token->idx = data->idx;
+    token->size = 4;
 
-    chr = data->code[data->pos.idx += 2];
+    chr = data->code[data->idx += 2];
     mr_lexer_escape_chr;
+    token->value = (mr_str_t)(uintptr_t)chr;
 
-    token->size = chr;
-    data->pos.idx += 2;
-    token->eidx = data->pos.idx;
+    data->idx += 2;
 }
 
 void mr_lexer_generate_str(mr_lexer_match_t *data, mr_bool_t esc)
 {
     mr_token_t *token = data->tokens + data->size;
     token->type = MR_TOKEN_STR;
-    token->poss = data->pos;
+    token->idx = data->idx;
 
     if (!esc)
-        data->pos.idx++;
+        data->idx++;
 
-    mr_chr_t quot = data->code[data->pos.idx++];
-    mr_chr_t chr = data->code[data->pos.idx];
+    mr_chr_t quot = data->code[data->idx++];
+    mr_chr_t chr = data->code[data->idx];
     if (chr == quot)
     {
         token->value = NULL;
-        data->pos.idx++;
-        token->eidx = data->pos.idx;
+        token->size = ++data->idx - token->idx;
 
         data->size++;
         return;
@@ -1115,11 +1073,11 @@ void mr_lexer_generate_str(mr_lexer_match_t *data, mr_bool_t esc)
         mr_lexer_str_sub(MR_LEXER_STR_SIZE);
     while (chr != quot);
 
-    if (token->size != alloc)
-        mr_lexer_value_realloc(token->size);
+    if (token->size + 1 != alloc)
+        mr_lexer_value_realloc(token->size + 1);
 
-    data->pos.idx++;
-    token->eidx = data->pos.idx;
+    token->value[token->size] = '\0';
+    token->size = ++data->idx - token->idx;
     data->size++;
 }
 
@@ -1130,27 +1088,28 @@ void mr_lexer_generate_fstr(mr_lexer_match_t *data, mr_bool_t esc)
 
     token->type = MR_TOKEN_FSTR_START;
     token->value = NULL;
-    token->poss = data->pos;
+    token->idx = data->idx;
 
     if (!esc)
-        data->pos.idx += 2;
+        data->idx += 2;
     else
-        data->pos.idx++;
+        data->idx++;
 
-    mr_chr_t quot = data->code[data->pos.idx++];
-    mr_chr_t chr = data->code[data->pos.idx];
+    mr_chr_t quot = data->code[data->idx++];
+    mr_chr_t chr = data->code[data->idx];
 
     mr_ptr_t block;
     if (chr == quot)
     {
-        data->pos.idx++;
-        token->eidx = data->pos.idx;
+        data->idx++;
+        token->idx = data->idx;
 
         mr_lexer_tokens_realloc;
 
         token = data->tokens + data->size++;
         token->type = MR_TOKEN_FSTR_END;
         token->value = NULL;
+        token->size = data->idx - token->idx;
         return;
     }
 
@@ -1167,10 +1126,10 @@ void mr_lexer_generate_fstr(mr_lexer_match_t *data, mr_bool_t esc)
 
         if (chr == '{')
         {
-            chr = data->code[++data->pos.idx];
+            chr = data->code[++data->idx];
             while (chr != '}' || lcurly_count)
             {
-                if (data->code[data->pos.idx] == '\0')
+                if (data->code[data->idx] == '\0')
                 {
                     data->flag = MR_LEXER_MATCH_FLAG_MISSING;
                     data->alloc = '}';
@@ -1189,10 +1148,10 @@ void mr_lexer_generate_fstr(mr_lexer_match_t *data, mr_bool_t esc)
                 else if (token->type == MR_TOKEN_R_CURLY)
                     lcurly_count--;
 
-                chr = data->code[data->pos.idx];
+                chr = data->code[data->idx];
             }
 
-            chr = data->code[++data->pos.idx];
+            chr = data->code[++data->idx];
             if (chr == quot)
                 break;
             continue;
@@ -1216,26 +1175,26 @@ void mr_lexer_generate_fstr(mr_lexer_match_t *data, mr_bool_t esc)
             mr_lexer_str_sub(MR_LEXER_FSTR_SIZE);
         while (chr != quot && chr != '{');
 
-        if (token->size != alloc)
-            mr_lexer_value_realloc(token->size);
+        if (token->size + 1 != alloc)
+            mr_lexer_value_realloc(token->size + 1);
 
+        token->value[token->size] = '\0';
         data->size++;
     } while (chr != quot);
 
-    data->pos.idx++;
-    data->tokens[fidx].eidx = data->pos.idx;
+    token = data->tokens + fidx;
+    token->size = data->idx - token->idx;
 
     mr_lexer_tokens_realloc;
 
     token = data->tokens + data->size++;
     token->type = MR_TOKEN_FSTR_END;
     token->value = NULL;
-    return;
 }
 
 void mr_lexer_generate_dot(mr_lexer_match_t *data)
 {
-    mr_chr_t chr = data->code[data->pos.idx + 1];
+    mr_chr_t chr = data->code[data->idx + 1];
 
     if (chr >= '0' && chr <= '9')
     {
@@ -1244,7 +1203,7 @@ void mr_lexer_generate_dot(mr_lexer_match_t *data)
     }
 
     mr_token_t *token = data->tokens + data->size;
-    if (chr == '.' && data->code[data->pos.idx + 2] == '.')
+    if (chr == '.' && data->code[data->idx + 2] == '.')
         mr_lexer_token_set(MR_TOKEN_ELLIPSIS, 3);
     else
         mr_lexer_token_set(MR_TOKEN_DOT, 1);

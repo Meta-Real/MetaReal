@@ -25,10 +25,8 @@
  * Value of the \a token (will be NULL if the token is a symbol).
  * @var mr_short_t __MR_TOKEN_T::size
  * Size of the \a value (will be undefined if the token is a symbol).
- * @var mr_pos_t __MR_TOKEN_T::poss
- * Starting position of the token.
- * @var mr_long_t __MR_TOKEN_T::eidx
- * Index of the end of the token.
+ * @var mr_long_t __MR_TOKEN_T::idx
+ * Index of the start of the token.
 */
 #pragma pack(push, 1)
 struct __MR_TOKEN_T
@@ -37,8 +35,7 @@ struct __MR_TOKEN_T
     mr_str_t value;
     mr_short_t size;
 
-    mr_pos_t poss;
-    mr_long_t eidx;
+    mr_long_t idx;
 };
 #pragma pack(pop)
 typedef struct __MR_TOKEN_T mr_token_t;

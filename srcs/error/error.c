@@ -13,29 +13,28 @@ void mr_illegal_chr_print(mr_illegal_chr_t *error,
     else
         fprintf(stderr, "\nIllegal Character Error: '%c'\n", error->chr);
 
-    fprintf(stderr, "File \"%s\", line %u\n\n", fname, error->pos.ln);
-
-    mr_long_t start;
-    for (start = error->pos.idx; start; start--)
-        if (code[start] == '\n')
+    mr_long_t i, ln = 1, start = 0;
+    for (i = 0; i < error->pos; i++)
+        if (code[i] == '\n')
         {
-            start++;
-            break;
+            start = i + 1;
+            ln++;
         }
 
-    mr_long_t i;
+    fprintf(stderr, "File \"%s\", line %u\n\n", fname, ln);
+
     mr_chr_t chr;
     for (i = start; i < size; i++)
     {
         chr = code[i];
-        if (chr == '\n')
+        if (chr == '\n' || (chr == '\r' && code[i + 1] == '\n'))
             break;
 
         fputc(chr, stderr);
     }
     fputc('\n', stderr);
 
-    for (i = start; i < error->pos.idx; i++)
+    for (i = start; i < error->pos; i++)
         fputc(' ', stderr);
     fputs("^\n\n", stderr);
 }
@@ -47,15 +46,28 @@ void mr_invalid_syntax_print(mr_invalid_syntax_t *error,
         fprintf(stderr, "\nInvalid Syntax Error: %s\n", error->detail);
     else
         fputs("\nInvalid Syntax Error\n", stderr);
-    fprintf(stderr, "File \"%s\", line %u\n\n", fname, error->poss.ln);
 
-    mr_long_t start;
-    for (start = error->poss.idx; start; start--)
-        if (code[start] == '\n')
+    mr_long_t i, ln = 1, start = 0;
+    for (i = 0; i < error->idx; i++)
+        if (code[i] == '\n')
         {
-            start++;
-            break;
+            start = i + 1;
+            ln++;
         }
+
+    fprintf(stderr, "File \"%s\", line %u\n\n", fname, ln);
+
+    mr_long_t eidx = error->idx + error->size;
+    if (eidx > size)
+    {
+        fwrite(code, sizeof(mr_chr_t), size - start, stderr);
+        fputc('\n', stderr);
+
+        for (i = start; i < error->idx; i++)
+            fputc(' ', stderr);
+        fputs("^\n\n", stderr);
+        return;
+    }
 
     mr_long_t end;
     mr_chr_t chr;
@@ -69,12 +81,11 @@ void mr_invalid_syntax_print(mr_invalid_syntax_t *error,
     }
     fputc('\n', stderr);
 
-    mr_long_t i;
-    for (i = start; i < error->poss.idx; i++)
+    for (i = start; i < error->idx; i++)
         fputc(' ', stderr);
 
-    if (end >= error->eidx)
-        for (; i < error->eidx; i++)
+    if (end >= eidx)
+        for (; i < eidx; i++)
             fputc('^', stderr);
     else
     {

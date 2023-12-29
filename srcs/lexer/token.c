@@ -88,7 +88,12 @@ void mr_token_free(mr_token_t *tokens)
     mr_token_t *ptr = tokens;
 
     while (ptr->type != MR_TOKEN_EOF)
-        mr_free(ptr++->value);
+    {
+        if (ptr->type != MR_TOKEN_IDENTIFIER && ptr->type != MR_TOKEN_CHR)
+            mr_free(ptr->value);
+
+        ptr++;
+    }
 
     mr_free(tokens);
 }
@@ -100,11 +105,15 @@ void mr_token_print(mr_token_t *tokens)
         fputs(mr_token_label[tokens->type], stdout);
 
         if (tokens->type == MR_TOKEN_CHR)
-            fprintf(stdout, ": '%c'", (mr_chr_t)tokens->size);
+            fprintf(stdout, ": '%c'", (mr_chr_t)(uintptr_t)tokens->value);
         else if (tokens->value)
         {
             fputs(": ", stdout);
-            fwrite(tokens->value, sizeof(mr_chr_t), tokens->size, stdout);
+
+            if (tokens->type == MR_TOKEN_IDENTIFIER)
+                fwrite(tokens->value, sizeof(mr_chr_t), tokens->size, stdout);
+            else
+                fputs(tokens->value, stdout);
         }
 
         fputc('\n', stdout);

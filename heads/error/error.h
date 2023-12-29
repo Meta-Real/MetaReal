@@ -17,15 +17,15 @@
  * The illegal or missing character.
  * @var mr_bool_t __MR_ILLEGAL_CHR_T::expected
  * It indicates whether the character is illegal (MR_FALSE) or is it missing (MR_TRUE).
- * @var mr_pos_t __MR_ILLEGAL_CHR_T::pos
- * Position of the error.
+ * @var mr_long_t __MR_ILLEGAL_CHR_T::idx
+ * Index of the error.
 */
 struct __MR_ILLEGAL_CHR_T
 {
     mr_chr_t chr;
     mr_bool_t expected;
 
-    mr_pos_t pos;
+    mr_long_t pos;
 };
 typedef struct __MR_ILLEGAL_CHR_T mr_illegal_chr_t;
 
@@ -36,17 +36,17 @@ typedef struct __MR_ILLEGAL_CHR_T mr_illegal_chr_t;
  * @var mr_str_ct __MR_INVALID_SYNTAX_T::detail
  * Detail of the error. \n
  * This field will be NULL if the thrown error is a general invalid syntax error.
- * @var mr_pos_t __MR_INVALID_SYNTAX_T::poss
- * Starting postion of the error.
- * @var mr_long_t __MR_INVALID_SYNTAX_T::eidx
- * Index of the end of the error.
+ * @var mr_long_t __MR_INVALID_SYNTAX_T::idx
+ * Index of the start of the error.
+ * @var mr_byte_t __MR_INVALID_SYNTAX_T::size
+ * Size of the error in characters.
 */
 struct __MR_INVALID_SYNTAX_T
 {
     mr_str_ct detail;
 
-    mr_pos_t poss;
-    mr_long_t eidx;
+    mr_long_t idx;
+    mr_byte_t size;
 };
 typedef struct __MR_INVALID_SYNTAX_T mr_invalid_syntax_t;
 

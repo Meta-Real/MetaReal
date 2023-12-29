@@ -18,8 +18,9 @@
 mr_str_ct mr_node_label[MR_NODE_COUNT] =
 {
     "NODE_NULL",
-    "NODE_INT", "NODE_FLOAT", "NODE_IMAG",
+    "NODE_INT", "NODE_FLOAT", "NODE_IMAGINARY",
     "NODE_BINARY_OP", "NODE_UNARY_OP",
+    "NODE_VAR_ACCESS",
     "NODE_FUNC_CALL",
     "NODE_DOLLAR_METHOD", "NODE_EX_DOLLAR_METHOD"
 };
@@ -41,7 +42,7 @@ static inline void mr_node_data_free(mr_node_data_t *node)
 
 static inline void mr_node_data_print(mr_node_data_t *node)
 {
-    fwrite(node->data, sizeof(mr_chr_t), node->size, stdout);
+    fputs(node->data, stdout);
 }
 
 static inline void mr_node_binary_op_free(mr_node_binary_op_t *node)
@@ -78,7 +79,6 @@ static inline void mr_node_func_call_free(mr_node_func_call_t *node)
     {
         arg = node->args + node->size;
         mr_node_free(&arg->value);
-        mr_free(arg->name.data);
     }
 
     mr_node_free(&node->func);
@@ -96,7 +96,7 @@ static inline void mr_node_func_call_print(mr_node_func_call_t *node)
     if (node->args->name.data)
     {
         putchar('"');
-        mr_node_data_print(&node->args->name);
+        fwrite(node->args->name.data, sizeof(mr_chr_t), node->args->name.size, stdout);
         fputs("\": ", stdout);
     }
 
@@ -111,7 +111,7 @@ static inline void mr_node_func_call_print(mr_node_func_call_t *node)
         if (arg->name.data)
         {
             putchar('"');
-            mr_node_data_print(&arg->name);
+            fwrite(arg->name.data, sizeof(mr_chr_t), arg->name.size, stdout);
             fputs("\": ", stdout);
         }
 
@@ -124,15 +124,12 @@ static inline void mr_node_func_call_print(mr_node_func_call_t *node)
 static inline void mr_node_dollar_method_free(mr_node_dollar_method_t *node)
 {
     mr_nodes_free(node->args, node->size);
-    mr_free(node->name.data);
     mr_free(node);
 }
 
 static inline void mr_node_dollar_method_print(mr_node_dollar_method_t *node)
 {
-    mr_node_data_print(&node->name);
-    if (!node->size)
-        return;
+    fwrite(node->name.data, sizeof(mr_chr_t), node->name.size, stdout);
 
     printf(", [%hu]{", node->size);
     mr_node_print(node->args);
@@ -148,13 +145,12 @@ static inline void mr_node_dollar_method_print(mr_node_dollar_method_t *node)
 
 static inline void mr_node_ex_dollar_method_free(mr_node_ex_dollar_method_t *node)
 {
-    mr_free(node->name.data);
     mr_free(node);
 }
 
 static inline void mr_node_ex_dollar_method_print(mr_node_ex_dollar_method_t *node)
 {
-    mr_node_data_print(&node->name);
+    fwrite(node->name.data, sizeof(mr_chr_t), node->name.size, stdout);
 }
 
 void mr_node_free(mr_node_t *node)
@@ -173,6 +169,9 @@ void mr_node_free(mr_node_t *node)
         return;
     case MR_NODE_UNARY_OP:
         mr_node_unary_op_free(node->value);
+        return;
+    case MR_NODE_VAR_ACCESS:
+        mr_free(node->value);
         return;
     case MR_NODE_FUNC_CALL:
         mr_node_func_call_free(node->value);
@@ -224,6 +223,10 @@ void mr_node_print(mr_node_t *node)
         break;
     case MR_NODE_UNARY_OP:
         mr_node_unary_op_print(node->value);
+        break;
+    case MR_NODE_VAR_ACCESS:
+        fwrite(((mr_node_data_t*)node->value)->data, sizeof(mr_chr_t),
+            ((mr_node_data_t*)node->value)->size, stdout);
         break;
     case MR_NODE_FUNC_CALL:
         mr_node_func_call_print(node->value);

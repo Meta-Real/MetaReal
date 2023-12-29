@@ -45,6 +45,8 @@ typedef struct __MR_NODE_T mr_node_t;
  * <em>Binary operation</em> node type.
  * @var __MR_NODE_ENUM::MR_NODE_UNARY_OP
  * <em>Unary operation</em> node type.
+ * @var __MR_NODE_ENUM::MR_NODE_VAR_ACCESS
+ * <em>Variable access</em> node type.
  * @var __MR_NODE_ENUM::MR_NODE_FUNC_CALL
  * <em>Function call</em> node type.
  * @var __MR_NODE_ENUM::MR_NODE_DOLLAR_METHOD
@@ -63,6 +65,8 @@ enum __MR_NODE_ENUM
     MR_NODE_BINARY_OP,
     MR_NODE_UNARY_OP,
 
+    MR_NODE_VAR_ACCESS,
+
     MR_NODE_FUNC_CALL,
 
     MR_NODE_DOLLAR_METHOD,
@@ -75,8 +79,7 @@ struct __MR_NODE_DATA_T
     mr_str_t data;
     mr_short_t size;
 
-    mr_pos_t poss;
-    mr_long_t eidx;
+    mr_long_t sidx;
 };
 #pragma pack(pop)
 typedef struct __MR_NODE_DATA_T mr_node_data_t;
@@ -98,7 +101,7 @@ struct __MR_NODE_UNARY_OP_T
     mr_byte_t op;
     mr_node_t operand;
 
-    mr_pos_t poss;
+    mr_long_t sidx;
 };
 #pragma pack(pop)
 typedef struct __MR_NODE_UNARY_OP_T mr_node_unary_op_t;
@@ -131,16 +134,18 @@ struct __MR_NODE_DOLLAR_METHOD_T
     mr_node_t *args;
     mr_byte_t size;
 
-    mr_pos_t poss;
+    mr_long_t sidx;
 };
 #pragma pack(pop)
 typedef struct __MR_NODE_DOLLAR_METHOD_T mr_node_dollar_method_t;
 
+#pragma pack(push, 1)
 struct __MR_NODE_EX_DOLLAR_METHOD_T
 {
     mr_node_data_t name;
-    mr_pos_t poss;
+    mr_long_t sidx;
 };
+#pragma pack(pop)
 typedef struct __MR_NODE_EX_DOLLAR_METHOD_T mr_node_ex_dollar_method_t;
 
 /**
