@@ -252,8 +252,10 @@
 */
 #define mr_lexer_add_newline(prev)                                                        \
     (prev <= MR_TOKEN_STR && prev >= MR_TOKEN_IDENTIFIER) || prev == MR_TOKEN_FSTR_END || \
-    prev == MR_TOKEN_TRUE_K || prev == MR_TOKEN_FALSE_K || prev == MR_TOKEN_NONE_K ||     \
-    prev == MR_TOKEN_RETURN_K || prev >= MR_TOKEN_OBJECT_T
+    prev == MR_TOKEN_R_PAREN ||                                                           \
+    (prev <= MR_TOKEN_NONE_K && prev >= MR_TOKEN_TRUE_K) ||                               \
+    prev == MR_TOKEN_RETURN_K ||                                                          \
+    prev >= MR_TOKEN_OBJECT_T
 
 /**
  * @def mr_lexer_escape_chr

@@ -78,6 +78,27 @@
         return NO_ERROR;                                                     \
     } while (0)
 
+#define mr_parser_advance_newline                \
+    if ((++(*tokens))->type == MR_TOKEN_NEWLINE) \
+        (*tokens)++
+
+#define mr_parser_node_data_sub(typ)                                                  \
+    do                                                                                \
+    {                                                                                 \
+        mr_node_t *node = res->nodes + res->size;                                     \
+        node->type = typ;                                                             \
+                                                                                      \
+        mr_node_data_t *value = mr_alloc(sizeof(mr_node_data_t));                     \
+        if (!value)                                                                   \
+            return ERROR_NOT_ENOUGH_MEMORY;                                           \
+                                                                                      \
+        *value = (mr_node_data_t){(*tokens)->value, (*tokens)->size, (*tokens)->idx}; \
+        node->value = value;                                                          \
+                                                                                      \
+        mr_parser_advance_newline;                                                    \
+        return NO_ERROR;                                                              \
+    } while (0)
+
 /**
  * It handles addition `+` and subtraction `-` nodes.
  * @param res
@@ -171,11 +192,7 @@ mr_byte_t mr_parser(mr_parser_t *res, mr_token_t *tokens, mr_long_t alloc)
         }
 
         res->size++;
-
-        if (ptr->type != MR_TOKEN_NEWLINE)
-            break;
-        ptr++;
-    } while (ptr->type != MR_TOKEN_EOF);
+    } while (ptr[-1].type == MR_TOKEN_NEWLINE && ptr->type != MR_TOKEN_EOF);
 
     if (ptr->type != MR_TOKEN_EOF)
     {
@@ -242,35 +259,31 @@ mr_byte_t mr_parser_call(mr_parser_t *res, mr_token_t **tokens)
 
 mr_byte_t mr_parser_core(mr_parser_t *res, mr_token_t **tokens)
 {
-    mr_node_t *node;
-    mr_node_data_t *value;
     switch ((*tokens)->type)
     {
-    case MR_TOKEN_INT:
-    case MR_TOKEN_FLOAT:
-    case MR_TOKEN_IMAGINARY:
-        node = res->nodes + res->size;
-        node->type = MR_NODE_INT + (*tokens)->type - MR_TOKEN_INT;
-
-        value = mr_alloc(sizeof(mr_node_data_t));
-        if (!value)
-            return ERROR_NOT_ENOUGH_MEMORY;
-
-        *value = (mr_node_data_t){(*tokens)->value, (*tokens)->size, (*tokens)->idx};
-        node->value = value;
-
-        (*tokens)++;
-        return NO_ERROR;
     case MR_TOKEN_IDENTIFIER:
-        node = res->nodes + res->size;
-        node->type = MR_NODE_VAR_ACCESS;
+        mr_parser_node_data_sub(MR_NODE_VAR_ACCESS);
+    case MR_TOKEN_INT:
+        mr_parser_node_data_sub(MR_NODE_INT);
+    case MR_TOKEN_FLOAT:
+        mr_parser_node_data_sub(MR_NODE_FLOAT);
+    case MR_TOKEN_IMAGINARY:
+        mr_parser_node_data_sub(MR_NODE_IMAGINARY);
+    case MR_TOKEN_L_PAREN:
+        (*tokens)++;
 
-        value = mr_alloc(sizeof(mr_node_data_t));
-        if (!value)
-            return ERROR_NOT_ENOUGH_MEMORY;
+        mr_byte_t retcode = mr_parser_expr(res, tokens);
+        if (retcode)
+            return retcode;
 
-        *value = (mr_node_data_t){(*tokens)->value, (*tokens)->size, (*tokens)->idx};
-        node->value = value;
+        if ((*tokens)->type != MR_TOKEN_R_PAREN)
+        {
+            mr_node_free(res->nodes + res->size);
+
+            res->error = (mr_invalid_syntax_t){"Expected ')'",
+                (*tokens)->idx, (*tokens)->size};
+            return ERROR_BAD_FORMAT;
+        }
 
         (*tokens)++;
         return NO_ERROR;
@@ -295,8 +308,9 @@ mr_byte_t mr_parser_handle_dollar_method(mr_parser_t *res, mr_token_t **tokens)
     }
 
     mr_node_data_t name = {(*tokens)->value, (*tokens)->size, (*tokens)->idx};
+    mr_parser_advance_newline;
 
-    if ((++*tokens)->type != MR_TOKEN_COLON)
+    if ((*tokens)->type != MR_TOKEN_COLON)
     {
         mr_node_ex_dollar_method_t *value = mr_alloc(sizeof(mr_node_ex_dollar_method_t));
         if (!value)
