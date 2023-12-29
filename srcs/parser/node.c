@@ -34,22 +34,47 @@ mr_str_ct mr_node_label[MR_NODE_COUNT] =
 */
 void mr_node_print(mr_node_t *node);
 
+/**
+ * It deallocates a \a mr_node_data_t structure from memory.
+ * @param node
+ * Node value that needs to be deallocated.
+*/
 static inline void mr_node_data_free(mr_node_data_t *node)
 {
     mr_free(node->data);
     mr_free(node);
 }
 
+/**
+ * It prints out a \a mr_node_data_t structure into <em>outstream</em>. \n
+ * \a outstream is \a stdout by default and
+ * can be changed with the \a $set_outstream dollar method.
+ * @param node
+ * Node value that needs to be printed.
+*/
 static inline void mr_node_data_print(mr_node_data_t *node)
 {
     fputs(node->data, stdout);
 }
 
+/**
+ * It prints out a constant \a mr_node_data_t structure into
+ * \a outstream according to its size. \n
+ * \a outstream is \a stdout by default and
+ * can be changed with the \a $set_outstream dollar method.
+ * @param node
+ * Node value that needs to be printed.
+*/
 static inline void mr_node_datac_print(mr_node_data_t *node)
 {
     fwrite(node->data, sizeof(mr_chr_t), node->size, stdout);
 }
 
+/**
+ * It deallocates a \a mr_node_binary_op_t structure from memory.
+ * @param node
+ * Node value that needs to be deallocated.
+*/
 static inline void mr_node_binary_op_free(mr_node_binary_op_t *node)
 {
     mr_node_free(&node->right);
@@ -57,6 +82,13 @@ static inline void mr_node_binary_op_free(mr_node_binary_op_t *node)
     mr_free(node);
 }
 
+/**
+ * It prints out a \a mr_node_binary_op_t structure into <em>outstream</em>. \n
+ * \a outstream is \a stdout by default and
+ * can be changed with the \a $set_outstream dollar method.
+ * @param node
+ * Node value that needs to be printed.
+*/
 static inline void mr_node_binary_op_print(mr_node_binary_op_t *node)
 {
     printf("%s, ", mr_token_label[node->op]);
@@ -65,18 +97,37 @@ static inline void mr_node_binary_op_print(mr_node_binary_op_t *node)
     mr_node_print(&node->right);
 }
 
+/**
+ * It deallocates a \a mr_node_unary_op_t structure from memory.
+ * @param node
+ * Node value that needs to be deallocated.
+*/
 static inline void mr_node_unary_op_free(mr_node_unary_op_t *node)
 {
     mr_node_free(&node->operand);
     mr_free(node);
 }
 
+/**
+ * It prints out a \a mr_node_unary_op_t structure into <em>outstream</em>. \n
+ * \a outstream is \a stdout by default and
+ * can be changed with the \a $set_outstream dollar method.
+ * @param node
+ * Node value that needs to be printed.
+*/
 static inline void mr_node_unary_op_print(mr_node_unary_op_t *node)
 {
     printf("%s, ", mr_token_label[node->op]);
     mr_node_print(&node->operand);
 }
 
+/**
+ * It prints out a \a mr_node_func_call_t structure into <em>outstream</em>. \n
+ * \a outstream is \a stdout by default and
+ * can be changed with the \a $set_outstream dollar method.
+ * @param node
+ * Node value that needs to be printed.
+*/
 static inline void mr_node_func_call_print(mr_node_func_call_t *node)
 {
     mr_node_print(&node->func);
@@ -113,39 +164,70 @@ static inline void mr_node_func_call_print(mr_node_func_call_t *node)
     putchar('}');
 }
 
+/**
+ * It deallocates a \a mr_node_ex_func_call_t structure from memory.
+ * @param node
+ * Node value that needs to be deallocated.
+*/
 static inline void mr_node_ex_func_call_free(mr_node_ex_func_call_t *node)
 {
     mr_node_free(&node->func);
     mr_free(node);
 }
 
+/**
+ * It prints out a \a mr_node_ex_func_call_t structure into <em>outstream</em>. \n
+ * \a outstream is \a stdout by default and
+ * can be changed with the \a $set_outstream dollar method.
+ * @param node
+ * Node value that needs to be printed.
+*/
 static inline void mr_node_ex_func_call_print(mr_node_ex_func_call_t *node)
 {
     mr_node_print(&node->func);
 }
 
+/**
+ * It deallocates a \a mr_node_dollar_method_t structure from memory.
+ * @param node
+ * Node value that needs to be deallocated.
+*/
 static inline void mr_node_dollar_method_free(mr_node_dollar_method_t *node)
 {
-    mr_nodes_free(node->args, node->size);
+    mr_nodes_free(node->params, node->size);
     mr_free(node);
 }
 
+/**
+ * It prints out a \a mr_node_dollar_method_t structure into <em>outstream</em>. \n
+ * \a outstream is \a stdout by default and
+ * can be changed with the \a $set_outstream dollar method.
+ * @param node
+ * Node value that needs to be printed.
+*/
 static inline void mr_node_dollar_method_print(mr_node_dollar_method_t *node)
 {
     mr_node_datac_print(&node->name);
 
     printf(", [%hu]{", node->size);
-    mr_node_print(node->args);
+    mr_node_print(node->params);
 
     for (mr_byte_t i = 1; i < node->size; i++)
     {
         fputs(", ", stdout);
-        mr_node_print(node->args + i);
+        mr_node_print(node->params + i);
     }
 
     putchar('}');
 }
 
+/**
+ * It prints out a \a mr_node_ex_dollar_method_t structure into <em>outstream</em>. \n
+ * \a outstream is \a stdout by default and
+ * can be changed with the \a $set_outstream dollar method.
+ * @param node
+ * Node value that needs to be printed.
+*/
 static inline void mr_node_ex_dollar_method_print(mr_node_ex_dollar_method_t *node)
 {
     mr_node_datac_print(&node->name);

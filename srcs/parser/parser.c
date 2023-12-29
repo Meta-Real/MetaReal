@@ -78,10 +78,22 @@
         return NO_ERROR;                                                     \
     } while (0)
 
+/**
+ * @def mr_parser_advance_newline
+ * If the current token is a newline, this macro will advance to the next token. \n
+ * This macro is used after identifiers, data types, right parentheses, and return statements.
+*/
 #define mr_parser_advance_newline              \
     if ((++*tokens)->type == MR_TOKEN_NEWLINE) \
         (*tokens)++
 
+/**
+ * @def mr_parser_node_data_sub(typ)
+ * A subroutine for generating a \a mr_node_data_t node value with the given type. \n
+ * This macro returns from the function that called it.
+ * @param typ
+ * Type of the generated node.
+*/
 #define mr_parser_node_data_sub(typ)                                                  \
     do                                                                                \
     {                                                                                 \
@@ -134,6 +146,15 @@ mr_byte_t mr_parser_term(mr_parser_t *res, mr_token_t **tokens);
 */
 mr_byte_t mr_parser_factor(mr_parser_t *res, mr_token_t **tokens);
 
+/**
+ * It handles function calls (both \a FUNC_CALL and \a EX_FUNC_CALL versions).
+ * @param res
+ * Result of the \a mr_parser function passed as a pointer.
+ * @param tokens
+ * List of tokens passed as a pointer.
+ * @return It returns a code which indicates if the process was successful or not. \n
+ * If the process was successful, it returns 0. Otherwise, it returns the error code.
+*/
 mr_byte_t mr_parser_call(mr_parser_t *res, mr_token_t **tokens);
 
 /**
@@ -442,8 +463,8 @@ mr_byte_t mr_parser_handle_dollar_method(mr_parser_t *res, mr_token_t **tokens)
     if (!value)
         return ERROR_NOT_ENOUGH_MEMORY;
 
-    value->args = mr_alloc(MR_PARSER_DOLLAR_METHOD_SIZE * sizeof(mr_node_t));
-    if (!value->args)
+    value->params = mr_alloc(MR_PARSER_DOLLAR_METHOD_SIZE * sizeof(mr_node_t));
+    if (!value->params)
     {
         mr_free(value);
         return ERROR_NOT_ENOUGH_MEMORY;
@@ -460,7 +481,7 @@ mr_byte_t mr_parser_handle_dollar_method(mr_parser_t *res, mr_token_t **tokens)
         {
             if (alloc == MR_PARSER_DOLLAR_METHOD_MAX)
             {
-                mr_nodes_free(value->args, alloc);
+                mr_nodes_free(value->params, alloc);
                 mr_free(value);
 
                 res->error = (mr_invalid_syntax_t){
@@ -469,28 +490,28 @@ mr_byte_t mr_parser_handle_dollar_method(mr_parser_t *res, mr_token_t **tokens)
                 return ERROR_BAD_FORMAT;
             }
 
-            block = mr_realloc(value->args,
+            block = mr_realloc(value->params,
                 (alloc += MR_PARSER_DOLLAR_METHOD_SIZE) * sizeof(mr_node_t));
             if (!block)
             {
-                mr_nodes_free(value->args, value->size);
+                mr_nodes_free(value->params, value->size);
                 mr_free(value);
                 return ERROR_NOT_ENOUGH_MEMORY;
             }
 
-            value->args = block;
+            value->params = block;
         }
 
         ++*tokens;
         retcode = mr_parser_expr(res, tokens);
         if (retcode != NO_ERROR)
         {
-            mr_nodes_free(value->args, value->size);
+            mr_nodes_free(value->params, value->size);
             mr_free(value);
             return retcode;
         }
 
-        value->args[value->size++] = res->nodes[res->size];
+        value->params[value->size++] = res->nodes[res->size];
     } while ((*tokens)->type == MR_TOKEN_COMMA);
 
     value->name = name;

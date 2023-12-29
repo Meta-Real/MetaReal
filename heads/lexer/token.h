@@ -24,9 +24,9 @@
  * @var mr_str_t __MR_TOKEN_T::value
  * Value of the \a token (will be NULL if the token is a symbol).
  * @var mr_short_t __MR_TOKEN_T::size
- * Size of the \a value (will be undefined if the token is a symbol).
+ * Size of the \a value (this parameter is also used for debugging).
  * @var mr_long_t __MR_TOKEN_T::idx
- * Index of the start of the token.
+ * Index of the start of token.
 */
 #pragma pack(push, 1)
 struct __MR_TOKEN_T
