@@ -81,6 +81,16 @@
 #define MR_PARSER_NODES_CHUNK 64
 
 /**
+ * Default size of a <em>function call</em> argument list.
+*/
+#define MR_PARSER_FUNC_CALL_SIZE 4
+
+/**
+ * Maximum size of a <em>function call</em> argument list.
+*/
+#define MR_PARSER_FUNC_CALL_MAX (MR_PARSER_FUNC_CALL_SIZE * 16)
+
+/**
  * Default size of a <em>dollar method</em> parameter list.
 */
 #define MR_PARSER_DOLLAR_METHOD_SIZE 4

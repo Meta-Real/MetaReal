@@ -49,6 +49,8 @@ typedef struct __MR_NODE_T mr_node_t;
  * <em>Variable access</em> node type.
  * @var __MR_NODE_ENUM::MR_NODE_FUNC_CALL
  * <em>Function call</em> node type.
+ * @var __MR_NODE_ENUM::MR_NODE_EX_FUNC_CALL
+ * <em>Exclusive function call</em> node type.
  * @var __MR_NODE_ENUM::MR_NODE_DOLLAR_METHOD
  * <em>Dollar method call</em> node type.
  * @var__MR_NODE_ENUM::MR_NODE_EX_DOLLAR_METHOD
@@ -68,6 +70,7 @@ enum __MR_NODE_ENUM
     MR_NODE_VAR_ACCESS,
 
     MR_NODE_FUNC_CALL,
+    MR_NODE_EX_FUNC_CALL,
 
     MR_NODE_DOLLAR_METHOD,
     MR_NODE_EX_DOLLAR_METHOD
@@ -127,6 +130,15 @@ struct __MR_NODE_FUNC_CALL_T
 typedef struct __MR_NODE_FUNC_CALL_T mr_node_func_call_t;
 
 #pragma pack(push, 1)
+struct __MR_NODE_EX_FUNC_CALL_T
+{
+    mr_node_t func;
+    mr_long_t eidx;
+};
+#pragma pack(pop)
+typedef struct __MR_NODE_EX_FUNC_CALL_T mr_node_ex_func_call_t;
+
+#pragma pack(push, 1)
 struct __MR_NODE_DOLLAR_METHOD_T
 {
     mr_node_data_t name;
@@ -174,5 +186,7 @@ void mr_nodes_free(mr_node_t *nodes, mr_long_t size);
  * Size of the \a nodes list.
 */
 void mr_nodes_print(mr_node_t *nodes, mr_long_t size);
+
+void mr_node_func_call_free(mr_node_func_call_t *node);
 
 #endif

@@ -78,8 +78,8 @@
         return NO_ERROR;                                                     \
     } while (0)
 
-#define mr_parser_advance_newline                \
-    if ((++(*tokens))->type == MR_TOKEN_NEWLINE) \
+#define mr_parser_advance_newline              \
+    if ((++*tokens)->type == MR_TOKEN_NEWLINE) \
         (*tokens)++
 
 #define mr_parser_node_data_sub(typ)                                                  \
@@ -254,6 +254,121 @@ mr_byte_t mr_parser_call(mr_parser_t *res, mr_token_t **tokens)
     if (retcode != NO_ERROR)
         return retcode;
 
+    mr_node_t *node = res->nodes + res->size;
+    if ((*tokens)->type == MR_TOKEN_L_PAREN)
+    {
+        if ((++*tokens)->type == MR_TOKEN_R_PAREN)
+        {
+            mr_node_ex_func_call_t *value = mr_alloc(sizeof(mr_node_ex_func_call_t));
+            if (!value)
+            {
+                mr_node_free(node);
+                return ERROR_NOT_ENOUGH_MEMORY;
+            }
+
+            *value = (mr_node_ex_func_call_t){*node, (++*tokens)->idx};
+
+            node->type = MR_NODE_EX_FUNC_CALL;
+            node->value = value;
+            return NO_ERROR;
+        }
+
+        mr_node_func_call_t *value = mr_alloc(sizeof(mr_node_func_call_t));
+        if (!value)
+        {
+            mr_node_free(node);
+            return ERROR_NOT_ENOUGH_MEMORY;
+        }
+
+        value->args = mr_alloc(MR_PARSER_FUNC_CALL_SIZE * sizeof(mr_node_call_arg_t));
+        if (!value->args)
+        {
+            mr_free(value);
+            mr_node_free(node);
+            return ERROR_NOT_ENOUGH_MEMORY;
+        }
+
+        value->func = *node;
+        value->size = 0;
+        mr_byte_t alloc = MR_PARSER_FUNC_CALL_SIZE;
+
+        mr_node_call_arg_t *block;
+        do
+        {
+            if (value->size == alloc)
+            {
+                if (alloc == MR_PARSER_FUNC_CALL_MAX)
+                {
+                    mr_node_func_call_free(value);
+
+                    res->error = (mr_invalid_syntax_t){
+                        "Number of function call arguments exceeds the limit",
+                        (*tokens)[-1].idx, (*tokens)[-1].size};
+                    return ERROR_BAD_FORMAT;
+                }
+
+                block = mr_realloc(value->args,
+                    (alloc += MR_PARSER_FUNC_CALL_SIZE) * sizeof(mr_node_call_arg_t));
+                if (!block)
+                {
+                    mr_node_func_call_free(value);
+                    return ERROR_BAD_FORMAT;
+                }
+            }
+
+            block = value->args + value->size;
+            if ((*tokens)->type == MR_TOKEN_IDENTIFIER && (*tokens)[1].type == MR_TOKEN_ASSIGN)
+            {
+                block->name = (mr_node_data_t){(*tokens)->value, (*tokens)->size, (*tokens)->idx};
+                (*tokens) += 2;
+            }
+            else
+                block->name.data = NULL;
+
+            retcode = mr_parser_expr(res, tokens);
+            if (retcode != NO_ERROR)
+            {
+                mr_node_func_call_free(value);
+                return retcode;
+            }
+
+            block->value = res->nodes[res->size];
+            value->size++;
+
+            if ((*tokens)->type != MR_TOKEN_COMMA)
+                break;
+
+            (*tokens)++;
+        } while (1);
+
+        if ((*tokens)->type != MR_TOKEN_R_PAREN)
+        {
+            mr_node_func_call_free(value);
+
+            res->error = (mr_invalid_syntax_t){"Expected ')' or ','",
+                (*tokens)->idx, (*tokens)->size};
+            return ERROR_BAD_FORMAT;
+        }
+
+        if (value->size != alloc)
+        {
+            block = mr_realloc(value->args, value->size * sizeof(mr_node_call_arg_t));
+            if (!block)
+            {
+                mr_node_func_call_free(value);
+                return ERROR_NOT_ENOUGH_MEMORY;
+            }
+
+            value->args = block;
+        }
+
+        mr_parser_advance_newline;
+
+        node->type = MR_NODE_FUNC_CALL;
+        node->value = value;
+        return NO_ERROR;
+    }
+
     return retcode;
 }
 
@@ -273,7 +388,7 @@ mr_byte_t mr_parser_core(mr_parser_t *res, mr_token_t **tokens)
         (*tokens)++;
 
         mr_byte_t retcode = mr_parser_expr(res, tokens);
-        if (retcode)
+        if (retcode != NO_ERROR)
             return retcode;
 
         if ((*tokens)->type != MR_TOKEN_R_PAREN)
@@ -314,10 +429,7 @@ mr_byte_t mr_parser_handle_dollar_method(mr_parser_t *res, mr_token_t **tokens)
     {
         mr_node_ex_dollar_method_t *value = mr_alloc(sizeof(mr_node_ex_dollar_method_t));
         if (!value)
-        {
-            mr_free(name.data);
             return ERROR_NOT_ENOUGH_MEMORY;
-        }
 
         *value = (mr_node_ex_dollar_method_t){name, sidx};
 
@@ -328,16 +440,12 @@ mr_byte_t mr_parser_handle_dollar_method(mr_parser_t *res, mr_token_t **tokens)
 
     mr_node_dollar_method_t *value = mr_alloc(sizeof(mr_node_dollar_method_t));
     if (!value)
-    {
-        mr_free(name.data);
         return ERROR_NOT_ENOUGH_MEMORY;
-    }
 
     value->args = mr_alloc(MR_PARSER_DOLLAR_METHOD_SIZE * sizeof(mr_node_t));
     if (!value->args)
     {
         mr_free(value);
-        mr_free(name.data);
         return ERROR_NOT_ENOUGH_MEMORY;
     }
 
@@ -348,16 +456,29 @@ mr_byte_t mr_parser_handle_dollar_method(mr_parser_t *res, mr_token_t **tokens)
     mr_node_t *block;
     do
     {
-        if (value->size == MR_PARSER_DOLLAR_METHOD_MAX)
+        if (value->size == alloc)
         {
-            mr_nodes_free(value->args, value->size);
-            mr_free(value);
-            mr_free(name.data);
+            if (alloc == MR_PARSER_DOLLAR_METHOD_MAX)
+            {
+                mr_nodes_free(value->args, alloc);
+                mr_free(value);
 
-            res->error = (mr_invalid_syntax_t){
-                "Number of dollar method parameters exceeds the limit",
-                (*tokens)->idx, (*tokens)->size};
-            return ERROR_BAD_FORMAT;
+                res->error = (mr_invalid_syntax_t){
+                    "Number of dollar method parameters exceeds the limit",
+                    (*tokens)->idx, (*tokens)->size};
+                return ERROR_BAD_FORMAT;
+            }
+
+            block = mr_realloc(value->args,
+                (alloc += MR_PARSER_DOLLAR_METHOD_SIZE) * sizeof(mr_node_t));
+            if (!block)
+            {
+                mr_nodes_free(value->args, value->size);
+                mr_free(value);
+                return ERROR_NOT_ENOUGH_MEMORY;
+            }
+
+            value->args = block;
         }
 
         ++*tokens;
@@ -366,23 +487,7 @@ mr_byte_t mr_parser_handle_dollar_method(mr_parser_t *res, mr_token_t **tokens)
         {
             mr_nodes_free(value->args, value->size);
             mr_free(value);
-            mr_free(name.data);
             return retcode;
-        }
-
-        if (value->size == alloc)
-        {
-            block = mr_realloc(value->args,
-                (alloc += MR_PARSER_DOLLAR_METHOD_SIZE) * sizeof(mr_node_t));
-            if (!block)
-            {
-                mr_nodes_free(value->args, value->size);
-                mr_free(value);
-                mr_free(name.data);
-                return ERROR_NOT_ENOUGH_MEMORY;
-            }
-
-            value->args = block;
         }
 
         value->args[value->size++] = res->nodes[res->size];
