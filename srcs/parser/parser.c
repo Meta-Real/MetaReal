@@ -112,6 +112,96 @@
     } while (0)
 
 /**
+ * It handles or (`||`, `or`) operation nodes.
+ * @param res
+ * Result of the \a mr_parser function passed as a pointer.
+ * @param tokens
+ * List of tokens passed as a pointer.
+ * @return It returns a code which indicates if the process was successful or not. \n
+ * If the process was successful, it returns 0. Otherwise, it returns the error code.
+*/
+mr_byte_t mr_parser_or(mr_parser_t *res, mr_token_t **tokens);
+
+/**
+ * It handles and (`&&`, `and`) operation nodes.
+ * @param res
+ * Result of the \a mr_parser function passed as a pointer.
+ * @param tokens
+ * List of tokens passed as a pointer.
+ * @return It returns a code which indicates if the process was successful or not. \n
+ * If the process was successful, it returns 0. Otherwise, it returns the error code.
+*/
+mr_byte_t mr_parser_and(mr_parser_t *res, mr_token_t **tokens);
+
+/**
+ * It handles less than `<`, greater than `>`,
+ * less than or equal to `<=`, and greater than or equal to `>=` operation nodes.
+ * @param res
+ * Result of the \a mr_parser function passed as a pointer.
+ * @param tokens
+ * List of tokens passed as a pointer.
+ * @return It returns a code which indicates if the process was successful or not. \n
+ * If the process was successful, it returns 0. Otherwise, it returns the error code.
+*/
+mr_byte_t mr_parser_order(mr_parser_t *res, mr_token_t **tokens);
+
+/**
+ * It handles equal `==`, not equal `!=`,
+ * exactly equal `===`, and exactly not equal `!==` operation nodes.
+ * @param res
+ * Result of the \a mr_parser function passed as a pointer.
+ * @param tokens
+ * List of tokens passed as a pointer.
+ * @return It returns a code which indicates if the process was successful or not. \n
+ * If the process was successful, it returns 0. Otherwise, it returns the error code.
+*/
+mr_byte_t mr_parser_cmp(mr_parser_t *res, mr_token_t **tokens);
+
+/**
+ * It handles binary or `|` operation nodes.
+ * @param res
+ * Result of the \a mr_parser function passed as a pointer.
+ * @param tokens
+ * List of tokens passed as a pointer.
+ * @return It returns a code which indicates if the process was successful or not. \n
+ * If the process was successful, it returns 0. Otherwise, it returns the error code.
+*/
+mr_byte_t mr_parser_b_or(mr_parser_t *res, mr_token_t **tokens);
+
+/**
+ * It handles binary xor `^` operation nodes.
+ * @param res
+ * Result of the \a mr_parser function passed as a pointer.
+ * @param tokens
+ * List of tokens passed as a pointer.
+ * @return It returns a code which indicates if the process was successful or not. \n
+ * If the process was successful, it returns 0. Otherwise, it returns the error code.
+*/
+mr_byte_t mr_parser_b_xor(mr_parser_t *res, mr_token_t **tokens);
+
+/**
+ * It handles binary and `&` operation nodes.
+ * @param res
+ * Result of the \a mr_parser function passed as a pointer.
+ * @param tokens
+ * List of tokens passed as a pointer.
+ * @return It returns a code which indicates if the process was successful or not. \n
+ * If the process was successful, it returns 0. Otherwise, it returns the error code.
+*/
+mr_byte_t mr_parser_b_and(mr_parser_t *res, mr_token_t **tokens);
+
+/**
+ * It handles left shift `<<` and right shift `>>` operation nodes.
+ * @param res
+ * Result of the \a mr_parser function passed as a pointer.
+ * @param tokens
+ * List of tokens passed as a pointer.
+ * @return It returns a code which indicates if the process was successful or not. \n
+ * If the process was successful, it returns 0. Otherwise, it returns the error code.
+*/
+mr_byte_t mr_parser_shift(mr_parser_t *res, mr_token_t **tokens);
+
+/**
  * It handles addition `+` and subtraction `-` nodes.
  * @param res
  * Result of the \a mr_parser function passed as a pointer.
@@ -145,6 +235,17 @@ mr_byte_t mr_parser_term(mr_parser_t *res, mr_token_t **tokens);
  * If the process was successful, it returns 0. Otherwise, it returns the error code.
 */
 mr_byte_t mr_parser_factor(mr_parser_t *res, mr_token_t **tokens);
+
+/**
+ * It handles exponentiation `**`
+ * @param res
+ * Result of the \a mr_parser function passed as a pointer.
+ * @param tokens
+ * List of tokens passed as a pointer.
+ * @return It returns a code which indicates if the process was successful or not. \n
+ * If the process was successful, it returns 0. Otherwise, it returns the error code.
+*/
+mr_byte_t mr_parser_power(mr_parser_t *res, mr_token_t **tokens);
 
 /**
  * It handles function calls (both \a FUNC_CALL and \a EX_FUNC_CALL versions).
@@ -205,7 +306,7 @@ mr_byte_t mr_parser(mr_parser_t *res, mr_token_t *tokens, mr_long_t alloc)
             res->nodes = block;
         }
 
-        retcode = mr_parser_expr(res, &ptr);
+        retcode = mr_parser_or(res, &ptr);
         if (retcode != NO_ERROR)
         {
             mr_parser_free;
@@ -226,6 +327,54 @@ mr_byte_t mr_parser(mr_parser_t *res, mr_token_t *tokens, mr_long_t alloc)
 
     mr_free(tokens);
     return NO_ERROR;
+}
+
+mr_byte_t mr_parser_or(mr_parser_t *res, mr_token_t **tokens)
+{
+    mr_parser_bin_op(mr_parser_and, mr_parser_and,
+        (*tokens)->type == MR_TOKEN_OR_K);
+}
+
+mr_byte_t mr_parser_and(mr_parser_t *res, mr_token_t **tokens)
+{
+    mr_parser_bin_op(mr_parser_order, mr_parser_order,
+        (*tokens)->type == MR_TOKEN_AND_K);
+}
+
+mr_byte_t mr_parser_order(mr_parser_t *res, mr_token_t **tokens)
+{
+    mr_parser_bin_op(mr_parser_cmp, mr_parser_cmp,
+        (*tokens)->type >= MR_TOKEN_LESS && (*tokens)->type <= MR_TOKEN_GREATER_EQUAL);
+}
+
+mr_byte_t mr_parser_cmp(mr_parser_t *res, mr_token_t **tokens)
+{
+    mr_parser_bin_op(mr_parser_b_or, mr_parser_b_or,
+        (*tokens)->type >= MR_TOKEN_EQUAL && (*tokens)->type <= MR_TOKEN_EX_NEQUAL);
+}
+
+mr_byte_t mr_parser_b_or(mr_parser_t *res, mr_token_t **tokens)
+{
+    mr_parser_bin_op(mr_parser_b_xor, mr_parser_b_xor,
+        (*tokens)->type == MR_TOKEN_B_OR);
+}
+
+mr_byte_t mr_parser_b_xor(mr_parser_t *res, mr_token_t **tokens)
+{
+    mr_parser_bin_op(mr_parser_b_and, mr_parser_b_and,
+        (*tokens)->type == MR_TOKEN_B_XOR);
+}
+
+mr_byte_t mr_parser_b_and(mr_parser_t *res, mr_token_t **tokens)
+{
+    mr_parser_bin_op(mr_parser_shift, mr_parser_shift,
+        (*tokens)->type == MR_TOKEN_B_AND);
+}
+
+mr_byte_t mr_parser_shift(mr_parser_t *res, mr_token_t **tokens)
+{
+    mr_parser_bin_op(mr_parser_expr, mr_parser_expr,
+        (*tokens)->type == MR_TOKEN_L_SHIFT || (*tokens)->type == MR_TOKEN_R_SHIFT);
 }
 
 mr_byte_t mr_parser_expr(mr_parser_t *res, mr_token_t **tokens)
@@ -267,6 +416,12 @@ mr_byte_t mr_parser_factor(mr_parser_t *res, mr_token_t **tokens)
     }
 
     return mr_parser_call(res, tokens);
+}
+
+mr_byte_t mr_parser_power(mr_parser_t *res, mr_token_t **tokens)
+{
+    mr_parser_bin_op(mr_parser_call, mr_parser_factor,
+        (*tokens)->type == MR_TOKEN_POWER);
 }
 
 mr_byte_t mr_parser_call(mr_parser_t *res, mr_token_t **tokens)
@@ -346,7 +501,7 @@ mr_byte_t mr_parser_call(mr_parser_t *res, mr_token_t **tokens)
             else
                 block->name.data = NULL;
 
-            retcode = mr_parser_expr(res, tokens);
+            retcode = mr_parser_or(res, tokens);
             if (retcode != NO_ERROR)
             {
                 mr_node_func_call_free(value);
@@ -408,7 +563,7 @@ mr_byte_t mr_parser_core(mr_parser_t *res, mr_token_t **tokens)
     case MR_TOKEN_L_PAREN:
         (*tokens)++;
 
-        mr_byte_t retcode = mr_parser_expr(res, tokens);
+        mr_byte_t retcode = mr_parser_or(res, tokens);
         if (retcode != NO_ERROR)
             return retcode;
 
@@ -503,7 +658,7 @@ mr_byte_t mr_parser_handle_dollar_method(mr_parser_t *res, mr_token_t **tokens)
         }
 
         ++*tokens;
-        retcode = mr_parser_expr(res, tokens);
+        retcode = mr_parser_or(res, tokens);
         if (retcode != NO_ERROR)
         {
             mr_nodes_free(value->params, value->size);
