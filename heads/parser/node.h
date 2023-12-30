@@ -51,7 +51,7 @@ typedef struct __MR_NODE_T mr_node_t;
  * @var __MR_NODE_ENUM::MR_NODE_FUNC_CALL
  * <em>Function call</em> node type.
  * @var __MR_NODE_ENUM::MR_NODE_EX_FUNC_CALL
- * <em>Exclusive function call</em> node type.
+ * <em>Exclusive function call</em> node type with an empty list of parameters.
  * @var __MR_NODE_ENUM::MR_NODE_DOLLAR_METHOD
  * <em>Dollar method call</em> node type.
  * @var __MR_NODE_ENUM::MR_NODE_EX_DOLLAR_METHOD
@@ -274,17 +274,6 @@ void mr_nodes_print(mr_node_t *nodes, mr_long_t size);
  * @param node
  * Node value that needs to be deallocated.
 */
-static inline void mr_node_func_call_free(mr_node_func_call_t *node)
-{
-    mr_node_call_arg_t *arg;
-    for (; node->size--;)
-    {
-        arg = node->args + node->size;
-        mr_node_free(&arg->value);
-    }
-
-    mr_node_free(&node->func);
-    mr_free(node);
-}
+void mr_node_func_call_free(mr_node_func_call_t *node);
 
 #endif

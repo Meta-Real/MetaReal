@@ -38,7 +38,7 @@ void mr_node_print(mr_node_t *node);
  * @param node
  * Node value that needs to be deallocated.
 */
-static inline void mr_node_data_free(mr_node_data_t *node)
+inline void mr_node_data_free(mr_node_data_t *node)
 {
     mr_free(node->data);
     mr_free(node);
@@ -51,7 +51,7 @@ static inline void mr_node_data_free(mr_node_data_t *node)
  * @param node
  * Node value that needs to be printed.
 */
-static inline void mr_node_data_print(mr_node_data_t *node)
+inline void mr_node_data_print(mr_node_data_t *node)
 {
     fputs(node->data, stdout);
 }
@@ -64,7 +64,7 @@ static inline void mr_node_data_print(mr_node_data_t *node)
  * @param node
  * Node value that needs to be printed.
 */
-static inline void mr_node_datac_print(mr_node_data_t *node)
+inline void mr_node_datac_print(mr_node_data_t *node)
 {
     fwrite(node->data, sizeof(mr_chr_t), node->size, stdout);
 }
@@ -74,7 +74,7 @@ static inline void mr_node_datac_print(mr_node_data_t *node)
  * @param node
  * Node value that needs to be deallocated.
 */
-static inline void mr_node_binary_op_free(mr_node_binary_op_t *node)
+inline void mr_node_binary_op_free(mr_node_binary_op_t *node)
 {
     mr_node_free(&node->right);
     mr_node_free(&node->left);
@@ -88,20 +88,14 @@ static inline void mr_node_binary_op_free(mr_node_binary_op_t *node)
  * @param node
  * Node value that needs to be printed.
 */
-static inline void mr_node_binary_op_print(mr_node_binary_op_t *node)
-{
-    printf("%s, ", mr_token_label[node->op]);
-    mr_node_print(&node->left);
-    fputs(", ", stdout);
-    mr_node_print(&node->right);
-}
+void mr_node_binary_op_print(mr_node_binary_op_t *node);
 
 /**
  * It deallocates a \a mr_node_unary_op_t structure from memory.
  * @param node
  * Node value that needs to be deallocated.
 */
-static inline void mr_node_unary_op_free(mr_node_unary_op_t *node)
+inline void mr_node_unary_op_free(mr_node_unary_op_t *node)
 {
     mr_node_free(&node->operand);
     mr_free(node);
@@ -114,11 +108,7 @@ static inline void mr_node_unary_op_free(mr_node_unary_op_t *node)
  * @param node
  * Node value that needs to be printed.
 */
-static inline void mr_node_unary_op_print(mr_node_unary_op_t *node)
-{
-    printf("%s, ", mr_token_label[node->op]);
-    mr_node_print(&node->operand);
-}
+void mr_node_unary_op_print(mr_node_unary_op_t *node);
 
 /**
  * It prints out a \a mr_node_func_call_t structure into <em>outstream</em>. \n
@@ -127,48 +117,14 @@ static inline void mr_node_unary_op_print(mr_node_unary_op_t *node)
  * @param node
  * Node value that needs to be printed.
 */
-static inline void mr_node_func_call_print(mr_node_func_call_t *node)
-{
-    mr_node_print(&node->func);
-    if (!node->size)
-        return;
-
-    printf(", [%hu]{", node->size);
-
-    if (node->args->name.data)
-    {
-        putchar('"');
-        mr_node_datac_print(&node->args->name);
-        fputs("\": ", stdout);
-    }
-
-    mr_node_print(&node->args->value);
-
-    mr_node_call_arg_t *arg;
-    for (mr_byte_t i = 1; i < node->size; i++)
-    {
-        fputs(", ", stdout);
-
-        arg = node->args + i;
-        if (arg->name.data)
-        {
-            putchar('"');
-            mr_node_datac_print(&arg->name);
-            fputs("\": ", stdout);
-        }
-
-        mr_node_print(&arg->value);
-    }
-
-    putchar('}');
-}
+void mr_node_func_call_print(mr_node_func_call_t *node);
 
 /**
  * It deallocates a \a mr_node_ex_func_call_t structure from memory.
  * @param node
  * Node value that needs to be deallocated.
 */
-static inline void mr_node_ex_func_call_free(mr_node_ex_func_call_t *node)
+inline void mr_node_ex_func_call_free(mr_node_ex_func_call_t *node)
 {
     mr_node_free(&node->func);
     mr_free(node);
@@ -181,7 +137,7 @@ static inline void mr_node_ex_func_call_free(mr_node_ex_func_call_t *node)
  * @param node
  * Node value that needs to be printed.
 */
-static inline void mr_node_ex_func_call_print(mr_node_ex_func_call_t *node)
+inline void mr_node_ex_func_call_print(mr_node_ex_func_call_t *node)
 {
     mr_node_print(&node->func);
 }
@@ -191,7 +147,7 @@ static inline void mr_node_ex_func_call_print(mr_node_ex_func_call_t *node)
  * @param node
  * Node value that needs to be deallocated.
 */
-static inline void mr_node_dollar_method_free(mr_node_dollar_method_t *node)
+inline void mr_node_dollar_method_free(mr_node_dollar_method_t *node)
 {
     mr_nodes_free(node->params, node->size);
     mr_free(node);
@@ -204,21 +160,7 @@ static inline void mr_node_dollar_method_free(mr_node_dollar_method_t *node)
  * @param node
  * Node value that needs to be printed.
 */
-static inline void mr_node_dollar_method_print(mr_node_dollar_method_t *node)
-{
-    mr_node_datac_print(&node->name);
-
-    printf(", [%hu]{", node->size);
-    mr_node_print(node->params);
-
-    for (mr_byte_t i = 1; i < node->size; i++)
-    {
-        fputs(", ", stdout);
-        mr_node_print(node->params + i);
-    }
-
-    putchar('}');
-}
+void mr_node_dollar_method_print(mr_node_dollar_method_t *node);
 
 /**
  * It prints out a \a mr_node_ex_dollar_method_t structure into <em>outstream</em>. \n
@@ -227,7 +169,7 @@ static inline void mr_node_dollar_method_print(mr_node_dollar_method_t *node)
  * @param node
  * Node value that needs to be printed.
 */
-static inline void mr_node_ex_dollar_method_print(mr_node_ex_dollar_method_t *node)
+inline void mr_node_ex_dollar_method_print(mr_node_ex_dollar_method_t *node)
 {
     mr_node_datac_print(&node->name);
 }
@@ -281,6 +223,19 @@ void mr_nodes_print(mr_node_t *nodes, mr_long_t size)
     }
 }
 
+void mr_node_func_call_free(mr_node_func_call_t *node)
+{
+    mr_node_call_arg_t *arg;
+    for (; node->size--;)
+    {
+        arg = node->args + node->size;
+        mr_node_free(&arg->value);
+    }
+
+    mr_node_free(&node->func);
+    mr_free(node);
+}
+
 void mr_node_print(mr_node_t *node)
 {
     printf("(%s", mr_node_label[node->type]);
@@ -322,4 +277,70 @@ void mr_node_print(mr_node_t *node)
     }
 
     putchar(')');
+}
+
+void mr_node_binary_op_print(mr_node_binary_op_t *node)
+{
+    printf("%s, ", mr_token_label[node->op]);
+    mr_node_print(&node->left);
+    fputs(", ", stdout);
+    mr_node_print(&node->right);
+}
+
+void mr_node_unary_op_print(mr_node_unary_op_t *node)
+{
+    printf("%s, ", mr_token_label[node->op]);
+    mr_node_print(&node->operand);
+}
+
+void mr_node_func_call_print(mr_node_func_call_t *node)
+{
+    mr_node_print(&node->func);
+    if (!node->size)
+        return;
+
+    printf(", [%hu]{", node->size);
+
+    if (node->args->name.data)
+    {
+        putchar('"');
+        mr_node_datac_print(&node->args->name);
+        fputs("\": ", stdout);
+    }
+
+    mr_node_print(&node->args->value);
+
+    mr_node_call_arg_t *arg;
+    for (mr_byte_t i = 1; i < node->size; i++)
+    {
+        fputs(", ", stdout);
+
+        arg = node->args + i;
+        if (arg->name.data)
+        {
+            putchar('"');
+            mr_node_datac_print(&arg->name);
+            fputs("\": ", stdout);
+        }
+
+        mr_node_print(&arg->value);
+    }
+
+    putchar('}');
+}
+
+void mr_node_dollar_method_print(mr_node_dollar_method_t *node)
+{
+    mr_node_datac_print(&node->name);
+
+    printf(", [%hu]{", node->size);
+    mr_node_print(node->params);
+
+    for (mr_byte_t i = 1; i < node->size; i++)
+    {
+        fputs(", ", stdout);
+        mr_node_print(node->params + i);
+    }
+
+    putchar('}');
 }
