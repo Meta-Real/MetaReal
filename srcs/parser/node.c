@@ -1,11 +1,10 @@
 /**
- * @file token.c
+ * @file node.c
  * This file contains definitions of the \a node.h file.
 */
 
 #include <parser/node.h>
 #include <stdio.h>
-#include <alloc.h>
 
 /**
  * Number of valid nodes.
@@ -280,19 +279,6 @@ void mr_nodes_print(mr_node_t *nodes, mr_long_t size)
         mr_node_print(nodes + i);
         putchar('\n');
     }
-}
-
-void mr_node_func_call_free(mr_node_func_call_t *node)
-{
-    mr_node_call_arg_t *arg;
-    for (; node->size--;)
-    {
-        arg = node->args + node->size;
-        mr_node_free(&arg->value);
-    }
-
-    mr_node_free(&node->func);
-    mr_free(node);
 }
 
 void mr_node_print(mr_node_t *node)

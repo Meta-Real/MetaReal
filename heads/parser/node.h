@@ -9,6 +9,7 @@
 #define __MR_NODE__
 
 #include <lexer/token.h>
+#include <alloc.h>
 #include <defs.h>
 
 /** 
@@ -53,7 +54,7 @@ typedef struct __MR_NODE_T mr_node_t;
  * <em>Exclusive function call</em> node type.
  * @var __MR_NODE_ENUM::MR_NODE_DOLLAR_METHOD
  * <em>Dollar method call</em> node type.
- * @var__MR_NODE_ENUM::MR_NODE_EX_DOLLAR_METHOD
+ * @var __MR_NODE_ENUM::MR_NODE_EX_DOLLAR_METHOD
  * <em>Exclusive dollar method call</em> node type with an empty list of parameters.
 */
 enum __MR_NODE_ENUM
@@ -273,6 +274,17 @@ void mr_nodes_print(mr_node_t *nodes, mr_long_t size);
  * @param node
  * Node value that needs to be deallocated.
 */
-void mr_node_func_call_free(mr_node_func_call_t *node);
+static inline void mr_node_func_call_free(mr_node_func_call_t *node)
+{
+    mr_node_call_arg_t *arg;
+    for (; node->size--;)
+    {
+        arg = node->args + node->size;
+        mr_node_free(&arg->value);
+    }
+
+    mr_node_free(&node->func);
+    mr_free(node);
+}
 
 #endif
