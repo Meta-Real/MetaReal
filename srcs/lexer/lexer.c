@@ -7,7 +7,6 @@
 #include <alloc.h>
 #include <string.h>
 #include <consts.h>
-#include <error.h>
 
 /**
  * @def mr_lexer_tokens_free
@@ -474,7 +473,7 @@ mr_byte_t mr_lexer(mr_lexer_t *res, mr_str_ct code, mr_long_t alloc)
 
     data.tokens = mr_alloc(alloc * sizeof(mr_token_t));
     if (!data.tokens)
-        return ERROR_NOT_ENOUGH_MEMORY;
+        return MR_ERROR_NOT_ENOUGH_MEMORY;
 
     data.size = 0;
     data.alloc = alloc;
@@ -517,7 +516,7 @@ mr_byte_t mr_lexer(mr_lexer_t *res, mr_str_ct code, mr_long_t alloc)
             if (!block)
             {
                 mr_lexer_tokens_free;
-                return ERROR_NOT_ENOUGH_MEMORY;
+                return MR_ERROR_NOT_ENOUGH_MEMORY;
             }
 
             data.tokens = block;
@@ -531,15 +530,15 @@ mr_byte_t mr_lexer(mr_lexer_t *res, mr_str_ct code, mr_long_t alloc)
             mr_lexer_tokens_free;
 
             if (data.flag == MR_LEXER_MATCH_FLAG_MEMORY)
-                return ERROR_NOT_ENOUGH_MEMORY;
+                return MR_ERROR_NOT_ENOUGH_MEMORY;
 
             res->tokens = NULL;
 
             if (data.flag == MR_LEXER_MATCH_FLAG_ILLEGAL)
                 res->error = (mr_illegal_chr_t){code[data.idx], MR_FALSE, data.idx};
             else
-                res->error = (mr_illegal_chr_t){data.alloc, MR_TRUE, data.idx};
-            return NO_ERROR;
+                res->error = (mr_illegal_chr_t){(mr_chr_t)data.alloc, MR_TRUE, data.idx};
+            return MR_NOERROR;
         }
     }
 
@@ -549,7 +548,7 @@ mr_byte_t mr_lexer(mr_lexer_t *res, mr_str_ct code, mr_long_t alloc)
         if (!block)
         {
             mr_lexer_tokens_free;
-            return ERROR_NOT_ENOUGH_MEMORY;
+            return MR_ERROR_NOT_ENOUGH_MEMORY;
         }
 
         data.tokens = block;
@@ -562,7 +561,7 @@ mr_byte_t mr_lexer(mr_lexer_t *res, mr_str_ct code, mr_long_t alloc)
     token->idx = data.idx;
 
     res->tokens = data.tokens;
-    return NO_ERROR;
+    return MR_NOERROR;
 }
 
 void mr_lexer_match(mr_lexer_match_t *data)
@@ -877,7 +876,7 @@ void mr_lexer_generate_identifier(mr_lexer_match_t *data)
     } while ((chr >= 'A' && chr <= 'Z') || (chr >= 'a' && chr <= 'z') ||
         (chr >= '0' && chr <= '9') || chr == '_');
 
-    mr_short_t i;
+    mr_byte_t i;
     if (token->size <= MR_TOKEN_KEYWORD_MAXSIZE)
     {
         for (i = 0; i < MR_TOKEN_KEYWORD_COUNT; i++)
@@ -995,7 +994,7 @@ void mr_lexer_generate_number(mr_lexer_match_t *data)
         data->idx++;
     }
 
-    token->size = data->idx - token->idx;
+    token->size = (mr_short_t)(data->idx - token->idx);
     data->size++;
 }
 
@@ -1054,7 +1053,7 @@ void mr_lexer_generate_str(mr_lexer_match_t *data, mr_bool_t esc)
     if (chr == quot)
     {
         token->value = NULL;
-        token->size = ++data->idx - token->idx;
+        token->size = (mr_short_t)(++data->idx - token->idx);
 
         data->size++;
         return;
@@ -1079,7 +1078,7 @@ void mr_lexer_generate_str(mr_lexer_match_t *data, mr_bool_t esc)
         mr_lexer_value_realloc(token->size + 1);
 
     token->value[token->size] = '\0';
-    token->size = ++data->idx - token->idx;
+    token->size = (mr_short_t)(++data->idx - token->idx);
     data->size++;
 }
 
@@ -1111,7 +1110,7 @@ void mr_lexer_generate_fstr(mr_lexer_match_t *data, mr_bool_t esc)
         token = data->tokens + data->size++;
         token->type = MR_TOKEN_FSTR_END;
         token->value = NULL;
-        token->size = data->idx - token->idx;
+        token->size = (mr_short_t)(data->idx - token->idx);
         return;
     }
 
@@ -1185,7 +1184,7 @@ void mr_lexer_generate_fstr(mr_lexer_match_t *data, mr_bool_t esc)
     } while (chr != quot);
 
     token = data->tokens + fidx;
-    token->size = data->idx - token->idx;
+    token->size = (mr_short_t)(data->idx - token->idx);
 
     mr_lexer_tokens_realloc;
 

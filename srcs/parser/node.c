@@ -38,7 +38,11 @@ void mr_node_print(mr_node_t *node);
  * @param node
  * Node value that needs to be deallocated.
 */
+#ifndef __MR_DEBUG__
 inline void mr_node_data_free(mr_node_data_t *node)
+#else
+void mr_node_data_free(mr_node_data_t *node)
+#endif
 {
     mr_free(node->data);
     mr_free(node);
@@ -51,7 +55,11 @@ inline void mr_node_data_free(mr_node_data_t *node)
  * @param node
  * Node value that needs to be printed.
 */
+#ifndef __MR_DEBUG__
 inline void mr_node_data_print(mr_node_data_t *node)
+#else
+void mr_node_data_print(mr_node_data_t *node)
+#endif
 {
     fputs(node->data, stdout);
 }
@@ -64,7 +72,11 @@ inline void mr_node_data_print(mr_node_data_t *node)
  * @param node
  * Node value that needs to be printed.
 */
+#ifndef __MR_DEBUG__
 inline void mr_node_datac_print(mr_node_data_t *node)
+#else
+void mr_node_datac_print(mr_node_data_t *node)
+#endif
 {
     fwrite(node->data, sizeof(mr_chr_t), node->size, stdout);
 }
@@ -74,7 +86,11 @@ inline void mr_node_datac_print(mr_node_data_t *node)
  * @param node
  * Node value that needs to be deallocated.
 */
+#ifndef __MR_DEBUG__
 inline void mr_node_binary_op_free(mr_node_binary_op_t *node)
+#else
+void mr_node_binary_op_free(mr_node_binary_op_t *node)
+#endif
 {
     mr_node_free(&node->right);
     mr_node_free(&node->left);
@@ -95,7 +111,11 @@ void mr_node_binary_op_print(mr_node_binary_op_t *node);
  * @param node
  * Node value that needs to be deallocated.
 */
+#ifndef __MR_DEBUG__
 inline void mr_node_unary_op_free(mr_node_unary_op_t *node)
+#else
+void mr_node_unary_op_free(mr_node_unary_op_t *node)
+#endif
 {
     mr_node_free(&node->operand);
     mr_free(node);
@@ -124,7 +144,11 @@ void mr_node_func_call_print(mr_node_func_call_t *node);
  * @param node
  * Node value that needs to be deallocated.
 */
+#ifndef __MR_DEBUG__
 inline void mr_node_ex_func_call_free(mr_node_ex_func_call_t *node)
+#else
+void mr_node_ex_func_call_free(mr_node_ex_func_call_t *node)
+#endif
 {
     mr_node_free(&node->func);
     mr_free(node);
@@ -137,7 +161,11 @@ inline void mr_node_ex_func_call_free(mr_node_ex_func_call_t *node)
  * @param node
  * Node value that needs to be printed.
 */
+#ifndef __MR_DEBUG__
 inline void mr_node_ex_func_call_print(mr_node_ex_func_call_t *node)
+#else
+void mr_node_ex_func_call_print(mr_node_ex_func_call_t *node)
+#endif
 {
     mr_node_print(&node->func);
 }
@@ -147,7 +175,11 @@ inline void mr_node_ex_func_call_print(mr_node_ex_func_call_t *node)
  * @param node
  * Node value that needs to be deallocated.
 */
+#ifndef __MR_DEBUG__
 inline void mr_node_dollar_method_free(mr_node_dollar_method_t *node)
+#else
+void mr_node_dollar_method_free(mr_node_dollar_method_t *node)
+#endif
 {
     mr_nodes_free(node->params, node->size);
     mr_free(node);
@@ -169,7 +201,11 @@ void mr_node_dollar_method_print(mr_node_dollar_method_t *node);
  * @param node
  * Node value that needs to be printed.
 */
+#ifndef __MR_DEBUG__
 inline void mr_node_ex_dollar_method_print(mr_node_ex_dollar_method_t *node)
+#else
+void mr_node_ex_dollar_method_print(mr_node_ex_dollar_method_t *node)
+#endif
 {
     mr_node_datac_print(&node->name);
 }

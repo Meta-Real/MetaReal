@@ -1,28 +1,35 @@
-cmake_minimum_required(VERSION 3.20)
+# MetaReal Compiler version 0.1.0
 
-project(MetaReal VERSION 1.0.0)
+cmake_minimum_required(VERSION 3.20)
 
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED True)
+set(CMAKE_C_EXTENSIONS OFF)
 
 if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif()
 
-set(CMAKE_C_FLAGS "-Wall -Wextra -Wpedantic -Werror")
-set(CMAKE_C_FLAGS_DEBUG "-g")
-set(CMAKE_C_FLAGS_RELEASE "-O3")
+project(MetaReal VERSION 0.1.0
+    DESCRIPTION "MetaReal Compiler version 0.1.0"
+    LANGUAGES C)
 
-add_executable(MetaReal srcs/main.c srcs/error/error.c
+if (CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
+    set(CMAKE_C_FLAGS "-Wall -Wextra -Wpedantic -Werror")
+    set(CMAKE_C_FLAGS_DEBUG "-g")
+    set(CMAKE_C_FLAGS_RELEASE "-O3")
+elseif (MSVC)
+    set(CMAKE_C_FLAGS "/Wall /wd5045 /wd5105 /wd4324 /wd4820 /wd4710 /wd4711 /Zi /WX")
+    set(CMAKE_C_FLAGS_DEBUG "/Od")
+    set(CMAKE_C_FLAGS_RELEASE "/O2")
+endif()
+
+add_executable(MetaReal
+    srcs/main.c srcs/error/error.c
     srcs/lexer/lexer.c srcs/lexer/token.c
     srcs/parser/parser.c srcs/parser/node.c)
-
 target_include_directories(MetaReal PUBLIC "heads")
-
-target_link_libraries(MetaReal gmp)
-target_link_libraries(MetaReal mpfr)
-target_link_libraries(MetaReal mpc)
-target_link_libraries(MetaReal mrfstr)
+target_compile_definitions(MetaReal PRIVATE $<$<CONFIG:Debug>:__MR_DEBUG__>)
 
 add_custom_command(TARGET MetaReal POST_BUILD COMMAND "${CMAKE_COMMAND}"
     -E copy $<TARGET_FILE:MetaReal> ..)

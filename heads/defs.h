@@ -23,4 +23,12 @@ typedef const mr_chr_t *mr_str_ct;
 #define MR_TRUE 1
 #define MR_FALSE 0
 
+/* error codes */
+
+#define MR_NOERROR 0
+#define MR_ERROR_FILE_NOT_FOUND 2
+#define MR_ERROR_NOT_ENOUGH_MEMORY 8
+#define MR_ERROR_BAD_FORMAT 11
+#define MR_ERROR_BAD_COMMAND 22
+
 #endif

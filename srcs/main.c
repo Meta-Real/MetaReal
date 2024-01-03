@@ -9,7 +9,6 @@
 #include <alloc.h>
 #include <string.h>
 #include <consts.h>
-#include <error.h>
 
 #include <time.h>
 
@@ -35,7 +34,7 @@ mr_byte_t mr_compile(mr_str_ct fname, mr_str_ct code, mr_long_t size);
 /**
  * It prints out the help information (called with a \--help flag).
 */
-void mr_print_help();
+void mr_print_help(void);
 
 int main(int argc, mr_str_ct argv[])
 {
@@ -45,7 +44,7 @@ int main(int argc, mr_str_ct argv[])
             "Internal error: invalid command, nothing to process.\n"
             "Write \"MetaReal --help\" for more information.\n",
             stderr);
-        return ERROR_BAD_COMMAND;
+        return MR_ERROR_BAD_COMMAND;
     }
 
     if (argc == 2)
@@ -53,7 +52,7 @@ int main(int argc, mr_str_ct argv[])
         if (!strcmp(argv[1], "--help"))
         {
             mr_print_help();
-            return NO_ERROR;
+            return MR_NOERROR;
         }
         if (!strcmp(argv[1], "--version"))
         {
@@ -62,7 +61,7 @@ int main(int argc, mr_str_ct argv[])
                 "MetaReal core verified as " MR_CORE ", version " MR_CORE_VERSION "\n"
                 "MetaReal port verified as " MR_PORT ", version " MR_PORT_VERSION "\n",
                 stdout);
-            return NO_ERROR;
+            return MR_NOERROR;
         }
         if (!strcmp(argv[1], "--dumpver"))
         {
@@ -71,16 +70,21 @@ int main(int argc, mr_str_ct argv[])
                 MR_CORE " " MR_CORE_VERSION " "
                 MR_PORT " " MR_PORT_VERSION "\n",
                 stdout);
-            return NO_ERROR;
+            return MR_NOERROR;
         }
 
+#if defined(__GNUC__) || defined(__clang__)
         FILE *file = fopen(argv[1], "rb");
         if (!file)
+#elif defined(_MSC_VER)
+        FILE *file;
+        if (fopen_s(&file, argv[1], "rb"))
+#endif
         {
             fprintf(stderr,
                 "Internal error: can not find the file \"%s\"\n",
                 argv[1]);
-            return ERROR_FILE_NOT_FOUND;
+            return MR_ERROR_FILE_NOT_FOUND;
         }
 
         fseek(file, 0, SEEK_END);
@@ -90,7 +94,7 @@ int main(int argc, mr_str_ct argv[])
         if (!size)
         {
             fclose(file);
-            return NO_ERROR;
+            return MR_NOERROR;
         }
 
         mr_str_t code = mr_alloc((size + 1) * sizeof(mr_chr_t));
@@ -98,7 +102,7 @@ int main(int argc, mr_str_ct argv[])
         {
             fclose(file);
             fputs("Internal error: not enough memory.\n", stderr);
-            return ERROR_NOT_ENOUGH_MEMORY;
+            return MR_ERROR_NOT_ENOUGH_MEMORY;
         }
 
         fread(code, sizeof(mr_chr_t), size, file);
@@ -108,7 +112,7 @@ int main(int argc, mr_str_ct argv[])
         mr_byte_t retcode = mr_compile(argv[1], code, size);
         mr_free(code);
 
-        if (retcode == ERROR_NOT_ENOUGH_MEMORY)
+        if (retcode == MR_ERROR_NOT_ENOUGH_MEMORY)
             fputs("Internal error: not enough memory.\n", stderr);
         printf("!!\n"); // dummy
         return retcode;
@@ -118,50 +122,43 @@ int main(int argc, mr_str_ct argv[])
         "Internal error: invalid command.\n"
         "Write \"MetaReal --help\" for more information.\n",
         stderr);
-    return ERROR_BAD_COMMAND;
+    return MR_ERROR_BAD_COMMAND;
 }
 
 mr_byte_t mr_compile(mr_str_ct fname, mr_str_ct code, mr_long_t size)
 {
-    struct timeval s;
-    mingw_gettimeofday(&s, NULL);
-
     mr_lexer_t lexer;
     mr_byte_t retcode = mr_lexer(&lexer, code, size / MR_LEXER_TOKENS_CHUNK + 1);
-    if (retcode != NO_ERROR)
+    if (retcode != MR_NOERROR)
         return retcode;
     if (!lexer.tokens)
     {
         mr_illegal_chr_print(&lexer.error, fname, code, size);
-        return ERROR_BAD_FORMAT;
+        return MR_ERROR_BAD_FORMAT;
     }
 
     if (lexer.tokens->type == MR_TOKEN_EOF)
     {
         mr_free(lexer.tokens);
-        return NO_ERROR;
+        return MR_NOERROR;
     }
 
     mr_parser_t parser;
     retcode = mr_parser(&parser, lexer.tokens, size / MR_PARSER_NODES_CHUNK + 1);
-    if (retcode != NO_ERROR)
+    if (retcode != MR_NOERROR)
     {
-        if (retcode == ERROR_BAD_FORMAT)
+        if (retcode == MR_ERROR_BAD_FORMAT)
             mr_invalid_syntax_print(&parser.error, fname, code, size);
 
         return retcode;
     }
 
-    struct timeval e;
-    mingw_gettimeofday(&e, NULL);
-    printf("%lf milliseconds\n", (e.tv_sec - s.tv_sec) * 1000 + (e.tv_usec - s.tv_usec) / 1000.0);
-
     mr_nodes_print(parser.nodes, parser.size);
     mr_nodes_free(parser.nodes, parser.size);
-    return NO_ERROR;
+    return MR_NOERROR;
 }
 
-void mr_print_help()
+void mr_print_help(void)
 {
     fputs(
         "MetaReal [options] [output] [files]\nOptions:\n"
