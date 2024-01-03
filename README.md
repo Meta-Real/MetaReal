@@ -1,4 +1,4 @@
-# MetaReal Compiler version 1.0.0
+# MetaReal Compiler version 0.1.0
 
 [MetaReal](https://meta-real.github.io) is a powerful, easy-to-use, and flexible programming language designed for the metaverse.
 

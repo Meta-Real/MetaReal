@@ -11,8 +11,8 @@
 #ifndef __MR_CONSTS__
 #define __MR_CONSTS__
 
-#define MR_VERSION_MAJOR "1" /**< Current version of MetaReal compiler (Major number) */
-#define MR_VERSION_MINOR "0" /**< Current version of MetaReal compiler (Minor number) */
+#define MR_VERSION_MAJOR "0" /**< Current version of MetaReal compiler (Major number) */
+#define MR_VERSION_MINOR "1" /**< Current version of MetaReal compiler (Minor number) */
 #define MR_VERSION_PATCH "0" /**< Current version of MetaReal compiler (Patch number) */
 
 /**
@@ -20,8 +20,8 @@
 */
 #define MR_VERSION MR_VERSION_MAJOR "." MR_VERSION_MINOR "." MR_VERSION_PATCH
 
-#define MR_CORE_VERSION_MAJOR "1" /**< Current version of MetaReal core (Major number) */
-#define MR_CORE_VERSION_MINOR "0" /**< Current version of MetaReal core (Minor number) */
+#define MR_CORE_VERSION_MAJOR "0" /**< Current version of MetaReal core (Major number) */
+#define MR_CORE_VERSION_MINOR "1" /**< Current version of MetaReal core (Minor number) */
 #define MR_CORE_VERSION_PATCH "0" /**< Current version of MetaReal core (Patch number) */
 
 #define MR_CORE "mr-core" /**< MetaReal core display name*/
@@ -31,8 +31,8 @@
 */
 #define MR_CORE_VERSION MR_CORE_VERSION_MAJOR "." MR_CORE_VERSION_MINOR "." MR_CORE_VERSION_PATCH
 
-#define MR_PORT_VERSION_MAJOR "1" /**< Current version of MetaReal portal (Major number) */
-#define MR_PORT_VERSION_MINOR "0" /**< Current version of MetaReal portal (Major number) */
+#define MR_PORT_VERSION_MAJOR "0" /**< Current version of MetaReal portal (Major number) */
+#define MR_PORT_VERSION_MINOR "1" /**< Current version of MetaReal portal (Major number) */
 #define MR_PORT_VERSION_PATCH "0" /**< Current version of MetaReal portal (Major number) */
 
 #define MR_PORT "mr-port" /**< MetaReal portal display name*/
