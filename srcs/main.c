@@ -6,11 +6,12 @@
 
 #include <lexer/lexer.h>
 #include <parser/parser.h>
-#include <alloc.h>
+#include <optimizer/optimizer.h>
+#include <optimizer/value.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <consts.h>
-
-#include <time.h>
 
 /**
  * It compiles the \a code according to MetaReal compile rules. \n
@@ -97,7 +98,7 @@ int main(int argc, mr_str_ct argv[])
             return MR_NOERROR;
         }
 
-        mr_str_t code = mr_alloc((size + 1) * sizeof(mr_chr_t));
+        mr_str_t code = malloc((size + 1) * sizeof(mr_chr_t));
         if (!code)
         {
             fclose(file);
@@ -110,7 +111,7 @@ int main(int argc, mr_str_ct argv[])
         code[size] = '\0';
 
         mr_byte_t retcode = mr_compile(argv[1], code, size);
-        mr_free(code);
+        free(code);
 
         if (retcode == MR_ERROR_NOT_ENOUGH_MEMORY)
             fputs("Internal error: not enough memory.\n", stderr);
@@ -130,16 +131,15 @@ mr_byte_t mr_compile(mr_str_ct fname, mr_str_ct code, mr_long_t size)
     mr_lexer_t lexer;
     mr_byte_t retcode = mr_lexer(&lexer, code, size / MR_LEXER_TOKENS_CHUNK + 1);
     if (retcode != MR_NOERROR)
-        return retcode;
-    if (!lexer.tokens)
     {
-        mr_illegal_chr_print(&lexer.error, fname, code, size);
-        return MR_ERROR_BAD_FORMAT;
+        if (retcode == MR_ERROR_BAD_FORMAT)
+            mr_illegal_chr_print(&lexer.error, fname, code, size);
+        return retcode;
     }
 
     if (lexer.tokens->type == MR_TOKEN_EOF)
     {
-        mr_free(lexer.tokens);
+        free(lexer.tokens);
         return MR_NOERROR;
     }
 
@@ -149,12 +149,20 @@ mr_byte_t mr_compile(mr_str_ct fname, mr_str_ct code, mr_long_t size)
     {
         if (retcode == MR_ERROR_BAD_FORMAT)
             mr_invalid_syntax_print(&parser.error, fname, code, size);
-
         return retcode;
     }
 
-    mr_nodes_print(parser.nodes, parser.size);
-    mr_nodes_free(parser.nodes, parser.size);
+    mr_optimizer_t optimizer;
+    retcode = mr_optimizer(&optimizer, parser.nodes, parser.size);
+    if (retcode != MR_NOERROR)
+    {
+        if (retcode == MR_ERROR_BAD_FORMAT)
+            mr_invalid_semantic_print(&optimizer.error, fname, code, size);
+        return retcode;
+    }
+
+    mr_values_print(optimizer.values, optimizer.size);
+    mr_values_free(optimizer.values, optimizer.size);
     return MR_NOERROR;
 }
 

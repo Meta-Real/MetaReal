@@ -4,8 +4,8 @@
 */
 
 #include <lexer/token.h>
+#include <stdlib.h>
 #include <stdio.h>
-#include <alloc.h>
 
 mr_str_ct mr_token_label[MR_TOKEN_COUNT] =
 {
@@ -83,22 +83,24 @@ mr_str_ct mr_token_type[MR_TOKEN_TYPE_COUNT] =
 mr_byte_t mr_token_type_size[MR_TOKEN_TYPE_COUNT] =
 { 6, 3, 5, 7, 4, 3, 3, 4, 5, 4, 3, 4 };
 
-void mr_token_free(mr_token_t *tokens)
+void mr_tokens_free(
+    mr_token_t *tokens)
 {
     mr_token_t *ptr = tokens;
 
     while (ptr->type != MR_TOKEN_EOF)
     {
         if (ptr->type != MR_TOKEN_IDENTIFIER && ptr->type != MR_TOKEN_CHR)
-            mr_free(ptr->value);
+            free(ptr->value);
 
         ptr++;
     }
 
-    mr_free(tokens);
+    free(tokens);
 }
 
-void mr_token_print(mr_token_t *tokens)
+void mr_tokens_print(
+    mr_token_t *tokens)
 {
     do
     {

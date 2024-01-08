@@ -4,12 +4,8 @@
 */
 
 #include <parser/node.h>
+#include <stdlib.h>
 #include <stdio.h>
-
-/**
- * Number of valid nodes.
-*/
-#define MR_NODE_COUNT (MR_NODE_EX_DOLLAR_METHOD + 1)
 
 /**
  * List of node labels (used by the \a mr_node_print function).
@@ -21,17 +17,8 @@ mr_str_ct mr_node_label[MR_NODE_COUNT] =
     "NODE_BINARY_OP", "NODE_UNARY_OP",
     "NODE_VAR_ACCESS",
     "NODE_FUNC_CALL", "NODE_EX_FUNC_CALL",
-    "NODE_DOLLAR_METHOD", "NODE_EX_DOLLAR_METHOD"
+    "NODE_DOLLAR_METHOD", "NODE_EX_DOLLAR_METHOD",
 };
-
-/**
- * It prints out a single node passed as a pointer into <em>outstream</em>. \n
- * \a outstream is \a stdout by default and
- * can be changed with the \a $set_outstream dollar method.
- * @param node
- * A node that needs to be printed.
-*/
-void mr_node_print(mr_node_t *node);
 
 /**
  * It deallocates a \a mr_node_data_t structure from memory.
@@ -44,8 +31,8 @@ inline void mr_node_data_free(mr_node_data_t *node)
 void mr_node_data_free(mr_node_data_t *node)
 #endif
 {
-    mr_free(node->data);
-    mr_free(node);
+    free(node->data);
+    free(node);
 }
 
 /**
@@ -94,7 +81,7 @@ void mr_node_binary_op_free(mr_node_binary_op_t *node)
 {
     mr_node_free(&node->right);
     mr_node_free(&node->left);
-    mr_free(node);
+    free(node);
 }
 
 /**
@@ -118,7 +105,7 @@ void mr_node_unary_op_free(mr_node_unary_op_t *node)
 #endif
 {
     mr_node_free(&node->operand);
-    mr_free(node);
+    free(node);
 }
 
 /**
@@ -151,7 +138,7 @@ void mr_node_ex_func_call_free(mr_node_ex_func_call_t *node)
 #endif
 {
     mr_node_free(&node->func);
-    mr_free(node);
+    free(node);
 }
 
 /**
@@ -182,7 +169,7 @@ void mr_node_dollar_method_free(mr_node_dollar_method_t *node)
 #endif
 {
     mr_nodes_free(node->params, node->size);
-    mr_free(node);
+    free(node);
 }
 
 /**
@@ -229,7 +216,7 @@ void mr_node_free(mr_node_t *node)
         return;
     case MR_NODE_VAR_ACCESS:
     case MR_NODE_EX_DOLLAR_METHOD:
-        mr_free(node->value);
+        free(node->value);
         return;
     case MR_NODE_FUNC_CALL:
         mr_node_func_call_free(node->value);
@@ -245,31 +232,9 @@ void mr_node_free(mr_node_t *node)
 
 void mr_nodes_free(mr_node_t *nodes, mr_long_t size)
 {
-    for (; size--;)
+    while (size--)
         mr_node_free(nodes + size);
-    mr_free(nodes);
-}
-
-void mr_nodes_print(mr_node_t *nodes, mr_long_t size)
-{
-    for (mr_long_t i = 0; i < size; i++)
-    {
-        mr_node_print(nodes + i);
-        putchar('\n');
-    }
-}
-
-void mr_node_func_call_free(mr_node_func_call_t *node)
-{
-    mr_node_call_arg_t *arg;
-    for (; node->size--;)
-    {
-        arg = node->args + node->size;
-        mr_node_free(&arg->value);
-    }
-
-    mr_node_free(&node->func);
-    mr_free(node);
+    free(nodes);
 }
 
 void mr_node_print(mr_node_t *node)
@@ -315,6 +280,28 @@ void mr_node_print(mr_node_t *node)
     putchar(')');
 }
 
+void mr_nodes_print(mr_node_t *nodes, mr_long_t size)
+{
+    for (mr_long_t i = 0; i != size; i++)
+    {
+        mr_node_print(nodes + i);
+        putchar('\n');
+    }
+}
+
+void mr_node_func_call_free(mr_node_func_call_t *node)
+{
+    mr_node_call_arg_t *arg;
+    for (; node->size--;)
+    {
+        arg = node->args + node->size;
+        mr_node_free(&arg->value);
+    }
+
+    mr_node_free(&node->func);
+    free(node);
+}
+
 void mr_node_binary_op_print(mr_node_binary_op_t *node)
 {
     printf("%s, ", mr_token_label[node->op]);
@@ -347,7 +334,7 @@ void mr_node_func_call_print(mr_node_func_call_t *node)
     mr_node_print(&node->args->value);
 
     mr_node_call_arg_t *arg;
-    for (mr_byte_t i = 1; i < node->size; i++)
+    for (mr_byte_t i = 1; i != node->size; i++)
     {
         fputs(", ", stdout);
 
@@ -372,7 +359,7 @@ void mr_node_dollar_method_print(mr_node_dollar_method_t *node)
     printf(", [%hu]{", node->size);
     mr_node_print(node->params);
 
-    for (mr_byte_t i = 1; i < node->size; i++)
+    for (mr_byte_t i = 1; i != node->size; i++)
     {
         fputs(", ", stdout);
         mr_node_print(node->params + i);

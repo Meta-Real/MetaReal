@@ -10,7 +10,6 @@
 
 #include <lexer/token.h>
 #include <error/error.h>
-#include <stdio.h>
 
 /**
  * @struct __MR_LEXER_T
@@ -42,6 +41,7 @@ typedef struct __MR_LEXER_T mr_lexer_t;
  * @return It returns a code which indicates if the process was successful or not. \n
  * If the process was successful, it returns 0. Otherwise, it returns the error code.
 */
-mr_byte_t mr_lexer(mr_lexer_t *res, mr_str_ct code, mr_long_t alloc);
+mr_byte_t mr_lexer(
+    mr_lexer_t *res, mr_str_ct code, mr_long_t alloc);
 
 #endif

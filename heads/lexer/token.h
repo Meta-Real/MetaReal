@@ -23,19 +23,19 @@
  * Type of the <em>token</em>.
  * @var mr_str_t __MR_TOKEN_T::value
  * Value of the \a token (will be NULL if the token is a symbol).
- * @var mr_short_t __MR_TOKEN_T::size
- * Size of the \a value (this parameter is also used for debugging).
  * @var mr_long_t __MR_TOKEN_T::idx
  * Index of the start of token.
+ * @var mr_short_t __MR_TOKEN_T::size
+ * Size of the \a value (this parameter is also used for debugging).
 */
 #pragma pack(push, 1)
 struct __MR_TOKEN_T
 {
     mr_byte_t type;
     mr_str_t value;
-    mr_short_t size;
 
     mr_long_t idx;
+    mr_short_t size;
 };
 #pragma pack(pop)
 typedef struct __MR_TOKEN_T mr_token_t;
@@ -450,7 +450,7 @@ enum __MR_TOKEN_ENUM
 #define MR_TOKEN_TYPE_MAXSIZE 7
 
 /**
- * List of token labels (used by the \a mr_token_print function).
+ * List of token labels (used by the \a mr_tokens_print function).
 */
 extern mr_str_ct mr_token_label[MR_TOKEN_COUNT];
 
@@ -483,7 +483,8 @@ extern mr_byte_t mr_token_type_size[MR_TOKEN_TYPE_COUNT];
  * @param tokens
  * List of tokens.
 */
-void mr_token_free(mr_token_t *tokens);
+void mr_tokens_free(
+    mr_token_t *tokens);
 
 /**
  * It prints out the tokens list into <em>outstream</em>.
@@ -493,6 +494,7 @@ void mr_token_free(mr_token_t *tokens);
  * @param tokens
  * List of tokens.
 */
-void mr_token_print(mr_token_t *tokens);
+void mr_tokens_print(
+    mr_token_t *tokens);
 
 #endif

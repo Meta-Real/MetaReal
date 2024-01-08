@@ -27,8 +27,9 @@ endif()
 add_executable(MetaReal
     srcs/main.c srcs/error/error.c
     srcs/lexer/lexer.c srcs/lexer/token.c
-    srcs/parser/parser.c srcs/parser/node.c)
-target_include_directories(MetaReal PUBLIC "heads")
+    srcs/parser/parser.c srcs/parser/node.c
+    srcs/optimizer/optimizer.c srcs/optimizer/value.c srcs/optimizer/operation.c)
+target_include_directories(MetaReal PRIVATE "heads")
 target_compile_definitions(MetaReal PRIVATE $<$<CONFIG:Debug>:__MR_DEBUG__>)
 
 add_custom_command(TARGET MetaReal POST_BUILD COMMAND "${CMAKE_COMMAND}"

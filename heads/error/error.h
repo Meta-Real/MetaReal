@@ -6,7 +6,6 @@
 #ifndef __MR_ERROR__
 #define __MR_ERROR__
 
-#include <stdio.h>
 #include <defs.h>
 
 /**
@@ -20,6 +19,7 @@
  * @var mr_long_t __MR_ILLEGAL_CHR_T::idx
  * Index of the error.
 */
+#pragma pack(push, 1)
 struct __MR_ILLEGAL_CHR_T
 {
     mr_chr_t chr;
@@ -27,6 +27,7 @@ struct __MR_ILLEGAL_CHR_T
 
     mr_long_t pos;
 };
+#pragma pack(pop)
 typedef struct __MR_ILLEGAL_CHR_T mr_illegal_chr_t;
 
 /**
@@ -41,6 +42,7 @@ typedef struct __MR_ILLEGAL_CHR_T mr_illegal_chr_t;
  * @var mr_byte_t __MR_INVALID_SYNTAX_T::size
  * Size of the error in characters.
 */
+#pragma pack(push, 1)
 struct __MR_INVALID_SYNTAX_T
 {
     mr_str_ct detail;
@@ -48,7 +50,25 @@ struct __MR_INVALID_SYNTAX_T
     mr_long_t idx;
     mr_byte_t size;
 };
+#pragma pack(pop)
 typedef struct __MR_INVALID_SYNTAX_T mr_invalid_syntax_t;
+
+#pragma pack(push, 1)
+struct __MR_INVALID_SEMANTIC_T
+{
+    mr_str_t detail;
+    mr_byte_t type;
+
+    mr_long_t idx;
+    mr_byte_t size;
+};
+#pragma pack(pop)
+typedef struct __MR_INVALID_SEMANTIC_T mr_invalid_semantic_t;
+
+enum __MR_INVALID_SEMANTIC_ENUM
+{
+    MR_INVALID_SEMANTIC_DIVBYZERO
+};
 
 /**
  * It displays the \a error in <em>errstream</em>. \n
@@ -77,7 +97,8 @@ typedef struct __MR_INVALID_SYNTAX_T mr_invalid_syntax_t;
  * @param size
  * Size of the source code.
 */
-void mr_illegal_chr_print(mr_illegal_chr_t *error,
+void mr_illegal_chr_print(
+    mr_illegal_chr_t *error,
     mr_str_ct fname, mr_str_ct code, mr_long_t size);
 
 /**
@@ -114,7 +135,12 @@ void mr_illegal_chr_print(mr_illegal_chr_t *error,
  * @param size
  * Size of the source code.
 */
-void mr_invalid_syntax_print(mr_invalid_syntax_t *error,
+void mr_invalid_syntax_print(
+    mr_invalid_syntax_t *error,
+    mr_str_ct fname, mr_str_ct code, mr_long_t size);
+
+void mr_invalid_semantic_print(
+    mr_invalid_semantic_t *error,
     mr_str_ct fname, mr_str_ct code, mr_long_t size);
 
 #endif

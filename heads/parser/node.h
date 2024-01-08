@@ -9,7 +9,6 @@
 #define __MR_NODE__
 
 #include <lexer/token.h>
-#include <alloc.h>
 #include <defs.h>
 
 /** 
@@ -78,23 +77,28 @@ enum __MR_NODE_ENUM
 };
 
 /**
+ * Number of valid nodes.
+*/
+#define MR_NODE_COUNT (MR_NODE_EX_DOLLAR_METHOD + 1)
+
+/**
  * @struct __MR_NODE_DATA_T
  * Data structure that holds information about a single string. \n
  * Constant version of this structure is used for identifiers.
  * @var mr_str_t __MR_NODE_DATA_T::data
  * Data of the structure (can be constant or allocated).
- * @var mr_short_t __MR_NODE_DATA_T::size
- * Size of the <em>data</em>.
  * @var mr_long_t __MR_NODE_DATA_T::sidx
  * Index of the start of data.
+ * @var mr_short_t __MR_NODE_DATA_T::size
+ * Size of the \a data (this parameter is also used for debugging).
 */
 #pragma pack(push, 1)
 struct __MR_NODE_DATA_T
 {
     mr_str_t data;
-    mr_short_t size;
 
     mr_long_t sidx;
+    mr_short_t size;
 };
 #pragma pack(pop)
 typedef struct __MR_NODE_DATA_T mr_node_data_t;
@@ -257,6 +261,15 @@ void mr_node_free(mr_node_t *node);
  * Size of the \a nodes list.
 */
 void mr_nodes_free(mr_node_t *nodes, mr_long_t size);
+
+/**
+ * It prints out a single node passed as a pointer into <em>outstream</em>. \n
+ * \a outstream is \a stdout by default and
+ * can be changed with the \a $set_outstream dollar method.
+ * @param node
+ * A node that needs to be printed.
+*/
+void mr_node_print(mr_node_t *node);
 
 /**
  * It prints out the nodes list into \a outstream according to its size. \n

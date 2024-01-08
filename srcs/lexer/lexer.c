@@ -4,7 +4,7 @@
 */
 
 #include <lexer/lexer.h>
-#include <alloc.h>
+#include <stdlib.h>
 #include <string.h>
 #include <consts.h>
 
@@ -22,9 +22,9 @@
         {                                                                          \
             token = data.tokens + data.size;                                       \
             if (token->type != MR_TOKEN_IDENTIFIER && token->type != MR_TOKEN_CHR) \
-                mr_free(token->value);                                             \
+                free(token->value);                                                \
         }                                                                          \
-        mr_free(data.tokens);                                                      \
+        free(data.tokens);                                                         \
     } while (0)
 
 /**
@@ -37,7 +37,7 @@
     {                                                                 \
         if (data->size == data->alloc)                                \
         {                                                             \
-            block = mr_realloc(data->tokens,                          \
+            block = realloc(data->tokens,                             \
                 (data->alloc += data->exalloc) * sizeof(mr_token_t)); \
             if (!block)                                               \
             {                                                         \
@@ -216,10 +216,10 @@
 #define mr_lexer_value_realloc(size)                 \
     do                                               \
     {                                                \
-        block = mr_realloc(token->value, size);      \
+        block = realloc(token->value, size);         \
         if (!block)                                  \
         {                                            \
-            mr_free(token->value);                   \
+            free(token->value);                      \
                                                      \
             data->flag = MR_LEXER_MATCH_FLAG_MEMORY; \
             return;                                  \
@@ -310,7 +310,7 @@
             data->flag = MR_LEXER_MATCH_FLAG_MISSING;                      \
             data->alloc = quot;                                            \
                                                                            \
-            mr_free(token->value);                                         \
+            free(token->value);                                            \
             return;                                                        \
         }                                                                  \
                                                                            \
@@ -322,7 +322,7 @@
                 data->flag = MR_LEXER_MATCH_FLAG_MISSING;                  \
                 data->alloc = quot;                                        \
                                                                            \
-                mr_free(token->value);                                     \
+                free(token->value);                                        \
                 return;                                                    \
             }                                                              \
                                                                            \
@@ -397,7 +397,8 @@ enum __MR_LEXER_MATCH_FLAG_ENUM
  * @param data
  * Data structure containing all necessary information about the code.
 */
-void mr_lexer_match(mr_lexer_match_t *data);
+void mr_lexer_match(
+    mr_lexer_match_t *data);
 
 /**
  * It skips comments (both singleline and multiline ones). \n
@@ -408,7 +409,8 @@ void mr_lexer_match(mr_lexer_match_t *data);
  * @param data
  * Data structure containing all necessary information about the code.
 */
-void mr_lexer_skip_comment(mr_lexer_match_t *data);
+void mr_lexer_skip_comment(
+    mr_lexer_match_t *data);
 
 /**
  * It generates an identifier, a keyword, or a type based on the code. \n
@@ -417,7 +419,8 @@ void mr_lexer_skip_comment(mr_lexer_match_t *data);
  * @param data
  * Data structure containing all necessary information about the code.
 */
-void mr_lexer_generate_identifier(mr_lexer_match_t *data);
+void mr_lexer_generate_identifier(
+    mr_lexer_match_t *data);
 
 /**
  * It generates a number (int, float, or imaginary) based on the code. \n
@@ -430,14 +433,16 @@ void mr_lexer_generate_identifier(mr_lexer_match_t *data);
  * @param data
  * Data structure containing all necessary information about the code.
 */
-void mr_lexer_generate_number(mr_lexer_match_t *data);
+void mr_lexer_generate_number(
+    mr_lexer_match_t *data);
 
 /**
  * It generates a character or a string based on the code.
  * @param data
  * Data structure containing all necessary information about the code.
 */
-void mr_lexer_generate_chr(mr_lexer_match_t *data);
+void mr_lexer_generate_chr(
+    mr_lexer_match_t *data);
 
 /**
  * It generates a string based on the code.
@@ -446,7 +451,8 @@ void mr_lexer_generate_chr(mr_lexer_match_t *data);
  * @param esc
  * If \a esc is equal to \a MR_TRUE (by using '\\' prefix), All escape sequences will be avoided.
 */
-void mr_lexer_generate_str(mr_lexer_match_t *data, mr_bool_t esc);
+void mr_lexer_generate_str(
+    mr_lexer_match_t *data, mr_bool_t esc);
 
 /**
  * It generates a formatted string based on the code. \n
@@ -456,7 +462,8 @@ void mr_lexer_generate_str(mr_lexer_match_t *data, mr_bool_t esc);
  * @param esc
  * If \a esc is equal to \a MR_TRUE (by using '\\' prefix), All escape sequences will be avoided.
 */
-void mr_lexer_generate_fstr(mr_lexer_match_t *data, mr_bool_t esc);
+void mr_lexer_generate_fstr(
+    mr_lexer_match_t *data, mr_bool_t esc);
 
 /**
  * Generates a <em>MR_TOKEN_DOT</em>, <em>MR_TOKEN_ELLIPSIS</em>,
@@ -464,14 +471,16 @@ void mr_lexer_generate_fstr(mr_lexer_match_t *data, mr_bool_t esc);
  * @param data
  * Data structure containing all necessary information about the code.
 */
-void mr_lexer_generate_dot(mr_lexer_match_t *data);
+void mr_lexer_generate_dot(
+    mr_lexer_match_t *data);
 
-mr_byte_t mr_lexer(mr_lexer_t *res, mr_str_ct code, mr_long_t alloc)
+mr_byte_t mr_lexer(
+    mr_lexer_t *res, mr_str_ct code, mr_long_t alloc)
 {
     mr_lexer_match_t data;
     data.flag = MR_LEXER_MATCH_FLAG_OK;
 
-    data.tokens = mr_alloc(alloc * sizeof(mr_token_t));
+    data.tokens = malloc(alloc * sizeof(mr_token_t));
     if (!data.tokens)
         return MR_ERROR_NOT_ENOUGH_MEMORY;
 
@@ -512,7 +521,7 @@ mr_byte_t mr_lexer(mr_lexer_t *res, mr_str_ct code, mr_long_t alloc)
     {
         if (data.size == data.alloc)
         {
-            block = mr_realloc(data.tokens, (data.alloc += alloc) * sizeof(mr_token_t));
+            block = realloc(data.tokens, (data.alloc += alloc) * sizeof(mr_token_t));
             if (!block)
             {
                 mr_lexer_tokens_free;
@@ -532,19 +541,17 @@ mr_byte_t mr_lexer(mr_lexer_t *res, mr_str_ct code, mr_long_t alloc)
             if (data.flag == MR_LEXER_MATCH_FLAG_MEMORY)
                 return MR_ERROR_NOT_ENOUGH_MEMORY;
 
-            res->tokens = NULL;
-
             if (data.flag == MR_LEXER_MATCH_FLAG_ILLEGAL)
                 res->error = (mr_illegal_chr_t){code[data.idx], MR_FALSE, data.idx};
             else
                 res->error = (mr_illegal_chr_t){(mr_chr_t)data.alloc, MR_TRUE, data.idx};
-            return MR_NOERROR;
+            return MR_ERROR_BAD_FORMAT;
         }
     }
 
     if (data.size + 1 != data.alloc)
     {
-        block = mr_realloc(data.tokens, (data.size + 1) * sizeof(mr_token_t));
+        block = realloc(data.tokens, (data.size + 1) * sizeof(mr_token_t));
         if (!block)
         {
             mr_lexer_tokens_free;
@@ -564,7 +571,8 @@ mr_byte_t mr_lexer(mr_lexer_t *res, mr_str_ct code, mr_long_t alloc)
     return MR_NOERROR;
 }
 
-void mr_lexer_match(mr_lexer_match_t *data)
+void mr_lexer_match(
+    mr_lexer_match_t *data)
 {
     mr_token_t *token = data->tokens + data->size;
     mr_chr_t chr = data->code[data->idx];
@@ -831,7 +839,8 @@ void mr_lexer_match(mr_lexer_match_t *data)
     mr_lexer_skip_spaces(chr, data->code, data->idx);
 }
 
-void mr_lexer_skip_comment(mr_lexer_match_t *data)
+void mr_lexer_skip_comment(
+    mr_lexer_match_t *data)
 {
     mr_chr_t chr = data->code[++data->idx];
 
@@ -860,7 +869,8 @@ void mr_lexer_skip_comment(mr_lexer_match_t *data)
     }
 }
 
-void mr_lexer_generate_identifier(mr_lexer_match_t *data)
+void mr_lexer_generate_identifier(
+    mr_lexer_match_t *data)
 {
     mr_token_t *token = data->tokens + data->size;
 
@@ -879,7 +889,7 @@ void mr_lexer_generate_identifier(mr_lexer_match_t *data)
     mr_byte_t i;
     if (token->size <= MR_TOKEN_KEYWORD_MAXSIZE)
     {
-        for (i = 0; i < MR_TOKEN_KEYWORD_COUNT; i++)
+        for (i = 0; i != MR_TOKEN_KEYWORD_COUNT; i++)
             if (token->size == mr_token_keyword_size[i] &&
                 !memcmp(token->value, mr_token_keyword[i], token->size))
             {
@@ -891,7 +901,7 @@ void mr_lexer_generate_identifier(mr_lexer_match_t *data)
             }
 
         if (token->size <= MR_TOKEN_TYPE_MAXSIZE)
-            for (i = 0; i < MR_TOKEN_TYPE_COUNT; i++)
+            for (i = 0; i != MR_TOKEN_TYPE_COUNT; i++)
                 if (token->size == mr_token_type_size[i] &&
                     !memcmp(token->value, mr_token_type[i], token->size))
                 {
@@ -907,11 +917,12 @@ void mr_lexer_generate_identifier(mr_lexer_match_t *data)
     data->size++;
 }
 
-void mr_lexer_generate_number(mr_lexer_match_t *data)
+void mr_lexer_generate_number(
+    mr_lexer_match_t *data)
 {
     mr_token_t *token = data->tokens + data->size;
 
-    token->value = mr_alloc(MR_LEXER_NUMBER_SIZE * sizeof(mr_chr_t));
+    token->value = malloc(MR_LEXER_NUMBER_SIZE * sizeof(mr_chr_t));
     if (!token->value)
     {
         data->flag = MR_LEXER_MATCH_FLAG_MEMORY;
@@ -998,7 +1009,8 @@ void mr_lexer_generate_number(mr_lexer_match_t *data)
     data->size++;
 }
 
-void mr_lexer_generate_chr(mr_lexer_match_t *data)
+void mr_lexer_generate_chr(
+    mr_lexer_match_t *data)
 {
     mr_chr_t chr = data->code[data->idx + 1];
     if (chr != '\\')
@@ -1039,7 +1051,8 @@ void mr_lexer_generate_chr(mr_lexer_match_t *data)
     data->idx += 2;
 }
 
-void mr_lexer_generate_str(mr_lexer_match_t *data, mr_bool_t esc)
+void mr_lexer_generate_str(
+    mr_lexer_match_t *data, mr_bool_t esc)
 {
     mr_token_t *token = data->tokens + data->size;
     token->type = MR_TOKEN_STR;
@@ -1059,7 +1072,7 @@ void mr_lexer_generate_str(mr_lexer_match_t *data, mr_bool_t esc)
         return;
     }
 
-    token->value = mr_alloc(MR_LEXER_STR_SIZE * sizeof(mr_chr_t));
+    token->value = malloc(MR_LEXER_STR_SIZE * sizeof(mr_chr_t));
     if (!token->value)
     {
         data->flag = MR_LEXER_MATCH_FLAG_MEMORY;
@@ -1082,7 +1095,8 @@ void mr_lexer_generate_str(mr_lexer_match_t *data, mr_bool_t esc)
     data->size++;
 }
 
-void mr_lexer_generate_fstr(mr_lexer_match_t *data, mr_bool_t esc)
+void mr_lexer_generate_fstr(
+    mr_lexer_match_t *data, mr_bool_t esc)
 {
     mr_long_t fidx = data->size++;
     mr_token_t *token = data->tokens + fidx;
@@ -1163,7 +1177,7 @@ void mr_lexer_generate_fstr(mr_lexer_match_t *data, mr_bool_t esc)
         token = data->tokens + data->size;
         token->type = MR_TOKEN_FSTR;
 
-        token->value = mr_alloc(MR_LEXER_FSTR_SIZE * sizeof(mr_chr_t));
+        token->value = malloc(MR_LEXER_FSTR_SIZE * sizeof(mr_chr_t));
         if (!token->value)
         {
             data->flag = MR_LEXER_MATCH_FLAG_MEMORY;
@@ -1193,7 +1207,8 @@ void mr_lexer_generate_fstr(mr_lexer_match_t *data, mr_bool_t esc)
     token->value = NULL;
 }
 
-void mr_lexer_generate_dot(mr_lexer_match_t *data)
+void mr_lexer_generate_dot(
+    mr_lexer_match_t *data)
 {
     mr_chr_t chr = data->code[data->idx + 1];
 
