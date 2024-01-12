@@ -20,11 +20,13 @@
  * @var mr_illegal_chr_t __MR_LEXER_T::error
  * Illegal character error (It will be filled with data if the \a tokens is NULL).
 */
+#pragma pack(push, 1)
 struct __MR_LEXER_T
 {
     mr_token_t *tokens;
     mr_illegal_chr_t error;
 };
+#pragma pack(pop)
 typedef struct __MR_LEXER_T mr_lexer_t;
 
 /**

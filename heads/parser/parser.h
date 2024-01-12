@@ -22,6 +22,7 @@
  * Invalid syntax error
  * (It will be filled with data if there was a grammatical error in the code).
 */
+#pragma pack(push, 1)
 struct __MR_PARSER_T
 {
     mr_node_t *nodes;
@@ -29,6 +30,7 @@ struct __MR_PARSER_T
 
     mr_invalid_syntax_t error;
 };
+#pragma pack(pop)
 typedef struct __MR_PARSER_T mr_parser_t;
 
 /**

@@ -1,9 +1,8 @@
 
 #include <optimizer/optimizer.h>
 #include <optimizer/operation.h>
+#include <config.h>
 #include <stdlib.h>
-
-#include <stdio.h>
 
 mr_byte_t mr_visit(
     mr_node_t *node);
@@ -38,7 +37,10 @@ mr_byte_t mr_visit(
     switch (node->type)
     {
     case MR_NODE_INT:
-        return mr_visit_int(node);
+        if (_mr_config.opt_const_fold)
+            return mr_visit_int(node);
+        else
+            return MR_NOERROR;
     case MR_NODE_BINARY_OP:
         return mr_visit_binary_op(node);
     }
@@ -78,6 +80,9 @@ mr_byte_t mr_visit_binary_op(
 
     mr_visit(&data->left);
     mr_visit(&data->right);
+
+    if (!_mr_config.opt_const_fold)
+        return MR_NOERROR;
 
     switch (data->op)
     {

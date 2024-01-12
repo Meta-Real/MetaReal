@@ -42,9 +42,9 @@ struct __MR_GENERATOR_DATA_T
 
     mr_byte_t error;
 
-    mr_byte_t rcx_free : 1;
-    mr_byte_t rdx_free : 1;
-    mr_byte_t rax_free : 1;
+    mr_bool_t rcx_free : 1;
+    mr_bool_t rdx_free : 1;
+    mr_bool_t rax_free : 1;
     mr_byte_t reg : 2;
 };
 #pragma pack(pop)

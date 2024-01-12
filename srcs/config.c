@@ -14,22 +14,22 @@ The above copyright notice and this permission notice shall be included in all
 copies or substantial portions of the Software.
 */
 
-#ifndef __MR_GENERATOR__
-#define __MR_GENERATOR__
+#include <config.h>
 
-#include <parser/node.h>
-
-#pragma pack(push, 1)
-struct __MR_GENERATOR_T
+mr_config_t _mr_config =
 {
-    mr_str_t data;
-    mr_long_t size;
-    mr_byte_t error;
+    MR_TRUE
 };
-#pragma pack(pop)
-typedef struct __MR_GENERATOR_T mr_generator_t;
 
-mr_generator_t mr_generator(
-    mr_node_t *nodes, mr_long_t size, mr_long_t alloc);
-
-#endif
+void mr_config_opt(mr_byte_t olevel)
+{
+    switch (olevel)
+    {
+    case (mr_byte_t)-1:
+        _mr_config.opt_const_fold = MR_FALSE;
+        break;
+    default:
+        _mr_config.opt_const_fold = MR_TRUE;
+        break;
+    }
+}

@@ -26,7 +26,8 @@ elseif (MSVC)
 endif()
 
 add_executable(MetaReal
-    srcs/main.c srcs/error/error.c
+    srcs/main.c srcs/config.c
+    srcs/error/error.c
     srcs/lexer/lexer.c srcs/lexer/token.c
     srcs/parser/parser.c srcs/parser/node.c
     srcs/optimizer/optimizer.c srcs/optimizer/value.c srcs/optimizer/operation.c

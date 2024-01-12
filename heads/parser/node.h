@@ -155,11 +155,13 @@ typedef struct __MR_NODE_UNARY_OP_T mr_node_unary_op_t;
  * @var mr_node_t __MR_NODE_CALL_ARG_T::value
  * Value of the argument.
 */
+#pragma pack(push, 1)
 struct __MR_NODE_CALL_ARG_T
 {
     mr_node_data_t name;
     mr_node_t value;
 };
+#pragma pack(pop)
 typedef struct __MR_NODE_CALL_ARG_T mr_node_call_arg_t;
 
 /**

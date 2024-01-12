@@ -5,6 +5,7 @@
 #include <parser/node.h>
 #include <error/error.h>
 
+#pragma pack(push, 1)
 struct __MR_OPTIMIZER_T
 {
     mr_node_t *values;
@@ -12,6 +13,7 @@ struct __MR_OPTIMIZER_T
 
     mr_invalid_semantic_t error;
 };
+#pragma pack(pop)
 typedef struct __MR_OPTIMIZER_T mr_optimizer_t;
 
 mr_byte_t mr_optimizer(

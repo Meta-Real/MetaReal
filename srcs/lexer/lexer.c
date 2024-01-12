@@ -358,6 +358,7 @@
  * @var mr_long_t __MR_LEXER_MATCH_T::idx
  * An index for the current character of the code.
 */
+#pragma pack(push, 1)
 struct __MR_LEXER_MATCH_T
 {
     mr_byte_t flag;
@@ -370,6 +371,7 @@ struct __MR_LEXER_MATCH_T
     mr_str_ct code;
     mr_long_t idx;
 };
+#pragma pack(pop)
 typedef struct __MR_LEXER_MATCH_T mr_lexer_match_t;
 
 /**

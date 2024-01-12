@@ -25,12 +25,11 @@ copies or substantial portions of the Software.
 #include <optimizer/optimizer.h>
 #include <generator/generator.h>
 #include <optimizer/value.h>
+#include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <consts.h>
-
-#include <io.h>
 
 /**
  * It compiles the \a code according to MetaReal compile rules. \n
@@ -52,6 +51,8 @@ copies or substantial portions of the Software.
 mr_byte_t mr_compile(
     mr_str_ct fname, mr_str_ct code, mr_long_t size);
 
+void mr_handle_args(mr_str_ct argv[], mr_byte_t size);
+
 /**
  * It prints out the help information (called with a \--help flag).
 */
@@ -70,7 +71,7 @@ int main(
         return MR_ERROR_BAD_COMMAND;
     }
 
-    if (argc == 2)
+    if (argc >= 2)
     {
         if (!strcmp(argv[1], "--help"))
         {
@@ -95,6 +96,9 @@ int main(
                 stdout);
             return MR_NOERROR;
         }
+
+        if (argc > 2)
+            mr_handle_args(argv + 2, (mr_byte_t)argc - 2);
 
 #if defined(__GNUC__) || defined(__clang__)
         FILE *file = fopen(argv[1], "rb");
@@ -210,6 +214,32 @@ mr_byte_t mr_compile(
     free(afile);
     free(command);
     return MR_NOERROR;
+}
+
+void mr_handle_args(mr_str_ct argv[], mr_byte_t size)
+{
+    mr_str_ct str;
+    for (; size; size--)
+    {
+        str = *argv++;
+
+        if (!strcmp(str, "-O0"))
+            mr_config_opt(0);
+        else if (!strcmp(str, "-O1"))
+            mr_config_opt(1);
+        else if (!strcmp(str, "-O2"))
+            mr_config_opt(2);
+        else if (!strcmp(str, "-O3"))
+            mr_config_opt(3);
+        else if (!strcmp(str, "-Ou"))
+            mr_config_opt(4);
+        else if (!strcmp(str, "-Od"))
+            mr_config_opt((mr_byte_t)-1);
+        else if (!strcmp(str, "-Od-const-fold"))
+            _mr_config.opt_const_fold = MR_FALSE;
+        else if (!strcmp(str, "-Oe-const-fold"))
+            _mr_config.opt_const_fold = MR_TRUE;
+    }
 }
 
 void mr_print_help(
