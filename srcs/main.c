@@ -223,22 +223,26 @@ void mr_handle_args(mr_str_ct argv[], mr_byte_t size)
     {
         str = *argv++;
 
-        if (!strcmp(str, "-O0"))
-            mr_config_opt(0);
+        if (!strcmp(str, "-Od"))
+            mr_config_opt(OPT_LEVELD);
+        else if (!strcmp(str, "-O0"))
+            mr_config_opt(OPT_LEVEL0);
         else if (!strcmp(str, "-O1"))
-            mr_config_opt(1);
+            mr_config_opt(OPT_LEVEL1);
         else if (!strcmp(str, "-O2"))
-            mr_config_opt(2);
+            mr_config_opt(OPT_LEVEL2);
         else if (!strcmp(str, "-O3"))
-            mr_config_opt(3);
+            mr_config_opt(OPT_LEVEL3);
         else if (!strcmp(str, "-Ou"))
-            mr_config_opt(4);
-        else if (!strcmp(str, "-Od"))
-            mr_config_opt((mr_byte_t)-1);
+            mr_config_opt(OPT_LEVELU);
         else if (!strcmp(str, "-Od-const-fold"))
             _mr_config.opt_const_fold = MR_FALSE;
         else if (!strcmp(str, "-Oe-const-fold"))
             _mr_config.opt_const_fold = MR_TRUE;
+        else if (!strcmp(str, "-Od-rem-useless"))
+            _mr_config.opt_rem_useless = MR_FALSE;
+        else if (!strcmp(str, "-Oe-rem-useless"))
+            _mr_config.opt_rem_useless = MR_TRUE;
     }
 }
 

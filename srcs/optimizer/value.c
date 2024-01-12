@@ -8,7 +8,8 @@ mr_str_ct mr_value_label[MR_VALUE_COUNT] =
     "VALUE_CINT"
 };
 
-void mr_value_print(mr_node_t *value);
+void mr_value_print(
+    mr_node_t *value);
 
 #ifndef __MR_DEBUG__
 inline void mr_value_cint_print(mr_value_cint_t *value)
@@ -54,7 +55,8 @@ void mr_values_print(
     }
 }
 
-void mr_value_print(mr_node_t *value)
+void mr_value_print(
+    mr_node_t *value)
 {
     if (value->type < MR_NODE_COUNT)
     {

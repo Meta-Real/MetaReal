@@ -39,10 +39,7 @@ mr_byte_t mr_visit(
     switch (node->type)
     {
     case MR_NODE_INT:
-        if (_mr_config.opt_const_fold)
-            return mr_visit_int(node);
-        else
-            return MR_NOERROR;
+        return mr_visit_int(node);
     case MR_NODE_BINARY_OP:
         return mr_visit_binary_op(error, node);
     case MR_NODE_EX_DOLLAR_METHOD:
@@ -55,8 +52,11 @@ mr_byte_t mr_visit(
 mr_byte_t mr_visit_int(
     mr_node_t *node)
 {
-    mr_node_data_t *data = (mr_node_data_t*)node->value;
+    node->useless = _mr_config.opt_rem_useless;
+    if (!_mr_config.opt_const_fold)
+        return MR_NOERROR;
 
+    mr_node_data_t *data = (mr_node_data_t*)node->value;
     mr_value_cint_t *value = malloc(sizeof(mr_value_cint_t));
     if (!value)
         return MR_ERROR_NOT_ENOUGH_MEMORY;
@@ -76,6 +76,7 @@ mr_byte_t mr_visit_int(
 mr_byte_t mr_visit_binary_op(
     mr_invalid_semantic_t *error, mr_node_t *node)
 {
+    node->useless = _mr_config.opt_rem_useless;
     mr_node_binary_op_t *data = (mr_node_binary_op_t*)node->value;
 
     mr_byte_t retcode = mr_visit(error, &data->left);
@@ -114,6 +115,12 @@ mr_byte_t mr_visit_ex_dollar_method(
     else if (data->name.size == 13 &&
         !memcmp(data->name.data, "oe_const_fold", 13 * sizeof(mr_chr_t)))
         _mr_config.opt_const_fold = MR_TRUE;
+    else if (data->name.size == 14 &&
+        !memcmp(data->name.data, "od_rem_useless", 14 * sizeof(mr_chr_t)))
+        _mr_config.opt_rem_useless = MR_FALSE;
+    else if (data->name.size == 14 &&
+        !memcmp(data->name.data, "oe_rem_useless", 14 * sizeof(mr_chr_t)))
+        _mr_config.opt_rem_useless = MR_TRUE;
     else
     {
         *error = (mr_invalid_semantic_t){malloc(25 + data->name.size),

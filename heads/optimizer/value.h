@@ -19,6 +19,8 @@ copies or substantial portions of the Software.
 
 #include <parser/node.h>
 
+#define MR_VALUE_USELESS 1
+
 enum __MR_VALUE_ENUM
 {
     MR_VALUE_CINT = MR_NODE_COUNT,

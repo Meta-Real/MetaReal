@@ -15,21 +15,27 @@ copies or substantial portions of the Software.
 */
 
 #include <config.h>
+#include <string.h>
 
-mr_config_t _mr_config =
-{
-    MR_TRUE
-};
+mr_config_t _mr_config = {MR_TRUE, MR_FALSE};
 
 void mr_config_opt(mr_byte_t olevel)
 {
     switch (olevel)
     {
-    case (mr_byte_t)-1:
-        _mr_config.opt_const_fold = MR_FALSE;
+    case OPT_LEVELD:
+        memset(&_mr_config, 0, sizeof(mr_config_t));
+        break;
+    case OPT_LEVEL0:
+        _mr_config.opt_const_fold = MR_TRUE;
+        _mr_config.opt_rem_useless = MR_FALSE;
+        break;
+    case OPT_LEVELU:
+        memset(&_mr_config, 1, sizeof(mr_config_t));
         break;
     default:
         _mr_config.opt_const_fold = MR_TRUE;
+        _mr_config.opt_rem_useless = MR_TRUE;
         break;
     }
 }

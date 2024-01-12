@@ -16,6 +16,7 @@ copies or substantial portions of the Software.
 
 #include <generator/generator.h>
 #include <optimizer/value.h>
+#include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -30,7 +31,7 @@ enum __MR_GENERATOR_REG_ENUM
 #define MR_GENERATOR_REG_COUNT (MR_GENERATOR_REG_RAX + 1)
 
 mr_str_ct mr_generator_reg_label[MR_GENERATOR_REG_COUNT] =
-{ "rcx", "rdx", "rax" };
+{"rcx", "rdx", "rax"};
 
 #pragma pack(push, 1)
 struct __MR_GENERATOR_DATA_T
@@ -53,11 +54,11 @@ typedef struct __MR_GENERATOR_DATA_T mr_generator_data_t;
 void mr_generator_visit(
     mr_generator_data_t *data, mr_node_t *node);
 void mr_generator_visit_int(
-    mr_generator_data_t *data, mr_node_data_t *node);
+    mr_generator_data_t *data, mr_node_t *node);
 void mr_generator_visit_binary_op(
-    mr_generator_data_t *data, mr_node_binary_op_t *node);
+    mr_generator_data_t *data, mr_node_t *node);
 void mr_generator_visit_cint(
-    mr_generator_data_t *data, mr_value_cint_t *node);
+    mr_generator_data_t *data, mr_node_t *node);
 
 mr_generator_t mr_generator(
     mr_node_t *nodes, mr_long_t size, mr_long_t alloc)
@@ -122,29 +123,38 @@ void mr_generator_visit(
     case MR_NODE_NULL:
         break;
     case MR_NODE_INT:
-        mr_generator_visit_int(data, node->value);
+        mr_generator_visit_int(data, node);
         break;
     case MR_NODE_BINARY_OP:
-        mr_generator_visit_binary_op(data, node->value);
+        mr_generator_visit_binary_op(data, node);
         break;
     case MR_VALUE_CINT:
-        mr_generator_visit_cint(data, node->value);
+        mr_generator_visit_cint(data, node);
         break;
     }
 }
 
 void mr_generator_visit_int(
-    mr_generator_data_t *data, mr_node_data_t *node)
+    mr_generator_data_t *data, mr_node_t *node)
 {
-    mr_short_t size = 11 + (mr_short_t)strlen(node->data);
+    mr_node_data_t *vnode = (mr_node_data_t*)node->value;
+
+    if (node->useless)
+    {
+        free(vnode->data);
+        free(vnode);
+        return;
+    }
+
+    mr_short_t size = 11 + (mr_short_t)strlen(vnode->data);
     if (data->size + size > data->alloc)
     {
         mr_str_t block = realloc(data->data,
             (data->alloc += data->exalloc + size) * sizeof(mr_chr_t));
         if (!block)
         {
-            free(node->data);
-            free(node);
+            free(vnode->data);
+            free(vnode);
 
             data->error = MR_ERROR_NOT_ENOUGH_MEMORY;
             return;
@@ -170,20 +180,34 @@ void mr_generator_visit_int(
     }
 
     sprintf(data->data + data->size, "\tmov\t%s, %s\n",
-        mr_generator_reg_label[data->reg], node->data);
+        mr_generator_reg_label[data->reg], vnode->data);
     data->size += size;
 
-    free(node->data);
-    free(node);
+    free(vnode->data);
+    free(vnode);
 }
 
 void mr_generator_visit_binary_op(
-    mr_generator_data_t *data, mr_node_binary_op_t *node)
+    mr_generator_data_t *data, mr_node_t *node)
 {
-    mr_generator_visit(data, &node->left);
+    mr_node_binary_op_t *vnode = (mr_node_binary_op_t*)node->value;
+
+    mr_generator_visit(data, &vnode->left);
+    if (data->error != MR_NOERROR)
+    {
+        mr_value_free(&vnode->right);
+        free(vnode);
+        return;
+    }
+
     mr_byte_t reg = data->reg;
 
-    mr_generator_visit(data, &node->right);
+    mr_generator_visit(data, &vnode->right);
+    if (data->error != MR_NOERROR || node->useless)
+    {
+        free(vnode);
+        return;
+    }
 
     if (data->size + 14 > data->alloc)
     {
@@ -191,7 +215,7 @@ void mr_generator_visit_binary_op(
             (data->alloc += data->exalloc + 14) * sizeof(mr_chr_t));
         if (!block)
         {
-            free(node);
+            free(vnode);
 
             data->error = MR_ERROR_NOT_ENOUGH_MEMORY;
             return;
@@ -200,7 +224,7 @@ void mr_generator_visit_binary_op(
         data->data = block;
     }
 
-    switch (node->op)
+    switch (vnode->op)
     {
     case MR_TOKEN_PLUS:
         sprintf(data->data + data->size, "\tadd\t%s, %s\n",
@@ -236,15 +260,23 @@ void mr_generator_visit_binary_op(
     }
 
     data->reg = reg;
-    free(node);
+    free(vnode);
 }
 
 void mr_generator_visit_cint(
-    mr_generator_data_t *data, mr_value_cint_t *node)
+    mr_generator_data_t *data, mr_node_t *node)
 {
+    if (node->useless)
+    {
+        free(node->value);
+        return;
+    }
+
+    mr_value_cint_t *vnode = (mr_value_cint_t*)node->value;
+
     // We can do better
     mr_short_t size = 1;
-    mr_longlong_t copy = node->value;
+    mr_longlong_t copy = vnode->value;
     while (copy /= 10)
         size++;
 
@@ -255,7 +287,7 @@ void mr_generator_visit_cint(
             (data->alloc += data->exalloc + size) * sizeof(mr_chr_t));
         if (!block)
         {
-            free(node);
+            free(vnode);
 
             data->error = MR_ERROR_NOT_ENOUGH_MEMORY;
             return;
@@ -281,8 +313,8 @@ void mr_generator_visit_cint(
     }
 
     sprintf(data->data + data->size, "\tmov\t%s, %" PRIu64 "\n",
-        mr_generator_reg_label[data->reg], node->value);
+        mr_generator_reg_label[data->reg], vnode->value);
     data->size += size;
 
-    free(node);
+    free(vnode);
 }

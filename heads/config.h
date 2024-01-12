@@ -19,10 +19,18 @@ copies or substantial portions of the Software.
 
 #include <defs.h>
 
+#define OPT_LEVELD ((mr_byte_t)-1)
+#define OPT_LEVEL0 ((mr_byte_t)0)
+#define OPT_LEVEL1 ((mr_byte_t)1)
+#define OPT_LEVEL2 ((mr_byte_t)2)
+#define OPT_LEVEL3 ((mr_byte_t)3)
+#define OPT_LEVELU ((mr_byte_t)4)
+
 #pragma pack(push, 1)
 struct __MR_CONFIG_T
 {
-    mr_bool_t opt_const_fold;
+    mr_bool_t opt_const_fold : 1;
+    mr_bool_t opt_rem_useless : 1;
 };
 #pragma pack(pop)
 typedef struct __MR_CONFIG_T mr_config_t;

@@ -26,6 +26,8 @@ struct __MR_NODE_T
 {
     mr_byte_t type;
     mr_ptr_t value;
+
+    mr_byte_t useless : 1;
 };
 #pragma pack(pop)
 typedef struct __MR_NODE_T mr_node_t;
