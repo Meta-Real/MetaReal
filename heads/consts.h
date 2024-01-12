@@ -86,4 +86,8 @@
 */
 #define MR_PARSER_DOLLAR_METHOD_MAX (MR_PARSER_DOLLAR_METHOD_SIZE * 4)
 
+/* Generator */
+
+#define MR_GENERATOR_STRING_FACTOR 16
+
 #endif

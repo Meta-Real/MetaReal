@@ -1,5 +1,3 @@
-# MetaReal Compiler version 0.1.0
-
 cmake_minimum_required(VERSION 3.20)
 
 set(CMAKE_C_STANDARD 99)
@@ -19,18 +17,22 @@ if (CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
     set(CMAKE_C_FLAGS_DEBUG "-g")
     set(CMAKE_C_FLAGS_RELEASE "-O3")
 elseif (MSVC)
-    set(CMAKE_C_FLAGS "/Wall /wd5045 /wd5105 /wd4324 /wd4820 /wd4710 /wd4711 /Zi /WX")
+    set(CMAKE_C_FLAGS "/Wall /wd5045 /wd5105 /wd4324 /wd4820 /wd4710 /wd4711 /wd4996 /Zi /WX")
     set(CMAKE_C_FLAGS_DEBUG "/Od")
     set(CMAKE_C_FLAGS_RELEASE "/O2")
+
+    enable_language(ASM_MASM)
+    add_compile_definitions(__MR_ASSEMBLER__="${CMAKE_ASM_MASM_COMPILER}")
 endif()
 
 add_executable(MetaReal
     srcs/main.c srcs/error/error.c
     srcs/lexer/lexer.c srcs/lexer/token.c
     srcs/parser/parser.c srcs/parser/node.c
-    srcs/optimizer/optimizer.c srcs/optimizer/value.c srcs/optimizer/operation.c)
+    srcs/optimizer/optimizer.c srcs/optimizer/value.c srcs/optimizer/operation.c
+    srcs/generator/generator.c)
 target_include_directories(MetaReal PRIVATE "heads")
 target_compile_definitions(MetaReal PRIVATE $<$<CONFIG:Debug>:__MR_DEBUG__>)
 
-add_custom_command(TARGET MetaReal POST_BUILD COMMAND "${CMAKE_COMMAND}"
+add_custom_command(TARGET MetaReal POST_BUILD COMMAND ${CMAKE_COMMAND}
     -E copy $<TARGET_FILE:MetaReal> ..)

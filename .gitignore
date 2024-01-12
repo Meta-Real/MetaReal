@@ -1,7 +1,9 @@
 .*
 *.o
+*.obj
 *.exe
 *.out
+*.lnk
 
 build
 
