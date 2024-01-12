@@ -119,6 +119,8 @@ void mr_generator_visit(
 {
     switch (node->type)
     {
+    case MR_NODE_NULL:
+        break;
     case MR_NODE_INT:
         mr_generator_visit_int(data, node->value);
         break;
@@ -278,7 +280,7 @@ void mr_generator_visit_cint(
         data->rax_free = MR_FALSE;
     }
 
-    sprintf(data->data + data->size, "\tmov\t%s, %llu\n",
+    sprintf(data->data + data->size, "\tmov\t%s, %" PRIu64 "\n",
         mr_generator_reg_label[data->reg], node->value);
     data->size += size;
 

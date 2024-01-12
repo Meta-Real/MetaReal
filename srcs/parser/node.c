@@ -322,7 +322,7 @@ void mr_node_func_call_print(mr_node_func_call_t *node)
     if (!node->size)
         return;
 
-    printf(", [%hu]{", node->size);
+    printf(", [%" PRIu8 "]{", node->size);
 
     if (node->args->name.data)
     {
@@ -356,7 +356,7 @@ void mr_node_dollar_method_print(mr_node_dollar_method_t *node)
 {
     mr_node_datac_print(&node->name);
 
-    printf(", [%hu]{", node->size);
+    printf(", [%" PRIu8 "]{", node->size);
     mr_node_print(node->params);
 
     for (mr_byte_t i = 1; i != node->size; i++)

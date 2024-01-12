@@ -141,7 +141,7 @@ int main(
 
         if (retcode == MR_ERROR_NOT_ENOUGH_MEMORY)
             fputs("Internal error: not enough memory.\n", stderr);
-        printf("!!\n"); // dummy
+        printf("END\n"); // dummy
         return retcode;
     }
 

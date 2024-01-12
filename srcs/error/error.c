@@ -23,10 +23,11 @@ copies or substantial portions of the Software.
 #include <stdlib.h>
 #include <stdio.h>
 
-#define MR_INVALID_SEMANTIC_COUNT (MR_INVALID_SEMANTIC_DIVBYZERO + 1)
+#define MR_INVALID_SEMANTIC_COUNT (MR_INVALID_SEMANTIC_DOLLAR_METHOD + 1)
 mr_str_ct mr_invalid_semantic_label[MR_INVALID_SEMANTIC_COUNT] =
 {
-    "DivByZeroError"
+    "DivByZeroError",
+    "InvalidDollarMethod"
 };
 
 void mr_illegal_chr_print(
@@ -46,7 +47,7 @@ void mr_illegal_chr_print(
             ln++;
         }
 
-    fprintf(stderr, "File \"%s\", line %u\n\n", fname, ln);
+    fprintf(stderr, "File \"%s\", line %" PRIu32 "\n\n", fname, ln);
 
     mr_chr_t chr;
     for (i = start; i != size; i++)
@@ -81,7 +82,7 @@ void mr_invalid_syntax_print(
             ln++;
         }
 
-    fprintf(stderr, "File \"%s\", line %u\n\n", fname, ln);
+    fprintf(stderr, "File \"%s\", line %" PRIu32 "\n\n", fname, ln);
 
     mr_long_t eidx = error->idx + error->size;
     if (eidx > size)
@@ -140,7 +141,7 @@ void mr_invalid_semantic_print(
             ln++;
         }
 
-    fprintf(stderr, "File \"%s\", line %u\n\n", fname, ln);
+    fprintf(stderr, "File \"%s\", line %" PRIu32 "\n\n", fname, ln);
 
     mr_long_t eidx = error->idx + error->size;
     if (eidx > size)
