@@ -87,8 +87,6 @@ enum __MR_NODE_ENUM
  * @struct __MR_NODE_DATA_T
  * Data structure that holds information about a single string. \n
  * Constant version of this structure is used for identifiers.
- * @var mr_str_t __MR_NODE_DATA_T::data
- * Data of the structure (can be constant or allocated).
  * @var mr_long_t __MR_NODE_DATA_T::sidx
  * Index of the start of data.
  * @var mr_short_t __MR_NODE_DATA_T::size
@@ -97,8 +95,6 @@ enum __MR_NODE_ENUM
 #pragma pack(push, 1)
 struct __MR_NODE_DATA_T
 {
-    mr_str_t data;
-
     mr_long_t sidx;
     mr_short_t size;
 };

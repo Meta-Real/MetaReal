@@ -17,7 +17,7 @@ copies or substantial portions of the Software.
 #include <config.h>
 #include <string.h>
 
-mr_config_t _mr_config = {MR_TRUE, MR_FALSE};
+mr_config_t _mr_config = {NULL, 0, NULL, MR_TRUE, MR_FALSE};
 
 void mr_config_opt(mr_byte_t olevel)
 {
@@ -31,7 +31,7 @@ void mr_config_opt(mr_byte_t olevel)
         _mr_config.opt_rem_useless = MR_FALSE;
         break;
     case OPT_LEVELU:
-        memset(&_mr_config, 1, sizeof(mr_config_t));
+        memset(&_mr_config, 255, sizeof(mr_config_t));
         break;
     default:
         _mr_config.opt_const_fold = MR_TRUE;

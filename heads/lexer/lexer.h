@@ -35,15 +35,10 @@ typedef struct __MR_LEXER_T mr_lexer_t;
  * the function returns an error.
  * @param res
  * Result of the lexer process (it contains both error and tokens list).
- * @param code
- * The source code.
- * @param alloc
- * Default allocation size. \n
- * The \a tokens list will be allocated and reallocated with respect to this parameter.
  * @return It returns a code which indicates if the process was successful or not. \n
  * If the process was successful, it returns 0. Otherwise, it returns the error code.
 */
 mr_byte_t mr_lexer(
-    mr_lexer_t *res, mr_str_ct code, mr_long_t alloc);
+    mr_lexer_t *res);
 
 #endif

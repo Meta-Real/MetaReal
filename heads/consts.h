@@ -37,26 +37,6 @@
 */
 #define MR_LEXER_TOKENS_CHUNK 16
 
-/**
- * Default size of a \a number in characters (for allocation).
-*/
-#define MR_LEXER_NUMBER_SIZE 16
-
-/**
- * Default size of the <em>exponent of a number</em> in characters (for allocation).
-*/
-#define MR_LEXER_NUMBER_EXP_SIZE 4
-
-/**
- * Default size of a \a string in characters (for allocation).
-*/
-#define MR_LEXER_STR_SIZE 128
-
-/**
- * Default size of a <em>formatted string</em> in characters (for allocation).
-*/
-#define MR_LEXER_FSTR_SIZE 128
-
 /* Parser */
 
 /**

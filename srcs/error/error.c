@@ -20,6 +20,7 @@ copies or substantial portions of the Software.
 */
 
 #include <error/error.h>
+#include <config.h>
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -31,8 +32,7 @@ mr_str_ct mr_invalid_semantic_label[MR_INVALID_SEMANTIC_COUNT] =
 };
 
 void mr_illegal_chr_print(
-    mr_illegal_chr_t *error,
-    mr_str_ct fname, mr_str_ct code, mr_long_t size)
+    mr_illegal_chr_t *error)
 {
     if (error->expected)
         fprintf(stderr, "\nExpected Character Error: '%c'\n", error->chr);
@@ -41,19 +41,19 @@ void mr_illegal_chr_print(
 
     mr_long_t i, ln = 1, start = 0;
     for (i = 0; i != error->pos; i++)
-        if (code[i] == '\n')
+        if (_mr_config.code[i] == '\n')
         {
             start = i + 1;
             ln++;
         }
 
-    fprintf(stderr, "File \"%s\", line %" PRIu32 "\n\n", fname, ln);
+    fprintf(stderr, "File \"%s\", line %" PRIu32 "\n\n", _mr_config.fname, ln);
 
     mr_chr_t chr;
-    for (i = start; i != size; i++)
+    for (i = start; i != _mr_config.size; i++)
     {
-        chr = code[i];
-        if (chr == '\n' || (chr == '\r' && code[i + 1] == '\n'))
+        chr = _mr_config.code[i];
+        if (chr == '\n' || (chr == '\r' && _mr_config.code[i + 1] == '\n'))
             break;
 
         fputc(chr, stderr);
@@ -66,8 +66,7 @@ void mr_illegal_chr_print(
 }
 
 void mr_invalid_syntax_print(
-    mr_invalid_syntax_t *error,
-    mr_str_ct fname, mr_str_ct code, mr_long_t size)
+    mr_invalid_syntax_t *error)
 {
     if (error->detail)
         fprintf(stderr, "\nInvalid Syntax Error: %s\n", error->detail);
@@ -76,18 +75,18 @@ void mr_invalid_syntax_print(
 
     mr_long_t i, ln = 1, start = 0;
     for (i = 0; i != error->idx; i++)
-        if (code[i] == '\n')
+        if (_mr_config.code[i] == '\n')
         {
             start = i + 1;
             ln++;
         }
 
-    fprintf(stderr, "File \"%s\", line %" PRIu32 "\n\n", fname, ln);
+    fprintf(stderr, "File \"%s\", line %" PRIu32 "\n\n", _mr_config.fname, ln);
 
     mr_long_t eidx = error->idx + error->size;
-    if (eidx > size)
+    if (eidx > _mr_config.size)
     {
-        fwrite(code, sizeof(mr_chr_t), size - start, stderr);
+        fwrite(_mr_config.code, sizeof(mr_chr_t), _mr_config.size - start, stderr);
         fputc('\n', stderr);
 
         for (i = start; i != error->idx; i++)
@@ -98,10 +97,10 @@ void mr_invalid_syntax_print(
 
     mr_long_t end;
     mr_chr_t chr;
-    for (end = start; end != size; end++)
+    for (end = start; end != _mr_config.size; end++)
     {
-        chr = code[end];
-        if (chr == '\n' || (chr == '\r' && code[end + 1] == '\n'))
+        chr = _mr_config.code[end];
+        if (chr == '\n' || (chr == '\r' && _mr_config.code[end + 1] == '\n'))
             break;
 
         fputc(chr, stderr);
@@ -125,8 +124,7 @@ void mr_invalid_syntax_print(
 }
 
 void mr_invalid_semantic_print(
-    mr_invalid_semantic_t *error,
-    mr_str_ct fname, mr_str_ct code, mr_long_t size)
+    mr_invalid_semantic_t *error)
 {
     fprintf(stderr, "\nInvalid Semantic Error: %s\n", error->detail);
     free(error->detail);
@@ -135,18 +133,18 @@ void mr_invalid_semantic_print(
 
     mr_long_t i, ln = 1, start = 0;
     for (i = 0; i != error->idx; i++)
-        if (code[i] == '\n')
+        if (_mr_config.code[i] == '\n')
         {
             start = i + 1;
             ln++;
         }
 
-    fprintf(stderr, "File \"%s\", line %" PRIu32 "\n\n", fname, ln);
+    fprintf(stderr, "File \"%s\", line %" PRIu32 "\n\n", _mr_config.fname, ln);
 
     mr_long_t eidx = error->idx + error->size;
-    if (eidx > size)
+    if (eidx > _mr_config.size)
     {
-        fwrite(code, sizeof(mr_chr_t), size - start, stderr);
+        fwrite(_mr_config.code, sizeof(mr_chr_t), _mr_config.size - start, stderr);
         fputc('\n', stderr);
 
         for (i = start; i != error->idx; i++)
@@ -157,10 +155,10 @@ void mr_invalid_semantic_print(
 
     mr_long_t end;
     mr_chr_t chr;
-    for (end = start; end != size; end++)
+    for (end = start; end != _mr_config.size; end++)
     {
-        chr = code[end];
-        if (chr == '\n' || (chr == '\r' && code[end + 1] == '\n'))
+        chr = _mr_config.code[end];
+        if (chr == '\n' || (chr == '\r' && _mr_config.code[end + 1] == '\n'))
             break;
 
         fputc(chr, stderr);

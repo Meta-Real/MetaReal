@@ -4,6 +4,7 @@
 */
 
 #include <parser/parser.h>
+#include <config.h>
 #include <stdlib.h>
 #include <consts.h>
 
@@ -16,14 +17,6 @@
     do                                                                         \
     {                                                                          \
         mr_nodes_free(res->nodes, res->size);                                  \
-                                                                               \
-        while (ptr->type != MR_TOKEN_EOF)                                      \
-        {                                                                      \
-            if (ptr->type != MR_TOKEN_IDENTIFIER && ptr->type != MR_TOKEN_CHR) \
-                free(ptr->value);                                              \
-                                                                               \
-            ptr++;                                                             \
-        }                                                                      \
         free(tokens);                                                          \
     } while (0)
 
@@ -93,21 +86,21 @@
  * @param typ
  * Type of the generated node.
 */
-#define mr_parser_node_data_sub(typ)                                                  \
-    do                                                                                \
-    {                                                                                 \
-        mr_node_t *node = res->nodes + res->size;                                     \
-        node->type = typ;                                                             \
-                                                                                      \
-        mr_node_data_t *value = malloc(sizeof(mr_node_data_t));                       \
-        if (!value)                                                                   \
-            return MR_ERROR_NOT_ENOUGH_MEMORY;                                        \
-                                                                                      \
-        *value = (mr_node_data_t){(*tokens)->value, (*tokens)->idx, (*tokens)->size}; \
-        node->value = value;                                                          \
-                                                                                      \
-        mr_parser_advance_newline;                                                    \
-        return MR_NOERROR;                                                            \
+#define mr_parser_node_data_sub(typ)                                \
+    do                                                              \
+    {                                                               \
+        mr_node_t *node = res->nodes + res->size;                   \
+        node->type = typ;                                           \
+                                                                    \
+        mr_node_data_t *value = malloc(sizeof(mr_node_data_t));     \
+        if (!value)                                                 \
+            return MR_ERROR_NOT_ENOUGH_MEMORY;                      \
+                                                                    \
+        *value = (mr_node_data_t){(*tokens)->idx, (*tokens)->size}; \
+        node->value = value;                                        \
+                                                                    \
+        mr_parser_advance_newline;                                  \
+        return MR_NOERROR;                                          \
     } while (0)
 
 /**
@@ -279,8 +272,10 @@ mr_byte_t mr_parser_core(mr_parser_t *res, mr_token_t **tokens);
 */
 mr_byte_t mr_parser_handle_dollar_method(mr_parser_t *res, mr_token_t **tokens);
 
-mr_byte_t mr_parser(mr_parser_t *res, mr_token_t *tokens, mr_long_t alloc)
+mr_byte_t mr_parser(
+    mr_parser_t *res, mr_token_t *tokens)
 {
+    mr_long_t alloc = _mr_config.size / MR_PARSER_NODES_CHUNK + 1;
     res->nodes = malloc(alloc * sizeof(mr_node_t));
     if (!res->nodes)
         return MR_ERROR_NOT_ENOUGH_MEMORY;
@@ -494,11 +489,11 @@ mr_byte_t mr_parser_call(mr_parser_t *res, mr_token_t **tokens)
             block = value->args + value->size;
             if ((*tokens)->type == MR_TOKEN_IDENTIFIER && (*tokens)[1].type == MR_TOKEN_ASSIGN)
             {
-                block->name = (mr_node_data_t){(*tokens)->value, (*tokens)->idx, (*tokens)->size};
+                block->name = (mr_node_data_t){(*tokens)->idx, (*tokens)->size};
                 (*tokens) += 2;
             }
             else
-                block->name.data = NULL;
+                block->name.size = 0;
 
             retcode = mr_parser_or(res, tokens);
             if (retcode != MR_NOERROR)
@@ -597,7 +592,7 @@ mr_byte_t mr_parser_handle_dollar_method(mr_parser_t *res, mr_token_t **tokens)
         return MR_ERROR_BAD_FORMAT;
     }
 
-    mr_node_data_t name = {(*tokens)->value, (*tokens)->idx, (*tokens)->size};
+    mr_node_data_t name = {(*tokens)->idx, (*tokens)->size};
     mr_parser_advance_newline;
 
     if ((*tokens)->type != MR_TOKEN_COLON)

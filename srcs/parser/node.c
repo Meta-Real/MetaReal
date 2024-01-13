@@ -4,6 +4,7 @@
 */
 
 #include <parser/node.h>
+#include <config.h>
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -21,21 +22,6 @@ mr_str_ct mr_node_label[MR_NODE_COUNT] =
 };
 
 /**
- * It deallocates a \a mr_node_data_t structure from memory.
- * @param node
- * Node value that needs to be deallocated.
-*/
-#ifndef __MR_DEBUG__
-inline void mr_node_data_free(mr_node_data_t *node)
-#else
-void mr_node_data_free(mr_node_data_t *node)
-#endif
-{
-    free(node->data);
-    free(node);
-}
-
-/**
  * It prints out a \a mr_node_data_t structure into <em>outstream</em>. \n
  * \a outstream is \a stdout by default and
  * can be changed with the \a $set_outstream dollar method.
@@ -48,24 +34,7 @@ inline void mr_node_data_print(mr_node_data_t *node)
 void mr_node_data_print(mr_node_data_t *node)
 #endif
 {
-    fputs(node->data, stdout);
-}
-
-/**
- * It prints out a constant \a mr_node_data_t structure into
- * \a outstream according to its size. \n
- * \a outstream is \a stdout by default and
- * can be changed with the \a $set_outstream dollar method.
- * @param node
- * Node value that needs to be printed.
-*/
-#ifndef __MR_DEBUG__
-inline void mr_node_datac_print(mr_node_data_t *node)
-#else
-void mr_node_datac_print(mr_node_data_t *node)
-#endif
-{
-    fwrite(node->data, sizeof(mr_chr_t), node->size, stdout);
+    fwrite(_mr_config.code + node->sidx, sizeof(mr_chr_t), node->size, stdout);
 }
 
 /**
@@ -194,7 +163,7 @@ inline void mr_node_ex_dollar_method_print(mr_node_ex_dollar_method_t *node)
 void mr_node_ex_dollar_method_print(mr_node_ex_dollar_method_t *node)
 #endif
 {
-    mr_node_datac_print(&node->name);
+    mr_node_data_print(&node->name);
 }
 
 void mr_node_free(mr_node_t *node)
@@ -206,17 +175,15 @@ void mr_node_free(mr_node_t *node)
     case MR_NODE_INT:
     case MR_NODE_FLOAT:
     case MR_NODE_IMAGINARY:
-        mr_node_data_free(node->value);
+    case MR_NODE_VAR_ACCESS:
+    case MR_NODE_EX_DOLLAR_METHOD:
+        free(node->value);
         return;
     case MR_NODE_BINARY_OP:
         mr_node_binary_op_free(node->value);
         return;
     case MR_NODE_UNARY_OP:
         mr_node_unary_op_free(node->value);
-        return;
-    case MR_NODE_VAR_ACCESS:
-    case MR_NODE_EX_DOLLAR_METHOD:
-        free(node->value);
         return;
     case MR_NODE_FUNC_CALL:
         mr_node_func_call_free(node->value);
@@ -261,7 +228,7 @@ void mr_node_print(mr_node_t *node)
         mr_node_unary_op_print(node->value);
         break;
     case MR_NODE_VAR_ACCESS:
-        mr_node_datac_print(node->value);
+        mr_node_data_print(node->value);
         break;
     case MR_NODE_FUNC_CALL:
         mr_node_func_call_print(node->value);
@@ -324,10 +291,10 @@ void mr_node_func_call_print(mr_node_func_call_t *node)
 
     printf(", [%" PRIu8 "]{", node->size);
 
-    if (node->args->name.data)
+    if (node->args->name.size)
     {
         putchar('"');
-        mr_node_datac_print(&node->args->name);
+        mr_node_data_print(&node->args->name);
         fputs("\": ", stdout);
     }
 
@@ -339,10 +306,10 @@ void mr_node_func_call_print(mr_node_func_call_t *node)
         fputs(", ", stdout);
 
         arg = node->args + i;
-        if (arg->name.data)
+        if (arg->name.size)
         {
             putchar('"');
-            mr_node_datac_print(&arg->name);
+            mr_node_data_print(&arg->name);
             fputs("\": ", stdout);
         }
 
@@ -354,7 +321,7 @@ void mr_node_func_call_print(mr_node_func_call_t *node)
 
 void mr_node_dollar_method_print(mr_node_dollar_method_t *node)
 {
-    mr_node_datac_print(&node->name);
+    mr_node_data_print(&node->name);
 
     printf(", [%" PRIu8 "]{", node->size);
     mr_node_print(node->params);

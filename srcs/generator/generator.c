@@ -141,19 +141,17 @@ void mr_generator_visit_int(
 
     if (node->useless)
     {
-        free(vnode->data);
         free(vnode);
         return;
     }
 
-    mr_short_t size = 11 + (mr_short_t)strlen(vnode->data);
+    mr_short_t size = 11 + vnode->size;
     if (data->size + size > data->alloc)
     {
         mr_str_t block = realloc(data->data,
             (data->alloc += data->exalloc + size) * sizeof(mr_chr_t));
         if (!block)
         {
-            free(vnode->data);
             free(vnode);
 
             data->error = MR_ERROR_NOT_ENOUGH_MEMORY;
@@ -179,11 +177,10 @@ void mr_generator_visit_int(
         data->rax_free = MR_FALSE;
     }
 
-    sprintf(data->data + data->size, "\tmov\t%s, %s\n",
-        mr_generator_reg_label[data->reg], vnode->data);
+    sprintf(data->data + data->size, "\tmov\t%s, %.*s\n",
+        mr_generator_reg_label[data->reg], vnode->size, _mr_config.code + vnode->sidx);
     data->size += size;
 
-    free(vnode->data);
     free(vnode);
 }
 

@@ -61,14 +61,17 @@ mr_byte_t mr_visit_int(
     if (!value)
         return MR_ERROR_NOT_ENOUGH_MEMORY;
 
-    value->value = strtoull(data->data, NULL, 10);
+    // We can do better
+    value->value = 0;
+    for (mr_byte_t i = 0; i < data->size; i++)
+        value->value = 10 * value->value + _mr_config.code[data->sidx + i] - '0';
+
     value->sidx = data->sidx;
     value->size = data->size;
 
     node->type = MR_VALUE_CINT;
     node->value = value;
 
-    free(data->data);
     free(data);
     return MR_NOERROR;
 }
@@ -110,16 +113,16 @@ mr_byte_t mr_visit_ex_dollar_method(
     mr_node_ex_dollar_method_t *data = (mr_node_ex_dollar_method_t*)node->value;
 
     if (data->name.size == 13 &&
-        !memcmp(data->name.data, "od_const_fold", 13 * sizeof(mr_chr_t)))
+        !memcmp(_mr_config.code + data->sidx, "od_const_fold", 13 * sizeof(mr_chr_t)))
         _mr_config.opt_const_fold = MR_FALSE;
     else if (data->name.size == 13 &&
-        !memcmp(data->name.data, "oe_const_fold", 13 * sizeof(mr_chr_t)))
+        !memcmp(_mr_config.code + data->sidx, "oe_const_fold", 13 * sizeof(mr_chr_t)))
         _mr_config.opt_const_fold = MR_TRUE;
     else if (data->name.size == 14 &&
-        !memcmp(data->name.data, "od_rem_useless", 14 * sizeof(mr_chr_t)))
+        !memcmp(_mr_config.code + data->sidx, "od_rem_useless", 14 * sizeof(mr_chr_t)))
         _mr_config.opt_rem_useless = MR_FALSE;
     else if (data->name.size == 14 &&
-        !memcmp(data->name.data, "oe_rem_useless", 14 * sizeof(mr_chr_t)))
+        !memcmp(_mr_config.code + data->sidx, "oe_rem_useless", 14 * sizeof(mr_chr_t)))
         _mr_config.opt_rem_useless = MR_TRUE;
     else
     {
@@ -130,7 +133,7 @@ mr_byte_t mr_visit_ex_dollar_method(
             return MR_ERROR_NOT_ENOUGH_MEMORY;
 
         sprintf(error->detail, "Invalid dollar method \"%.*s\"",
-            data->name.size, data->name.data);
+            data->name.size, _mr_config.code + data->name.sidx);
         return MR_ERROR_BAD_FORMAT;
     }
 

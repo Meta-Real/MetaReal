@@ -107,16 +107,9 @@ enum __MR_INVALID_SEMANTIC_ENUM
  * can be changed with the \a $set_errstream dollar method.
  * @param error
  * Illegal character error that needs to be displayed.
- * @param fname
- * Name of the source file.
- * @param code
- * The source code.
- * @param size
- * Size of the source code.
 */
 void mr_illegal_chr_print(
-    mr_illegal_chr_t *error,
-    mr_str_ct fname, mr_str_ct code, mr_long_t size);
+    mr_illegal_chr_t *error);
 
 /**
  * It displays the \a error in <em>errstream</em>. \n
@@ -145,19 +138,11 @@ void mr_illegal_chr_print(
  * can be changed with the \a $set_errstream dollar method.
  * @param error
  * Invalid syntax error that needs to be displayed.
- * @param fname
- * Name of the source file.
- * @param code
- * The source code.
- * @param size
- * Size of the source code.
 */
 void mr_invalid_syntax_print(
-    mr_invalid_syntax_t *error,
-    mr_str_ct fname, mr_str_ct code, mr_long_t size);
+    mr_invalid_syntax_t *error);
 
 void mr_invalid_semantic_print(
-    mr_invalid_semantic_t *error,
-    mr_str_ct fname, mr_str_ct code, mr_long_t size);
+    mr_invalid_semantic_t *error);
 
 #endif

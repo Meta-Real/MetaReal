@@ -29,6 +29,10 @@ copies or substantial portions of the Software.
 #pragma pack(push, 1)
 struct __MR_CONFIG_T
 {
+    mr_str_ct code;
+    mr_long_t size;
+    mr_str_ct fname;
+
     mr_bool_t opt_const_fold : 1;
     mr_bool_t opt_rem_useless : 1;
 };

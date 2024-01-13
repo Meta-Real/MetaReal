@@ -21,18 +21,15 @@
  * Tokens only hold the information about one symbol or word at a time. Not the grammar.
  * @var mr_byte_t __MR_TOKEN_T::type
  * Type of the <em>token</em>.
- * @var mr_str_t __MR_TOKEN_T::value
- * Value of the \a token (will be NULL if the token is a symbol).
  * @var mr_long_t __MR_TOKEN_T::idx
  * Index of the start of token.
  * @var mr_short_t __MR_TOKEN_T::size
- * Size of the \a value (this parameter is also used for debugging).
+ * Size of the token in characters (this parameter is also used for debugging).
 */
 #pragma pack(push, 1)
 struct __MR_TOKEN_T
 {
     mr_byte_t type;
-    mr_str_t value;
 
     mr_long_t idx;
     mr_short_t size;
@@ -477,24 +474,16 @@ extern mr_str_ct mr_token_type[MR_TOKEN_TYPE_COUNT];
 extern mr_byte_t mr_token_type_size[MR_TOKEN_TYPE_COUNT];
 
 /**
- * It deallocates the tokens list and its elements from memory. \n
- * The \a tokens must end with an EOF token (null terminator). \n
- * Only words value will be deallocated from memory (not symbols).
- * @param tokens
- * List of tokens.
-*/
-void mr_tokens_free(
-    mr_token_t *tokens);
-
-/**
  * It prints out the tokens list into <em>outstream</em>.
  * The \a tokens must end with an EOF token (null terminator). \n
  * \a outstream is \a stdout by default and
  * can be changed with the \a $set_outstream dollar method.
+ * @param code
+ * The source code.
  * @param tokens
  * List of tokens.
 */
 void mr_tokens_print(
-    mr_token_t *tokens);
+    mr_str_ct code, mr_token_t *tokens);
 
 #endif

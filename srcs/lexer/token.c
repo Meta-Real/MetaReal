@@ -83,41 +83,13 @@ mr_str_ct mr_token_type[MR_TOKEN_TYPE_COUNT] =
 mr_byte_t mr_token_type_size[MR_TOKEN_TYPE_COUNT] =
 { 6, 3, 5, 7, 4, 3, 3, 4, 5, 4, 3, 4 };
 
-void mr_tokens_free(
-    mr_token_t *tokens)
-{
-    mr_token_t *ptr = tokens;
-
-    while (ptr->type != MR_TOKEN_EOF)
-    {
-        if (ptr->type != MR_TOKEN_IDENTIFIER && ptr->type != MR_TOKEN_CHR)
-            free(ptr->value);
-
-        ptr++;
-    }
-
-    free(tokens);
-}
-
 void mr_tokens_print(
-    mr_token_t *tokens)
+    mr_str_ct code, mr_token_t *tokens)
 {
     do
     {
-        fputs(mr_token_label[tokens->type], stdout);
-
-        if (tokens->type == MR_TOKEN_CHR)
-            fprintf(stdout, ": '%c'", (mr_chr_t)(uintptr_t)tokens->value);
-        else if (tokens->value)
-        {
-            fputs(": ", stdout);
-
-            if (tokens->type == MR_TOKEN_IDENTIFIER)
-                fwrite(tokens->value, sizeof(mr_chr_t), tokens->size, stdout);
-            else
-                fputs(tokens->value, stdout);
-        }
-
+        fprintf(stdout, "%s: ", mr_token_label[tokens->type]);
+        fwrite(code + tokens->idx, sizeof(mr_chr_t), tokens->size, stdout);
         fputc('\n', stdout);
     } while (tokens++->type != MR_TOKEN_EOF);
 }

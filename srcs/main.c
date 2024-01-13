@@ -39,25 +39,17 @@ copies or substantial portions of the Software.
  * </pre>
  * Also, debugger will debug the \a code during compilation process (if enabled). \n
  * Dollar methods are handled with a different mechanism in the optimization step.
- * @param fname
- * Name of the source file (for displaying errors).
- * @param code
- * The source code.
- * @param size
- * Size of the source code in characters.
  * @return It returns a code which indicates if process was successful or not. \n
  * If process was successful, it returns 0. Otherwise, it returns the error code.
 */
-mr_byte_t mr_compile(
-    mr_str_ct fname, mr_str_ct code, mr_long_t size);
+mr_byte_t mr_compile(void);
 
 void mr_handle_args(mr_str_ct argv[], mr_byte_t size);
 
 /**
  * It prints out the help information (called with a \--help flag).
 */
-void mr_print_help(
-    void);
+void mr_print_help(void);
 
 int main(
     int argc, mr_str_ct argv[])
@@ -136,7 +128,11 @@ int main(
         fclose(file);
         code[size] = '\0';
 
-        mr_byte_t retcode = mr_compile(argv[1], code, size);
+        _mr_config.code = code;
+        _mr_config.size = size;
+        _mr_config.fname = argv[1];
+
+        mr_byte_t retcode = mr_compile();
         free(code);
 
         if (retcode == MR_ERROR_NOT_ENOUGH_MEMORY)
@@ -152,15 +148,18 @@ int main(
     return MR_ERROR_BAD_COMMAND;
 }
 
-mr_byte_t mr_compile(
-    mr_str_ct fname, mr_str_ct code, mr_long_t size)
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+mr_byte_t mr_compile(void)
 {
+    LARGE_INTEGER s, e;
+    QueryPerformanceCounter(&s);
     mr_lexer_t lexer;
-    mr_byte_t retcode = mr_lexer(&lexer, code, size / MR_LEXER_TOKENS_CHUNK + 1);
+    mr_byte_t retcode = mr_lexer(&lexer);
     if (retcode != MR_NOERROR)
     {
         if (retcode == MR_ERROR_BAD_FORMAT)
-            mr_illegal_chr_print(&lexer.error, fname, code, size);
+            mr_illegal_chr_print(&lexer.error);
         return retcode;
     }
 
@@ -171,11 +170,11 @@ mr_byte_t mr_compile(
     }
 
     mr_parser_t parser;
-    retcode = mr_parser(&parser, lexer.tokens, size / MR_PARSER_NODES_CHUNK + 1);
+    retcode = mr_parser(&parser, lexer.tokens);
     if (retcode != MR_NOERROR)
     {
         if (retcode == MR_ERROR_BAD_FORMAT)
-            mr_invalid_syntax_print(&parser.error, fname, code, size);
+            mr_invalid_syntax_print(&parser.error);
         return retcode;
     }
 
@@ -184,7 +183,7 @@ mr_byte_t mr_compile(
     if (retcode != MR_NOERROR)
     {
         if (retcode == MR_ERROR_BAD_FORMAT)
-            mr_invalid_semantic_print(&optimizer.error, fname, code, size);
+            mr_invalid_semantic_print(&optimizer.error);
         return retcode;
     }
 
@@ -194,9 +193,12 @@ mr_byte_t mr_compile(
     if (generator.error != MR_NOERROR)
         return generator.error;
 
-    mr_byte_t asize = 5 + (mr_byte_t)strlen(fname);
+    QueryPerformanceCounter(&e);
+    printf("%lf msc\n", (e.QuadPart - s.QuadPart) / 10000.0);
+
+    mr_byte_t asize = 5 + (mr_byte_t)strlen(_mr_config.fname);
     mr_str_t afile = malloc(asize);
-    sprintf(afile, "%s.asm", fname);
+    sprintf(afile, "%s.asm", _mr_config.fname);
 
     FILE *file;
     fopen_s(&file, afile, "w");
@@ -246,8 +248,7 @@ void mr_handle_args(mr_str_ct argv[], mr_byte_t size)
     }
 }
 
-void mr_print_help(
-    void)
+void mr_print_help(void)
 {
     fputs(
         "MetaReal [output] [files] [options]\nOptions:\n"
