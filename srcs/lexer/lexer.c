@@ -966,7 +966,9 @@ void mr_lexer_generate_fstr(
 
         mr_lexer_tokens_realloc;
 
+        token = data->tokens + fidx;
         token->size = (mr_short_t)(data->idx - token->idx);
+
         token = data->tokens + data->size++;
         token->type = MR_TOKEN_FSTR_END;
         return;

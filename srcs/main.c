@@ -148,12 +148,8 @@ int main(
     return MR_ERROR_BAD_COMMAND;
 }
 
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
 mr_byte_t mr_compile(void)
 {
-    LARGE_INTEGER s, e;
-    QueryPerformanceCounter(&s);
     mr_lexer_t lexer;
     mr_byte_t retcode = mr_lexer(&lexer);
     if (retcode != MR_NOERROR)
@@ -194,15 +190,16 @@ mr_byte_t mr_compile(void)
     if (retcode != MR_NOERROR)
         return retcode;
 
-    QueryPerformanceCounter(&e);
-    printf("%lf msc\n", (e.QuadPart - s.QuadPart) / 10000.0);
-
     mr_byte_t asize = 5 + (mr_byte_t)strlen(_mr_config.fname);
     mr_str_t afile = malloc(asize);
     sprintf(afile, "%s.asm", _mr_config.fname);
 
+#if defined(__GNUC__) || defined(__clang__)
+    FILE *file = fopen(afile, "w");
+#elif defined(_MSC_VER)
     FILE *file;
-    fopen_s(&file, afile, "w");
+    fopen_s(&file, afile, "w")
+#endif
     fwrite(generator.data, sizeof(mr_chr_t), generator.size, file);
     fclose(file);
 

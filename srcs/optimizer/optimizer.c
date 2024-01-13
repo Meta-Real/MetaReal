@@ -127,7 +127,7 @@ mr_byte_t mr_visit_ex_dollar_method(
         _mr_config.opt_rem_useless = MR_TRUE;
     else
     {
-        *error = (mr_invalid_semantic_t){malloc(25 + data->name.size),
+        *error = (mr_invalid_semantic_t){malloc(25 + data->name.size), MR_FALSE,
             MR_INVALID_SEMANTIC_DOLLAR_METHOD,
             data->name.idx, (mr_byte_t)data->name.size};
         if (!error->detail)

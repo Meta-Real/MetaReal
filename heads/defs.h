@@ -23,6 +23,7 @@ copies or substantial portions of the Software.
 #define __MR_DEFS__
 
 #include <inttypes.h>
+#include <stddef.h>
 
 typedef uint8_t mr_bool_t;
 typedef uint8_t mr_byte_t;
