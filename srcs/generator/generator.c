@@ -60,17 +60,14 @@ void mr_generator_visit_binary_op(
 void mr_generator_visit_cint(
     mr_generator_data_t *data, mr_node_t *node);
 
-mr_generator_t mr_generator(
+mr_byte_t mr_generator(
+    mr_generator_t *res,
     mr_node_t *nodes, mr_long_t size, mr_long_t alloc)
 {
     mr_generator_data_t data = {malloc(alloc), 16, alloc, alloc, MR_NOERROR,
         MR_TRUE, MR_TRUE, MR_TRUE, MR_TRUE};
     if (!data.data)
-    {
-        mr_generator_t res;
-        res.error = MR_ERROR_NOT_ENOUGH_MEMORY;
-        return res;
-    }
+        return MR_ERROR_NOT_ENOUGH_MEMORY;
 
     memcpy(data.data, ".code\nmain proc\n", 16 * sizeof(mr_chr_t));
 
@@ -84,9 +81,7 @@ mr_generator_t mr_generator(
             free(nodes);
             free(data.data);
 
-            mr_generator_t res;
-            res.error = data.error;
-            return res;
+            return data.error;
         }
     }
 
@@ -98,10 +93,7 @@ mr_generator_t mr_generator(
         {
             free(nodes);
             free(data.data);
-
-            mr_generator_t res;
-            res.error = MR_ERROR_NOT_ENOUGH_MEMORY;
-            return res;
+            return MR_ERROR_NOT_ENOUGH_MEMORY;
         }
 
         data.data = block;
@@ -110,9 +102,9 @@ mr_generator_t mr_generator(
     memcpy(data.data + data.size,
         "\tmov\trax, 0\n\tret\nmain endp\nend\n", 31 * sizeof(mr_chr_t));
 
-    mr_generator_t res = {data.data, size, MR_NOERROR};
+    *res = (mr_generator_t){data.data, size};
     free(nodes);
-    return res;
+    return MR_NOERROR;
 }
 
 void mr_generator_visit(

@@ -41,7 +41,7 @@ struct __MR_ILLEGAL_CHR_T
     mr_chr_t chr;
     mr_bool_t expected;
 
-    mr_long_t pos;
+    mr_long_t idx;
 };
 #pragma pack(pop)
 typedef struct __MR_ILLEGAL_CHR_T mr_illegal_chr_t;
@@ -51,7 +51,7 @@ typedef struct __MR_ILLEGAL_CHR_T mr_illegal_chr_t;
  * The structure that holds information about an invalid syntax in the code. \n
  * This structure is used by the parser.
  * @var mr_str_ct __MR_INVALID_SYNTAX_T::detail
- * Detail of the error. \n
+ * Details of the error. \n
  * This field will be NULL if the thrown error is a general invalid syntax error.
  * @var mr_long_t __MR_INVALID_SYNTAX_T::idx
  * Index of the start of the error.
@@ -69,11 +69,28 @@ struct __MR_INVALID_SYNTAX_T
 #pragma pack(pop)
 typedef struct __MR_INVALID_SYNTAX_T mr_invalid_syntax_t;
 
+/**
+ * @struct __MR_INVALID_SEMANTIC_T
+ * The structure that holds information about an invalid semantic in the code. \n
+ * This structure is used by the optimizer.
+ * @var mr_str_t __MR_INVALID_SEMANTIC_T::detail
+ * Details of the error. \n
+ * This field can be static or dynamic string.
+ * @var mr_bool_t __MR_INVALID_SEMANTIC_T::is_const
+ * It determines that the \a detail is dynamic and should be freed or not.
+ * @var mr_byte_t __MR_INVALID_SEMANTIC_T::type
+ * Type of the error (from __MR_INVALID_SEMANTIC_ENUM).
+ * @var mr_long_t __MR_INVALID_SEMANTIC_T::idx
+ * Index of the start of the error.
+ * @var mr_byte_t __MR_INVALID_SEMANTIC_T::size
+ * Size of the error in characters.
+*/
 #pragma pack(push, 1)
 struct __MR_INVALID_SEMANTIC_T
 {
     mr_str_t detail;
-    mr_byte_t type;
+    mr_bool_t is_static : 1;
+    mr_byte_t type : 7;
 
     mr_long_t idx;
     mr_byte_t size;
@@ -81,6 +98,15 @@ struct __MR_INVALID_SEMANTIC_T
 #pragma pack(pop)
 typedef struct __MR_INVALID_SEMANTIC_T mr_invalid_semantic_t;
 
+/**
+ * @enum __MR_INVALID_SEMANTIC_ENUM
+ * List of valid semantic error types. \n
+ * These are default semantic error types and customized types are stored differently.
+ * @var __MR_INVALID_SEMANTIC_ENUM::MR_INVALID_SEMANTIC_DIVBYZERO
+ * Division by zero error.
+ * @var __MR_INVALID_SEMANTIC_ENUM::MR_INVALID_SEMANTIC_DOLLAR_METHOD
+ * Calling invalid dollar method error.
+*/
 enum __MR_INVALID_SEMANTIC_ENUM
 {
     MR_INVALID_SEMANTIC_DIVBYZERO,
@@ -88,7 +114,7 @@ enum __MR_INVALID_SEMANTIC_ENUM
 };
 
 /**
- * It displays the \a error in <em>errstream</em>. \n
+ * It displays an illegal character error in <em>errstream</em>. \n
  * Example of an illegal character error:
  * <pre>
  * Illegal Character Error: '@'
@@ -112,7 +138,7 @@ void mr_illegal_chr_print(
     mr_illegal_chr_t *error);
 
 /**
- * It displays the \a error in <em>errstream</em>. \n
+ * It displays an invalid syntax error in <em>errstream</em>. \n
  * Example of a general invalid syntax error:
  * <pre>
  * Invalid Syntax Error
@@ -129,7 +155,7 @@ void mr_illegal_chr_print(
  * </pre>
  * Example of an invalid syntax error that surpasses one line:
  * <pre>
- * Invalid Syntax Error: Expected EOF (End Of File) or EOL (End Of Line)
+ * Invalid Syntax Error: Expected EOF
  * File "test.mr", line 6 \n
  * int a = 9 "multiline string
  *           ^^^^^^^^^^^^^^^^^~
@@ -142,6 +168,29 @@ void mr_illegal_chr_print(
 void mr_invalid_syntax_print(
     mr_invalid_syntax_t *error);
 
+/**
+ * It displays an invalid semantic error in <em>errstream</em>. \n
+ * Example of an invalid semantic error:
+ * <pre>
+ * Invalid Semantic Error: 'val' is not defined
+ * Error Type: NotDefError
+ * File "test.mr", line 2 \n
+ * print(12 + val)
+ *            ^^^
+ * </pre>
+ * Example of an invalid semantic error that surpasses one line:
+ * <pre>
+ * Invalid Semantic Error: Illegal operation (*) between <int> and <none>.
+ * Error Type: IllegalOpError
+ * File "test.mr", line 102 \n
+ * var = 83 * if true {
+ *            ^^^^^^^^^~
+ * </pre>
+ * \a errstream is \a stderr by default and
+ * can be changed with the \a $set_errstream dollar method.
+ * @param error
+ * Invalid semantic error that needs to be displayed.
+*/
 void mr_invalid_semantic_print(
     mr_invalid_semantic_t *error);
 

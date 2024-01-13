@@ -1,6 +1,7 @@
 
 #include <optimizer/optimizer.h>
 #include <optimizer/operation.h>
+#include <lexer/token.h>
 #include <config.h>
 #include <stdlib.h>
 #include <string.h>
@@ -95,7 +96,7 @@ mr_byte_t mr_visit_binary_op(
 
     switch (data->op)
     {
-    case MR_TOKEN_PLUS:
+    case mrtoken:
         mr_operation_add(&data->left, &data->right);
         break;
     }

@@ -4,6 +4,7 @@
 */
 
 #include <parser/node.h>
+#include <lexer/token.h>
 #include <config.h>
 #include <stdlib.h>
 #include <stdio.h>

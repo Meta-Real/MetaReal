@@ -1,3 +1,19 @@
+/*
+MIT License
+
+Copyright (c) 2023 MetaReal
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+*/
+
 /**
  * @file token.h
  * Definitions of the token data structure which is used by the lexer to organize code. \n
@@ -20,9 +36,9 @@
  *    Examples: numbers (int, float, complex), strings, identifiers, etc. \n
  * Tokens only hold the information about one symbol or word at a time. Not the grammar.
  * @var mr_byte_t __MR_TOKEN_T::type
- * Type of the <em>token</em>.
+ * Type of the token.
  * @var mr_long_t __MR_TOKEN_T::idx
- * Index of the start of token.
+ * Starting index of the token.
  * @var mr_short_t __MR_TOKEN_T::size
  * Size of the token in characters (this parameter is also used for debugging).
 */
@@ -39,7 +55,7 @@ typedef struct __MR_TOKEN_T mr_token_t;
 
 /**
  * @enum __MR_TOKEN_ENUM
- * Complete list of valid token types. \n
+ * List of valid token types. \n
  * Note: <em>MR_TOKEN_PLUS</em>, <em>MR_TOKEN_MINUS<em>,
  * <em>MR_TOKEN_B_NOT</em>, and <em>MR_TOKEN_NOT_K</em>
  * are placed together for performance reasons (see the \a mr_parser_factor function).
@@ -457,7 +473,7 @@ extern mr_str_ct mr_token_label[MR_TOKEN_COUNT];
 extern mr_str_ct mr_token_keyword[MR_TOKEN_KEYWORD_COUNT];
 
 /**
- * List of keyword sizes. \n
+ * List of keyword sizes (in characters). \n
  * Used by the keyword detection subroutine to optimize the search process.
 */
 extern mr_byte_t mr_token_keyword_size[MR_TOKEN_KEYWORD_COUNT];
@@ -468,7 +484,7 @@ extern mr_byte_t mr_token_keyword_size[MR_TOKEN_KEYWORD_COUNT];
 extern mr_str_ct mr_token_type[MR_TOKEN_TYPE_COUNT];
 
 /**
- * List of type sizes. \n
+ * List of type sizes (in characters). \n
  * Used by the type detection subroutine to optimize the search process.
 */
 extern mr_byte_t mr_token_type_size[MR_TOKEN_TYPE_COUNT];
@@ -478,12 +494,10 @@ extern mr_byte_t mr_token_type_size[MR_TOKEN_TYPE_COUNT];
  * The \a tokens must end with an EOF token (null terminator). \n
  * \a outstream is \a stdout by default and
  * can be changed with the \a $set_outstream dollar method.
- * @param code
- * The source code.
  * @param tokens
  * List of tokens.
 */
 void mr_tokens_print(
-    mr_str_ct code, mr_token_t *tokens);
+    mr_token_t *tokens);
 
 #endif

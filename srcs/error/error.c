@@ -40,7 +40,7 @@ void mr_illegal_chr_print(
         fprintf(stderr, "\nIllegal Character Error: '%c'\n", error->chr);
 
     mr_long_t i, ln = 1, start = 0;
-    for (i = 0; i != error->pos; i++)
+    for (i = 0; i != error->idx; i++)
         if (_mr_config.code[i] == '\n')
         {
             start = i + 1;
@@ -60,7 +60,7 @@ void mr_illegal_chr_print(
     }
     fputc('\n', stderr);
 
-    for (i = start; i != error->pos; i++)
+    for (i = start; i != error->idx; i++)
         fputc(' ', stderr);
     fputs("^\n\n", stderr);
 }

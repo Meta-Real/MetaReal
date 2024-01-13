@@ -1,3 +1,19 @@
+/*
+MIT License
+
+Copyright (c) 2023 MetaReal
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+*/
+
 /**
  * @file node.h
  * Definitions of the node data structure which is used by the parser to
@@ -8,18 +24,19 @@
 #ifndef __MR_NODE__
 #define __MR_NODE__
 
-#include <lexer/token.h>
 #include <defs.h>
 
 /** 
  * @struct __MR_NODE_T
  * Sentence equivalent in the compilation process. \n
- * The node contains all the information needed about
- * an statement and the grammar of that statement.
+ * The node contains all the information needed about an statement
+ * and the grammar of that statement.
  * @var mr_byte_t __MR_NODE_T::type
  * Type of the <em>node</em>.
  * @var mr_ptr_t __MR_NODE_T::value
  * Value of the <em>node</em>.
+ * @var mr_bool_t __MR_NODE_T::useless
+ * Determines if the node is useless or not (used for optimization purposes).
 */
 #pragma pack(push, 1)
 struct __MR_NODE_T
@@ -27,16 +44,16 @@ struct __MR_NODE_T
     mr_byte_t type;
     mr_ptr_t value;
 
-    mr_byte_t useless : 1;
+    mr_bool_t useless : 1;
 };
 #pragma pack(pop)
 typedef struct __MR_NODE_T mr_node_t;
 
 /**
  * @enum __MR_NODE_ENUM
- * Complete list of valid node types.
- * @var __MR_NODE_ENUM::MR_NODE_NULL
- * \a NULL node type.
+ * List of valid node types.
+ * @var __MR_NODE_ENUM::MR_NODE_NONE
+ * \a None node type.
  * @var __MR_NODE_ENUM::MR_NODE_INT
  * \a Integer node type.
  * @var __MR_NODE_ENUM::MR_NODE_FLOAT
@@ -60,7 +77,7 @@ typedef struct __MR_NODE_T mr_node_t;
 */
 enum __MR_NODE_ENUM
 {
-    MR_NODE_NULL,
+    MR_NODE_NONE,
 
     MR_NODE_INT,
     MR_NODE_FLOAT,
@@ -87,15 +104,15 @@ enum __MR_NODE_ENUM
  * @struct __MR_NODE_DATA_T
  * Data structure that holds information about a single string. \n
  * Constant version of this structure is used for identifiers.
- * @var mr_long_t __MR_NODE_DATA_T::sidx
- * Index of the start of data.
+ * @var mr_long_t __MR_NODE_DATA_T::idx
+ * Starting index of data.
  * @var mr_short_t __MR_NODE_DATA_T::size
- * Size of the \a data (this parameter is also used for debugging).
+ * Size of the \a data in characters (this parameter is also used for debugging).
 */
 #pragma pack(push, 1)
 struct __MR_NODE_DATA_T
 {
-    mr_long_t sidx;
+    mr_long_t idx;
     mr_short_t size;
 };
 #pragma pack(pop)
@@ -130,7 +147,7 @@ typedef struct __MR_NODE_BINARY_OP_T mr_node_binary_op_t;
  * @var mr_node_t __MR_NODE_UNARY_OP_T::operand
  * Operand of the operation.
  * @var mr_long_t __MR_NODE_UNARY_OP_T::sidx
- * Index of the start of the operation.
+ * Starting index of operation.
 */
 #pragma pack(push, 1)
 struct __MR_NODE_UNARY_OP_T
@@ -149,7 +166,7 @@ typedef struct __MR_NODE_UNARY_OP_T mr_node_unary_op_t;
  * This structure is used by the \a __MR_NODE_FUNC_CALL_T data structure.
  * @var mr_node_data_t __MR_NODE_CALL_ARG_T::name
  * Name of the argument. \n
- * If the name is not specified in the code, the \a data field of this parameter will be NULL.
+ * If the name is not specified in the code, the \a size field of this parameter will be zero.
  * @var mr_node_t __MR_NODE_CALL_ARG_T::value
  * Value of the argument.
 */
@@ -172,7 +189,7 @@ typedef struct __MR_NODE_CALL_ARG_T mr_node_call_arg_t;
  * @var mr_byte_t __MR_NODE_FUNC_CALL_T::size
  * Size of the \a args list.
  * @var mr_long_t __MR_NODE_FUNC_CALL_T::eidx
- * Index of the end of the function call.
+ * Ending index of function call.
 */
 #pragma pack(push, 1)
 struct __MR_NODE_FUNC_CALL_T
@@ -193,7 +210,7 @@ typedef struct __MR_NODE_FUNC_CALL_T mr_node_func_call_t;
  * @var mr_node_t __MR_NODE_EX_FUNC_CALL_T::func
  * Function that needs to be called.
  * @var mr_long_t __MR_NODE_EX_FUNC_CALL_T::eidx
- * Index of the end of the function call.
+ * Ending index of function call.
 */
 #pragma pack(push, 1)
 struct __MR_NODE_EX_FUNC_CALL_T
@@ -214,7 +231,7 @@ typedef struct __MR_NODE_EX_FUNC_CALL_T mr_node_ex_func_call_t;
  * @var mr_byte_t __MR_NODE_DOLLAR_METHOD_T::size
  * Size of the \a params list.
  * @var mr_long_t __MR_NODE_DOLLAR_METHOD_T::sidx
- * Index of the start of the dollar method call.
+ * Starting index of dollar method call.
 */
 #pragma pack(push, 1)
 struct __MR_NODE_DOLLAR_METHOD_T
@@ -235,7 +252,7 @@ typedef struct __MR_NODE_DOLLAR_METHOD_T mr_node_dollar_method_t;
  * @var mr_node_data_t __MR_NODE_EX_DOLLAR_METHOD_T::name
  * Name of the dollar method.
  * @var mr_long_t __MR_NODE_EX_DOLLAR_METHOD_T::sidx
- * Index of the start of the dollar method call.
+ * Starting index of dollar method call.
 */
 #pragma pack(push, 1)
 struct __MR_NODE_EX_DOLLAR_METHOD_T
@@ -251,7 +268,8 @@ typedef struct __MR_NODE_EX_DOLLAR_METHOD_T mr_node_ex_dollar_method_t;
  * @param node
  * Node that needs to be deallocated.
 */
-void mr_node_free(mr_node_t *node);
+void mr_node_free(
+    mr_node_t *node);
 
 /**
  * It deallocates the nodes list and its elements from memory according to its size.
@@ -260,7 +278,8 @@ void mr_node_free(mr_node_t *node);
  * @param size
  * Size of the \a nodes list.
 */
-void mr_nodes_free(mr_node_t *nodes, mr_long_t size);
+void mr_nodes_free(
+    mr_node_t *nodes, mr_long_t size);
 
 /**
  * It prints out a single node passed as a pointer into <em>outstream</em>. \n
@@ -269,7 +288,8 @@ void mr_nodes_free(mr_node_t *nodes, mr_long_t size);
  * @param node
  * A node that needs to be printed.
 */
-void mr_node_print(mr_node_t *node);
+void mr_node_print(
+    mr_node_t *node);
 
 /**
  * It prints out the nodes list into \a outstream according to its size. \n
@@ -280,13 +300,15 @@ void mr_node_print(mr_node_t *node);
  * @param size
  * Size of the \a nodes list.
 */
-void mr_nodes_print(mr_node_t *nodes, mr_long_t size);
+void mr_nodes_print(
+    mr_node_t *nodes, mr_long_t size);
 
 /**
  * It deallocates a \a mr_node_func_call_t structure from memory.
  * @param node
  * Node value that needs to be deallocated.
 */
-void mr_node_func_call_free(mr_node_func_call_t *node);
+void mr_node_func_call_free(
+    mr_node_func_call_t *node);
 
 #endif

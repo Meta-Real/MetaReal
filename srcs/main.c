@@ -187,11 +187,12 @@ mr_byte_t mr_compile(void)
         return retcode;
     }
 
-    mr_generator_t generator = mr_generator(
-        optimizer.values, optimizer.size, optimizer.size * MR_GENERATOR_STRING_FACTOR);
+    mr_generator_t generator;
+    retcode = mr_generator(&generator, optimizer.values,
+        optimizer.size, optimizer.size * MR_GENERATOR_STRING_FACTOR);
 
-    if (generator.error != MR_NOERROR)
-        return generator.error;
+    if (retcode != MR_NOERROR)
+        return retcode;
 
     QueryPerformanceCounter(&e);
     printf("%lf msc\n", (e.QuadPart - s.QuadPart) / 10000.0);
