@@ -35,7 +35,7 @@ inline void mr_node_data_print(mr_node_data_t *node)
 void mr_node_data_print(mr_node_data_t *node)
 #endif
 {
-    fwrite(_mr_config.code + node->sidx, sizeof(mr_chr_t), node->size, stdout);
+    fwrite(_mr_config.code + node->idx, sizeof(mr_chr_t), node->size, stdout);
 }
 
 /**
@@ -171,7 +171,7 @@ void mr_node_free(mr_node_t *node)
 {
     switch (node->type)
     {
-    case MR_NODE_NULL:
+    case MR_NODE_NONE:
         return;
     case MR_NODE_INT:
     case MR_NODE_FLOAT:
@@ -208,7 +208,7 @@ void mr_nodes_free(mr_node_t *nodes, mr_long_t size)
 void mr_node_print(mr_node_t *node)
 {
     printf("(%s", mr_node_label[node->type]);
-    if (node->type == MR_NODE_NULL)
+    if (node->type == MR_NODE_NONE)
     {
         putchar(')');
         return;

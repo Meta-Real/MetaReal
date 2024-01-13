@@ -24,14 +24,12 @@ void mr_config_opt(mr_byte_t olevel)
     switch (olevel)
     {
     case OPT_LEVELD:
-        memset(&_mr_config, 0, sizeof(mr_config_t));
+        _mr_config.opt_const_fold = MR_FALSE;
+        _mr_config.opt_rem_useless = MR_FALSE;
         break;
     case OPT_LEVEL0:
         _mr_config.opt_const_fold = MR_TRUE;
         _mr_config.opt_rem_useless = MR_FALSE;
-        break;
-    case OPT_LEVELU:
-        memset(&_mr_config, 255, sizeof(mr_config_t));
         break;
     default:
         _mr_config.opt_const_fold = MR_TRUE;

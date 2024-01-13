@@ -32,7 +32,7 @@ void mr_operation_add(
             mr_value_cint_t *rvalue = right->value;
             lvalue->value += rvalue->value;
 
-            lvalue->size = (mr_short_t)(rvalue->sidx - lvalue->sidx) + rvalue->size;
+            lvalue->size = (mr_short_t)(rvalue->idx - lvalue->idx) + rvalue->size;
             free(rvalue);
             return;
         }

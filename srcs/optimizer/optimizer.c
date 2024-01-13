@@ -65,9 +65,9 @@ mr_byte_t mr_visit_int(
     // We can do better
     value->value = 0;
     for (mr_byte_t i = 0; i < data->size; i++)
-        value->value = 10 * value->value + _mr_config.code[data->sidx + i] - '0';
+        value->value = 10 * value->value + _mr_config.code[data->idx + i] - '0';
 
-    value->sidx = data->sidx;
+    value->idx = data->idx;
     value->size = data->size;
 
     node->type = MR_VALUE_CINT;
@@ -96,7 +96,7 @@ mr_byte_t mr_visit_binary_op(
 
     switch (data->op)
     {
-    case mrtoken:
+    case MR_TOKEN_PLUS:
         mr_operation_add(&data->left, &data->right);
         break;
     }
@@ -129,16 +129,16 @@ mr_byte_t mr_visit_ex_dollar_method(
     {
         *error = (mr_invalid_semantic_t){malloc(25 + data->name.size),
             MR_INVALID_SEMANTIC_DOLLAR_METHOD,
-            data->name.sidx, (mr_byte_t)data->name.size};
+            data->name.idx, (mr_byte_t)data->name.size};
         if (!error->detail)
             return MR_ERROR_NOT_ENOUGH_MEMORY;
 
         sprintf(error->detail, "Invalid dollar method \"%.*s\"",
-            data->name.size, _mr_config.code + data->name.sidx);
+            data->name.size, _mr_config.code + data->name.idx);
         return MR_ERROR_BAD_FORMAT;
     }
 
-    node->type = MR_NODE_NULL;
+    node->type = MR_NODE_NONE;
 
     free(data);
     return MR_NOERROR;

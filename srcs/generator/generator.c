@@ -16,6 +16,7 @@ copies or substantial portions of the Software.
 
 #include <generator/generator.h>
 #include <optimizer/value.h>
+#include <lexer/token.h>
 #include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -112,7 +113,7 @@ void mr_generator_visit(
 {
     switch (node->type)
     {
-    case MR_NODE_NULL:
+    case MR_NODE_NONE:
         break;
     case MR_NODE_INT:
         mr_generator_visit_int(data, node);
@@ -170,7 +171,7 @@ void mr_generator_visit_int(
     }
 
     sprintf(data->data + data->size, "\tmov\t%s, %.*s\n",
-        mr_generator_reg_label[data->reg], vnode->size, _mr_config.code + vnode->sidx);
+        mr_generator_reg_label[data->reg], vnode->size, _mr_config.code + vnode->idx);
     data->size += size;
 
     free(vnode);
