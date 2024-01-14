@@ -32,7 +32,7 @@ void mr_value_free(
     switch (value->type)
     {
     case MR_VALUE_CINT:
-        free(value->value);
+        free(value->value.ptr);
         break;
     }
 }
@@ -69,7 +69,7 @@ void mr_value_print(
     switch (value->type)
     {
     case MR_VALUE_CINT:
-        mr_value_cint_print(value->value);
+        mr_value_cint_print(value->value.ptr);
         break;
     }
 

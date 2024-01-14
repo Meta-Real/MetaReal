@@ -130,23 +130,17 @@ void mr_generator_visit(
 void mr_generator_visit_int(
     mr_generator_data_t *data, mr_node_t *node)
 {
-    mr_node_data_t *vnode = (mr_node_data_t*)node->value;
-
+    mr_node_data_t vnode = node->value.data;
     if (node->useless)
-    {
-        free(vnode);
         return;
-    }
 
-    mr_short_t size = 11 + vnode->size;
+    mr_short_t size = 11 + vnode.size;
     if (data->size + size > data->alloc)
     {
         mr_str_t block = realloc(data->data,
             (data->alloc += data->exalloc + size) * sizeof(mr_chr_t));
         if (!block)
         {
-            free(vnode);
-
             data->error = MR_ERROR_NOT_ENOUGH_MEMORY;
             return;
         }
@@ -171,16 +165,14 @@ void mr_generator_visit_int(
     }
 
     sprintf(data->data + data->size, "\tmov\t%s, %.*s\n",
-        mr_generator_reg_label[data->reg], vnode->size, _mr_config.code + vnode->idx);
+        mr_generator_reg_label[data->reg], vnode.size, _mr_config.code + vnode.idx);
     data->size += size;
-
-    free(vnode);
 }
 
 void mr_generator_visit_binary_op(
     mr_generator_data_t *data, mr_node_t *node)
 {
-    mr_node_binary_op_t *vnode = (mr_node_binary_op_t*)node->value;
+    mr_node_binary_op_t *vnode = (mr_node_binary_op_t*)node->value.ptr;
 
     mr_generator_visit(data, &vnode->left);
     if (data->error != MR_NOERROR)
@@ -258,11 +250,11 @@ void mr_generator_visit_cint(
 {
     if (node->useless)
     {
-        free(node->value);
+        free(node->value.ptr);
         return;
     }
 
-    mr_value_cint_t *vnode = (mr_value_cint_t*)node->value;
+    mr_value_cint_t *vnode = (mr_value_cint_t*)node->value.ptr;
 
     // We can do better
     mr_short_t size = 1;

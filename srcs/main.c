@@ -198,7 +198,7 @@ mr_byte_t mr_compile(void)
     FILE *file = fopen(afile, "w");
 #elif defined(_MSC_VER)
     FILE *file;
-    fopen_s(&file, afile, "w")
+    fopen_s(&file, afile, "w");
 #endif
     fwrite(generator.data, sizeof(mr_chr_t), generator.size, file);
     fclose(file);

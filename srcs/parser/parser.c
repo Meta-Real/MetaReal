@@ -63,7 +63,7 @@
                                                                              \
             *value = (mr_node_binary_op_t){op, left, res->nodes[res->size]}; \
             left.type = MR_NODE_BINARY_OP;                                   \
-            left.value = value;                                              \
+            left.value.ptr = value;                                          \
         }                                                                    \
                                                                              \
         res->nodes[res->size] = left;                                        \
@@ -86,21 +86,15 @@
  * @param typ
  * Type of the generated node.
 */
-#define mr_parser_node_data_sub(typ)                                \
-    do                                                              \
-    {                                                               \
-        mr_node_t *node = res->nodes + res->size;                   \
-        node->type = typ;                                           \
-                                                                    \
-        mr_node_data_t *value = malloc(sizeof(mr_node_data_t));     \
-        if (!value)                                                 \
-            return MR_ERROR_NOT_ENOUGH_MEMORY;                      \
-                                                                    \
-        *value = (mr_node_data_t){(*tokens)->idx, (*tokens)->size}; \
-        node->value = value;                                        \
-                                                                    \
-        mr_parser_advance_newline;                                  \
-        return MR_NOERROR;                                          \
+#define mr_parser_node_data_sub(typ)                                          \
+    do                                                                        \
+    {                                                                         \
+        mr_node_t *node = res->nodes + res->size;                             \
+        node->type = typ;                                                     \
+        node->value.data = (mr_node_data_t){(*tokens)->idx, (*tokens)->size}; \
+                                                                              \
+        mr_parser_advance_newline;                                            \
+        return MR_NOERROR;                                                    \
     } while (0)
 
 /**
@@ -405,7 +399,7 @@ mr_byte_t mr_parser_factor(mr_parser_t *res, mr_token_t **tokens)
 
         *value = (mr_node_unary_op_t){op, *node, sidx};
         node->type = MR_NODE_UNARY_OP;
-        node->value = value;
+        node->value.ptr = value;
         return MR_NOERROR;
     }
 
@@ -439,7 +433,7 @@ mr_byte_t mr_parser_call(mr_parser_t *res, mr_token_t **tokens)
             *value = (mr_node_ex_func_call_t){*node, (++*tokens)->idx};
 
             node->type = MR_NODE_EX_FUNC_CALL;
-            node->value = value;
+            node->value.ptr = value;
             return MR_NOERROR;
         }
 
@@ -535,7 +529,7 @@ mr_byte_t mr_parser_call(mr_parser_t *res, mr_token_t **tokens)
         mr_parser_advance_newline;
 
         node->type = MR_NODE_FUNC_CALL;
-        node->value = value;
+        node->value.ptr = value;
         return MR_NOERROR;
     }
 
@@ -604,7 +598,7 @@ mr_byte_t mr_parser_handle_dollar_method(mr_parser_t *res, mr_token_t **tokens)
         *value = (mr_node_ex_dollar_method_t){name, sidx};
 
         node->type = MR_NODE_EX_DOLLAR_METHOD;
-        node->value = value;
+        node->value.ptr = value;
         return MR_NOERROR;
     }
 
@@ -667,6 +661,6 @@ mr_byte_t mr_parser_handle_dollar_method(mr_parser_t *res, mr_token_t **tokens)
     value->sidx = sidx;
 
     node->type = MR_NODE_DOLLAR_METHOD;
-    node->value = value;
+    node->value.ptr = value;
     return MR_NOERROR;
 }

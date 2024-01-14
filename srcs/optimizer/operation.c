@@ -24,12 +24,12 @@ void mr_operation_add(
     {
     case MR_VALUE_CINT:
     {
-        mr_value_cint_t *lvalue = left->value;
+        mr_value_cint_t *lvalue = left->value.ptr;
         switch (right->type)
         {
         case MR_VALUE_CINT:
         {
-            mr_value_cint_t *rvalue = right->value;
+            mr_value_cint_t *rvalue = right->value.ptr;
             lvalue->value += rvalue->value;
 
             lvalue->size = (mr_short_t)(rvalue->idx - lvalue->idx) + rvalue->size;

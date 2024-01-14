@@ -26,6 +26,24 @@ copies or substantial portions of the Software.
 
 #include <defs.h>
 
+/**
+ * @struct __MR_NODE_DATA_T
+ * Data structure that holds information about a single string. \n
+ * Constant version of this structure is used for identifiers.
+ * @var mr_long_t __MR_NODE_DATA_T::idx
+ * Starting index of data.
+ * @var mr_short_t __MR_NODE_DATA_T::size
+ * Size of the \a data in characters (this parameter is also used for debugging).
+*/
+#pragma pack(push, 1)
+struct __MR_NODE_DATA_T
+{
+    mr_long_t idx;
+    mr_short_t size;
+};
+#pragma pack(pop)
+typedef struct __MR_NODE_DATA_T mr_node_data_t;
+
 /** 
  * @struct __MR_NODE_T
  * Sentence equivalent in the compilation process. \n
@@ -42,7 +60,11 @@ copies or substantial portions of the Software.
 struct __MR_NODE_T
 {
     mr_byte_t type;
-    mr_ptr_t value;
+    union
+    {
+        mr_ptr_t ptr;
+        mr_node_data_t data;
+    } value;
 
     mr_bool_t useless : 1;
 };
@@ -99,24 +121,6 @@ enum __MR_NODE_ENUM
  * Number of valid nodes.
 */
 #define MR_NODE_COUNT (MR_NODE_EX_DOLLAR_METHOD + 1)
-
-/**
- * @struct __MR_NODE_DATA_T
- * Data structure that holds information about a single string. \n
- * Constant version of this structure is used for identifiers.
- * @var mr_long_t __MR_NODE_DATA_T::idx
- * Starting index of data.
- * @var mr_short_t __MR_NODE_DATA_T::size
- * Size of the \a data in characters (this parameter is also used for debugging).
-*/
-#pragma pack(push, 1)
-struct __MR_NODE_DATA_T
-{
-    mr_long_t idx;
-    mr_short_t size;
-};
-#pragma pack(pop)
-typedef struct __MR_NODE_DATA_T mr_node_data_t;
 
 /**
  * @struct __MR_NODE_BINARY_OP_T
