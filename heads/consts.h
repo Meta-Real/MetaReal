@@ -44,6 +44,11 @@ copies or substantial portions of the Software.
 #define MR_PORT_VERSION_PATCH 0 /**< Current version of MetaReal portal (Patch number) */
 #define MR_PORT "mr-port" /**< MetaReal portal display name*/
 
+/**
+ * Maximum legal size of a single source file in characters
+*/
+#define MR_FILE_MAXSIZE 0x1000000ULL
+
 /* Lexer */
 
 /**
@@ -52,6 +57,11 @@ copies or substantial portions of the Software.
  * Formula: `AllocationSize = SourceCodeSize / MR_LEXER_TOKENS_CHUNK`
 */
 #define MR_LEXER_TOKENS_CHUNK 16
+
+/**
+ * Maximum legal size of a single identifier in characters
+*/
+#define MR_LEXER_IDENTIFIER_MAXSIZE 128
 
 /* Parser */
 

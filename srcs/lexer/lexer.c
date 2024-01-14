@@ -32,116 +32,128 @@
     } while (0)
 
 /**
- * @def mr_lexer_token_set(typ, inc)
+ * @def MR_LEXER_DECOMPOSE_IDX
+ * It decomposes the index into high and low parts.
+*/
+#define MR_LEXER_DECOMPOSE_IDX                      \
+    do                                              \
+    {                                               \
+        token->hidx = (mr_byte_t)(data->idx >> 16); \
+        token->lidx = data->idx & 0xffff;           \
+    } while (0)
+
+/**
+ * @def mr_lexer_token_set(typ)
  * It creates a new token with a given type. \n
  * Value of the created token is NULL (it's a symbol).
  * @param typ
  * Type of the token that needs to be created.
  * @param inc
- * Size of the token in characters (to increment the <em>pos</em>).
+ * Size of the token in characters (to increment the <em>idx</em>).
 */
-#define mr_lexer_token_set(typ, inc)                \
-    do                                              \
-    {                                               \
-        *token = (mr_token_t){typ, data->idx, inc}; \
-                                                    \
-        data->idx += inc;                           \
-        data->size++;                               \
+#define mr_lexer_token_set(typ, inc) \
+    do                               \
+    {                                \
+        token->type = typ;           \
+        MR_LEXER_DECOMPOSE_IDX;      \
+                                     \
+        data->idx += inc;            \
+        data->size++;                \
     } while (0)
 
 /**
- * @def mr_lexer_token_setd(typ1, typ2, chr)
+ * @def mr_lexer_token_setd(type1, type2, chr)
  * It creates a new token based on two different types. \n
  * The \a chr parameter determines which of the two should be considered as the token type. \n
  * Type1 structure: `[base][chr]` \n
  * Type2 structure: `[base]`
- * @param typ1
+ * @param type1
  * Type of the first case.
- * @param typ2
+ * @param type2
  * Type of the second case.
  * @param chr
  * Difference of the two tokens.
 */
-#define mr_lexer_token_setd(typ1, typ2, chr)       \
+#define mr_lexer_token_setd(type1, type2, chr)     \
     do                                             \
     {                                              \
         if (_mr_config.code[data->idx + 1] == chr) \
-            mr_lexer_token_set(typ1, 2);           \
+            mr_lexer_token_set(type1, 2);          \
         else                                       \
-            mr_lexer_token_set(typ2, 1);           \
+            mr_lexer_token_set(type2, 1);          \
     } while (0)
 
 /**
- * @def mr_lexer_token_sett(typ1, typ2, typ3, chr1, chr2)
+ * @def mr_lexer_token_sett(type1, type2, type3, chr1, chr2)
  * It creates a new token based on three different types. \n
  * The \a chr1 and \a chr2 parameters determine which of the
  * three should be considered as the token type. \n
  * Type1 structure: `[base][chr1]` \n
  * Type2 structure: `[base][chr2]` \n
  * Type3 structure: `[base]`
- * @param typ1
+ * @param type1
  * Type of the first case.
- * @param typ2
+ * @param type2
  * Type of the second case.
- * @param typ3
+ * @param type3
  * Type of the third case.
  * @param chr1
  * Character that determines first case.
  * @param chr2
  * Character that determines the second case.
 */
-#define mr_lexer_token_sett(typ1, typ2, typ3, chr1, chr2) \
-    do                                                    \
-    {                                                     \
-        switch (_mr_config.code[data->idx + 1])           \
-        {                                                 \
-        case chr1:                                        \
-            mr_lexer_token_set(typ1, 2);                  \
-            break;                                        \
-        case chr2:                                        \
-            mr_lexer_token_set(typ2, 2);                  \
-            break;                                        \
-        default:                                          \
-            mr_lexer_token_set(typ3, 1);                  \
-            break;                                        \
-        }                                                 \
+#define mr_lexer_token_sett(type1, type2, type3, chr1, chr2) \
+    do                                                       \
+    {                                                        \
+        switch (_mr_config.code[data->idx + 1])              \
+        {                                                    \
+        case chr1:                                           \
+            mr_lexer_token_set(type1, 2);                    \
+            break;                                           \
+        case chr2:                                           \
+            mr_lexer_token_set(type2, 2);                    \
+            break;                                           \
+        default:                                             \
+            mr_lexer_token_set(type3, 1);                    \
+            break;                                           \
+        }                                                    \
     } while (0)
 
 /**
- * @def mr_lexer_token_settl(typ1, typ2, typ3, chr1, chr2)
+ * @def mr_lexer_token_settl(type1, type2, type3, chr1, chr2)
  * It creates a new token based on three different types. \n
  * The \a chr1 and \a chr2 parameters determine which of the
  * three should be considered as the token type. \n
  * Type1 structure: `[base][chr1][chr2]` \n
  * Type2 structure: `[base][chr1]` \n
  * Type3 structure: `[base]`
- * @param typ1
+ * @param type1
  * Type of the first case.
- * @param typ2
+ * @param type2
  * Type of the second case.
- * @param typ3
+ * @param type3
  * Type of the third case.
  * @param chr1
  * Character that determines first case.
  * @param chr2
  * Character that determines the second case.
 */
-#define mr_lexer_token_settl(typ1, typ2, typ3, chr1, chr2) \
-    do                                                     \
-    {                                                      \
-        if (_mr_config.code[data->idx + 1] == chr1)        \
-        {                                                  \
-            if (_mr_config.code[data->idx + 2] == chr2)    \
-                mr_lexer_token_set(typ1, 3);               \
-            else                                           \
-                mr_lexer_token_set(typ2, 2);               \
-        }                                                  \
-        else                                               \
-            mr_lexer_token_set(typ3, 1);                   \
+#define mr_lexer_token_settl(type1, type2, type3, chr1, chr2) \
+    do                                                        \
+    {                                                         \
+        if (_mr_config.code[data->idx + 1] == chr1)           \
+        {                                                     \
+            if (_mr_config.code[data->idx + 2] == chr2)       \
+                mr_lexer_token_set(type1, 3);                 \
+            else                                              \
+                mr_lexer_token_set(type2, 2);                 \
+        }                                                     \
+        else                                                  \
+            mr_lexer_token_set(type3, 1);                     \
     } while (0)
 
 /**
- * @def mr_lexer_token_setq(typ1, typ2, typ3, typ4, chr1, chr2, chr3)
+ * @def mr_lexer_token_setq(type1, type2, type3, type4, chr1, chr2, chr3)
  * It creates a new token based on four different types. \n
  * The <em>chr1</em>, <em>chr2</em>, and \a chr3 parameters determine which of the
  * four should be considered as the token type. \n
@@ -149,13 +161,13 @@
  * Type2 structure: `[base][chr2][chr3]` \n
  * Type3 structure: `[base][chr2]` \n
  * Type4 structure: `[base]`
- * @param typ1
+ * @param type1
  * Type of the first case.
- * @param typ2
+ * @param type2
  * Type of the second case.
- * @param typ3
+ * @param type3
  * Type of the third case.
- * @param typ4
+ * @param type4
  * Type of the forth case.
  * @param chr1
  * Character that determines first case.
@@ -164,47 +176,24 @@
  * @param chr3
  * Character that determines the second case.
 */
-#define mr_lexer_token_setq(typ1, typ2, typ3, typ4, chr1, chr2, chr3) \
-    do                                                                \
-    {                                                                 \
-        switch (_mr_config.code[data->idx + 1])                       \
-        {                                                             \
-        case chr1:                                                    \
-            mr_lexer_token_set(typ1, 2);                              \
-            break;                                                    \
-        case chr2:                                                    \
-            if (_mr_config.code[data->idx + 2] == chr3)               \
-                mr_lexer_token_set(typ2, 3);                          \
-            else                                                      \
-                mr_lexer_token_set(typ3, 2);                          \
-            break;                                                    \
-        default:                                                      \
-            mr_lexer_token_set(typ4, 1);                              \
-            break;                                                    \
-        }                                                             \
-    } while (0)
-
-/**
- * @def mr_lexer_value_realloc(size)
- * It reallocates the value block ( \a value field of \a token structure). \n
- * If the reallocation process fails, it frees the block and throws an error. \n
- * The macro must be called from a \a mr_lexer_generate function.
- * @param size
- * New size for the allocated block.
-*/
-#define mr_lexer_value_realloc(size)                 \
-    do                                               \
-    {                                                \
-        block = realloc(token->value, size);         \
-        if (!block)                                  \
-        {                                            \
-            free(token->value);                      \
-                                                     \
-            data->flag = MR_LEXER_MATCH_FLAG_MEMORY; \
-            return;                                  \
-        }                                            \
-                                                     \
-        token->value = block;                        \
+#define mr_lexer_token_setq(type1, type2, type3, type4, chr1, chr2, chr3) \
+    do                                                                    \
+    {                                                                     \
+        switch (_mr_config.code[data->idx + 1])                           \
+        {                                                                 \
+        case chr1:                                                        \
+            mr_lexer_token_set(type1, 2);                                 \
+            break;                                                        \
+        case chr2:                                                        \
+            if (_mr_config.code[data->idx + 2] == chr3)                   \
+                mr_lexer_token_set(type2, 3);                             \
+            else                                                          \
+                mr_lexer_token_set(type3, 2);                             \
+            break;                                                        \
+        default:                                                          \
+            mr_lexer_token_set(type4, 1);                                 \
+            break;                                                        \
+        }                                                                 \
     } while (0)
 
 /**
@@ -236,6 +225,7 @@
     prev >= MR_TOKEN_OBJECT_T
 
 /**
+ * @def mr_lexer_str_sub
  * The subroutine for \a mr_lexer_generate_str and <em>mr_lexer_generate_fstr</em> functions.
 */
 #define mr_lexer_str_sub                                  \
@@ -404,7 +394,6 @@ mr_byte_t mr_lexer(
 {
     mr_lexer_match_t data;
     data.flag = MR_LEXER_MATCH_FLAG_OK;
-
     data.alloc = _mr_config.size / MR_LEXER_TOKENS_CHUNK + 1;
     data.tokens = malloc(data.alloc * sizeof(mr_token_t));
     if (!data.tokens)
@@ -412,7 +401,6 @@ mr_byte_t mr_lexer(
 
     data.size = 0;
     data.exalloc = data.alloc;
-
     data.idx = 0;
 
     mr_chr_t chr = _mr_config.code[data.idx];
@@ -487,8 +475,6 @@ mr_byte_t mr_lexer(
 
     mr_token_t *token = data.tokens + data.size;
     token->type = MR_TOKEN_EOF;
-    token->size = 1;
-    token->idx = data.idx;
 
     res->tokens = data.tokens;
     return MR_NOERROR;
@@ -585,7 +571,7 @@ void mr_lexer_match(
     switch (chr)
     {
     case ';':
-        if ((token - 1)->type == MR_TOKEN_NEWLINE)
+        if (token[-1].type == MR_TOKEN_NEWLINE)
         {
             data->idx++;
             break;
@@ -796,33 +782,32 @@ void mr_lexer_generate_identifier(
     mr_lexer_match_t *data)
 {
     mr_token_t *token = data->tokens + data->size;
-    token->idx = data->idx;
+    mr_long_t idx = data->idx;
+    MR_LEXER_DECOMPOSE_IDX;
 
     mr_chr_t chr;
     do
-    {
         chr = _mr_config.code[++data->idx];
-    } while ((chr >= 'A' && chr <= 'Z') || (chr >= 'a' && chr <= 'z') ||
+    while ((chr >= 'A' && chr <= 'Z') || (chr >= 'a' && chr <= 'z') ||
         (chr >= '0' && chr <= '9') || chr == '_');
 
-    token->size = (mr_short_t)(data->idx - token->idx);
-
     mr_byte_t i;
-    if (token->size <= MR_TOKEN_KEYWORD_MAXSIZE)
+    mr_short_t size = (mr_short_t)(data->idx - idx);
+    if (size <= MR_TOKEN_KEYWORD_MAXSIZE)
     {
         for (i = 0; i != MR_TOKEN_KEYWORD_COUNT; i++)
-            if (token->size == mr_token_keyword_size[i] &&
-                !memcmp(_mr_config.code + token->idx, mr_token_keyword[i], token->size))
+            if (size == mr_token_keyword_size[i] &&
+                !memcmp(_mr_config.code + idx, mr_token_keyword[i], size))
             {
                 token->type = i + MR_TOKEN_KEYWORD_PAD;
                 data->size++;
                 return;
             }
 
-        if (token->size <= MR_TOKEN_TYPE_MAXSIZE)
+        if (size <= MR_TOKEN_TYPE_MAXSIZE)
             for (i = 0; i != MR_TOKEN_TYPE_COUNT; i++)
-                if (token->size == mr_token_type_size[i] &&
-                    !memcmp(_mr_config.code + token->idx, mr_token_type[i], token->size))
+                if (size == mr_token_type_size[i] &&
+                    !memcmp(_mr_config.code + idx, mr_token_type[i], size))
                 {
                     token->type = i + MR_TOKEN_TYPE_PAD;
                     data->size++;
@@ -839,7 +824,7 @@ void mr_lexer_generate_number(
 {
     mr_token_t *token = data->tokens + data->size;
     token->type = MR_TOKEN_INT;
-    token->idx = data->idx;
+    MR_LEXER_DECOMPOSE_IDX;
 
     mr_bool_t is_float = MR_FALSE;
     mr_chr_t chr = _mr_config.code[data->idx];
@@ -883,7 +868,6 @@ void mr_lexer_generate_number(
         data->idx++;
     }
 
-    token->size = (mr_short_t)(data->idx - token->idx);
     data->size++;
 }
 
@@ -919,7 +903,7 @@ void mr_lexer_generate_str(
 {
     mr_token_t *token = data->tokens + data->size;
     token->type = MR_TOKEN_STR;
-    token->idx = data->idx;
+    MR_LEXER_DECOMPOSE_IDX;
 
     if (!esc)
         data->idx++;
@@ -928,7 +912,6 @@ void mr_lexer_generate_str(
     mr_chr_t chr = _mr_config.code[data->idx];
     if (chr == quot)
     {
-        token->size = (mr_short_t)(++data->idx - token->idx);
         data->size++;
         return;
     }
@@ -937,24 +920,17 @@ void mr_lexer_generate_str(
         mr_lexer_str_sub;
     while (chr != quot);
 
-    token->size = (mr_short_t)(++data->idx - token->idx);
     data->size++;
 }
 
 void mr_lexer_generate_fstr(
     mr_lexer_match_t *data, mr_bool_t esc)
 {
-    mr_long_t fidx = data->size++;
-    mr_token_t *token = data->tokens + fidx;
-
+    mr_token_t *token = data->tokens + data->size++;
     token->type = MR_TOKEN_FSTR_START;
-    token->idx = data->idx;
+    MR_LEXER_DECOMPOSE_IDX;
 
-    if (!esc)
-        data->idx += 2;
-    else
-        data->idx++;
-
+    data->idx += esc ? 1 : 2;
     mr_chr_t quot = _mr_config.code[data->idx++];
     mr_chr_t chr = _mr_config.code[data->idx];
 
@@ -962,15 +938,11 @@ void mr_lexer_generate_fstr(
     if (chr == quot)
     {
         data->idx++;
-        token->idx = data->idx;
-
         mr_lexer_tokens_realloc;
-
-        token = data->tokens + fidx;
-        token->size = (mr_short_t)(data->idx - token->idx);
 
         token = data->tokens + data->size++;
         token->type = MR_TOKEN_FSTR_END;
+        MR_LEXER_DECOMPOSE_IDX;
         return;
     }
 
@@ -997,7 +969,6 @@ void mr_lexer_generate_fstr(
                 }
 
                 mr_lexer_tokens_realloc;
-
                 mr_lexer_match(data);
                 if (data->flag)
                     return;
@@ -1021,18 +992,13 @@ void mr_lexer_generate_fstr(
 
         token = data->tokens + data->size;
         token->type = MR_TOKEN_FSTR;
-        token->idx = data->idx;
+        MR_LEXER_DECOMPOSE_IDX;
 
         do
             mr_lexer_str_sub;
         while (chr != quot && chr != '{');
-
-        token->size = (mr_short_t)(data->idx - token->idx);
         data->size++;
     } while (chr != quot);
-
-    token = data->tokens + fidx;
-    token->size = (mr_short_t)(data->idx - token->idx);
 
     mr_lexer_tokens_realloc;
 

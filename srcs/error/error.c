@@ -20,6 +20,7 @@ copies or substantial portions of the Software.
 */
 
 #include <error/error.h>
+#include <lexer/token.h>
 #include <config.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -83,7 +84,7 @@ void mr_invalid_syntax_print(
 
     fprintf(stderr, "File \"%s\", line %" PRIu32 "\n\n", _mr_config.fname, ln);
 
-    mr_long_t eidx = error->idx + error->size;
+    mr_long_t eidx = error->idx + mr_token_getsize(error->type, error->idx);
     if (eidx > _mr_config.size)
     {
         fwrite(_mr_config.code, sizeof(mr_chr_t), _mr_config.size - start, stderr);

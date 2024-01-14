@@ -49,5 +49,6 @@ typedef const mr_chr_t *mr_str_ct;
 #define MR_ERROR_NOT_ENOUGH_MEMORY 8
 #define MR_ERROR_BAD_FORMAT 11
 #define MR_ERROR_BAD_COMMAND 22
+#define MR_ERROR_FILE_TOO_LARGE 223
 
 #endif

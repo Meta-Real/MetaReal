@@ -112,16 +112,16 @@ mr_byte_t mr_visit_ex_dollar_method(
     mr_node_ex_dollar_method_t *data = (mr_node_ex_dollar_method_t*)node->value.ptr;
 
     if (data->name.size == 13 &&
-        !memcmp(_mr_config.code + data->sidx, "od_const_fold", 13 * sizeof(mr_chr_t)))
+        !memcmp(_mr_config.code + data->name.idx, "od_const_fold", 13 * sizeof(mr_chr_t)))
         _mr_config.opt_const_fold = MR_FALSE;
     else if (data->name.size == 13 &&
-        !memcmp(_mr_config.code + data->sidx, "oe_const_fold", 13 * sizeof(mr_chr_t)))
+        !memcmp(_mr_config.code + data->name.idx, "oe_const_fold", 13 * sizeof(mr_chr_t)))
         _mr_config.opt_const_fold = MR_TRUE;
     else if (data->name.size == 14 &&
-        !memcmp(_mr_config.code + data->sidx, "od_rem_useless", 14 * sizeof(mr_chr_t)))
+        !memcmp(_mr_config.code + data->name.idx, "od_rem_useless", 14 * sizeof(mr_chr_t)))
         _mr_config.opt_rem_useless = MR_FALSE;
     else if (data->name.size == 14 &&
-        !memcmp(_mr_config.code + data->sidx, "oe_rem_useless", 14 * sizeof(mr_chr_t)))
+        !memcmp(_mr_config.code + data->name.idx, "oe_rem_useless", 14 * sizeof(mr_chr_t)))
         _mr_config.opt_rem_useless = MR_TRUE;
     else
     {

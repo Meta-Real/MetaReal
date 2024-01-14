@@ -55,8 +55,8 @@ typedef struct __MR_ILLEGAL_CHR_T mr_illegal_chr_t;
  * This field will be NULL if the thrown error is a general invalid syntax error.
  * @var mr_long_t __MR_INVALID_SYNTAX_T::idx
  * Index of the start of the error.
- * @var mr_byte_t __MR_INVALID_SYNTAX_T::size
- * Size of the error in characters.
+ * @var mr_byte_t __MR_INVALID_SYNTAX_T::type
+ * Type of the last token in error range.
 */
 #pragma pack(push, 1)
 struct __MR_INVALID_SYNTAX_T
@@ -64,7 +64,7 @@ struct __MR_INVALID_SYNTAX_T
     mr_str_ct detail;
 
     mr_long_t idx;
-    mr_byte_t size;
+    mr_byte_t type;
 };
 #pragma pack(pop)
 typedef struct __MR_INVALID_SYNTAX_T mr_invalid_syntax_t;

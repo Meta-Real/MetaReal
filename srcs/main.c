@@ -57,7 +57,7 @@ int main(
     if (argc == 1)
     {
         fputs(
-            "Internal error: invalid command, nothing to process.\n"
+            "Internal Error: Invalid command, nothing to process.\n"
             "Write \"MetaReal --help\" for more information.\n",
             stderr);
         return MR_ERROR_BAD_COMMAND;
@@ -101,7 +101,7 @@ int main(
 #endif
         {
             fprintf(stderr,
-                "Internal error: can not find the file \"%s\"\n",
+                "Internal Error: Can not find the file \"%s\"\n",
                 argv[1]);
             return MR_ERROR_FILE_NOT_FOUND;
         }
@@ -109,6 +109,16 @@ int main(
         fseek(file, 0, SEEK_END);
         mr_long_t size = ftell(file);
         rewind(file);
+
+        if (size >= MR_FILE_MAXSIZE)
+        {
+            fprintf(stderr,
+                "Internal error: File size exceeds the limit (%" PRIu64 ")",
+                MR_FILE_MAXSIZE);
+
+            fclose(file);
+            return MR_ERROR_FILE_TOO_LARGE;
+        }
 
         if (!size)
         {
@@ -136,13 +146,13 @@ int main(
         free(code);
 
         if (retcode == MR_ERROR_NOT_ENOUGH_MEMORY)
-            fputs("Internal error: not enough memory.\n", stderr);
+            fputs("Internal Error: Not enough memory.\n", stderr);
         printf("END\n"); // dummy
         return retcode;
     }
 
     fputs(
-        "Internal error: invalid command.\n"
+        "Internal Error: Invalid command.\n"
         "Write \"MetaReal --help\" for more information.\n",
         stderr);
     return MR_ERROR_BAD_COMMAND;
@@ -165,6 +175,7 @@ mr_byte_t mr_compile(void)
         return MR_NOERROR;
     }
 
+    printf("%zu\n", sizeof(mr_token_t));
     mr_parser_t parser;
     retcode = mr_parser(&parser, lexer.tokens);
     if (retcode != MR_NOERROR)
