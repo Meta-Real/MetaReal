@@ -57,21 +57,30 @@ mr_byte_t mr_visit_int(
     if (!_mr_config.opt_const_fold)
         return MR_NOERROR;
 
-    mr_node_data_t data = node->value.data;
+    mr_long_t idx = (mr_long_t)(uintptr_t)node->value;
     mr_value_cint_t *value = malloc(sizeof(mr_value_cint_t));
     if (!value)
         return MR_ERROR_NOT_ENOUGH_MEMORY;
 
     // We can do better
     value->value = 0;
-    for (mr_byte_t i = 0; i < data.size; i++)
-        value->value = 10 * value->value + _mr_config.code[data.idx + i] - '0';
 
-    value->idx = data.idx;
-    value->size = data.size;
+    mr_str_ct num = _mr_config.code + idx;
+    do
+    {
+        if (*num == '_')
+        {
+            num++;
+            continue;
+        }
+
+        value->value = 10 * value->value + *num++ - '0';
+    } while ((*num >= '0' && *num <= '9') || *num == '_');
+
+    MR_IDX_DECOMPOSE(value->idx, idx);
 
     node->type = MR_VALUE_CINT;
-    node->value.ptr = value;
+    node->value = value;
     return MR_NOERROR;
 }
 
@@ -79,7 +88,7 @@ mr_byte_t mr_visit_binary_op(
     mr_invalid_semantic_t *error, mr_node_t *node)
 {
     node->useless = _mr_config.opt_rem_useless;
-    mr_node_binary_op_t *data = (mr_node_binary_op_t*)node->value.ptr;
+    mr_node_binary_op_t *data = (mr_node_binary_op_t*)node->value;
 
     mr_byte_t retcode = mr_visit(error, &data->left);
     if (retcode != MR_NOERROR)
@@ -109,30 +118,35 @@ mr_byte_t mr_visit_binary_op(
 mr_byte_t mr_visit_ex_dollar_method(
     mr_invalid_semantic_t *error, mr_node_t *node)
 {
-    mr_node_ex_dollar_method_t *data = (mr_node_ex_dollar_method_t*)node->value.ptr;
+    mr_node_ex_dollar_method_t *data = (mr_node_ex_dollar_method_t*)node->value;
 
-    if (data->name.size == 13 &&
-        !memcmp(_mr_config.code + data->name.idx, "od_const_fold", 13 * sizeof(mr_chr_t)))
+    mr_long_t idx = MR_IDX_EXTRACT(data->idx);
+    mr_long_t size = mr_token_getsize(MR_TOKEN_IDENTIFIER, idx);
+    mr_str_ct name = _mr_config.code + idx;
+
+    if (size == 13 &&
+        !memcmp(name, "od_const_fold", 13 * sizeof(mr_chr_t)))
         _mr_config.opt_const_fold = MR_FALSE;
-    else if (data->name.size == 13 &&
-        !memcmp(_mr_config.code + data->name.idx, "oe_const_fold", 13 * sizeof(mr_chr_t)))
+    else if (size == 13 &&
+        !memcmp(name, "oe_const_fold", 13 * sizeof(mr_chr_t)))
         _mr_config.opt_const_fold = MR_TRUE;
-    else if (data->name.size == 14 &&
-        !memcmp(_mr_config.code + data->name.idx, "od_rem_useless", 14 * sizeof(mr_chr_t)))
+    else if (size == 14 &&
+        !memcmp(name, "od_rem_useless", 14 * sizeof(mr_chr_t)))
         _mr_config.opt_rem_useless = MR_FALSE;
-    else if (data->name.size == 14 &&
-        !memcmp(_mr_config.code + data->name.idx, "oe_rem_useless", 14 * sizeof(mr_chr_t)))
+    else if (size == 14 &&
+        !memcmp(name, "oe_rem_useless", 14 * sizeof(mr_chr_t)))
         _mr_config.opt_rem_useless = MR_TRUE;
     else
     {
-        *error = (mr_invalid_semantic_t){malloc(25 + data->name.size), MR_FALSE,
-            MR_INVALID_SEMANTIC_DOLLAR_METHOD,
-            data->name.idx, (mr_byte_t)data->name.size};
+        *error = (mr_invalid_semantic_t){
+            malloc(25 + mr_token_getsize(MR_TOKEN_IDENTIFIER, MR_IDX_EXTRACT(data->idx))),
+            MR_FALSE, MR_INVALID_SEMANTIC_DOLLAR_METHOD,
+            data->idx, MR_TOKEN_IDENTIFIER, 0};
         if (!error->detail)
             return MR_ERROR_NOT_ENOUGH_MEMORY;
 
         sprintf(error->detail, "Invalid dollar method \"%.*s\"",
-            data->name.size, _mr_config.code + data->name.idx);
+            size, name);
         return MR_ERROR_BAD_FORMAT;
     }
 

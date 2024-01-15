@@ -175,7 +175,6 @@ mr_byte_t mr_compile(void)
         return MR_NOERROR;
     }
 
-    printf("%zu\n", sizeof(mr_token_t));
     mr_parser_t parser;
     retcode = mr_parser(&parser, lexer.tokens);
     if (retcode != MR_NOERROR)

@@ -37,29 +37,17 @@ copies or substantial portions of the Software.
  * Tokens only hold the information about one symbol or word at a time. Not the grammar.
  * @var mr_byte_t __MR_TOKEN_T::type
  * Type of the token.
- * @var mr_long_t __MR_TOKEN_T::lidx
+ * @var mr_idx_t __MR_TOKEN_T::idx
  * Starting index of the token (low part).
- * @var mr_long_t __MR_TOKEN_T::hidx
- * Starting index of the token (high part).
 */
 #pragma pack(push, 1)
 struct __MR_TOKEN_T
 {
     mr_byte_t type;
-
-    mr_short_t lidx;
-    mr_byte_t hidx;
+    mr_idx_t idx;
 };
 #pragma pack(pop)
 typedef struct __MR_TOKEN_T mr_token_t;
-
-/**
- * It returns index of the given token. \n
- * This is achieved by concatenating \a hidx and \a lidx fields.
- * @param tok
- * Token to get its size.
-*/
-#define MR_TOKEN_IDX(tok) ((mr_long_t)((tok)->hidx << 16) | (tok)->lidx)
 
 /**
  * @enum __MR_TOKEN_ENUM
@@ -432,11 +420,6 @@ enum __MR_TOKEN_ENUM
 };
 
 /**
- * Number of valid token types.
-*/
-#define MR_TOKEN_COUNT (MR_TOKEN_TYPE_T + 1)
-
-/**
  * Padding for the keyword tokens. \n
  * Used by the keyword detection subroutine to assign the correct token type for a keyword.
 */
@@ -471,11 +454,6 @@ enum __MR_TOKEN_ENUM
 #define MR_TOKEN_TYPE_MAXSIZE 7
 
 /**
- * List of token labels.
-*/
-extern mr_str_ct mr_token_label[MR_TOKEN_COUNT];
-
-/**
  * List of keywords (used by the keyword detection subroutine).
 */
 extern mr_str_ct mr_token_keyword[MR_TOKEN_KEYWORD_COUNT];
@@ -501,17 +479,6 @@ extern mr_byte_t mr_token_type_size[MR_TOKEN_TYPE_COUNT];
  * Size of all token symbols in characters
 */
 extern mr_byte_t mr_token_symbol_size[MR_TOKEN_KEYWORD_PAD];
-
-/**
- * It prints out the tokens list into <em>outstream</em>.
- * The \a tokens must end with an EOF token (null terminator). \n
- * \a outstream is \a stdout by default and
- * can be changed with the \a $set_outstream dollar method.
- * @param tokens
- * List of tokens.
-*/
-void mr_tokens_print(
-    mr_token_t *tokens);
 
 /**
  * It returns size of the token in characters.

@@ -40,8 +40,9 @@ void mr_illegal_chr_print(
     else
         fprintf(stderr, "\nIllegal Character Error: '%c'\n", error->chr);
 
+    mr_long_t idx = MR_IDX_EXTRACT(error->idx);
     mr_long_t i, ln = 1, start = 0;
-    for (i = 0; i != error->idx; i++)
+    for (i = 0; i != idx; i++)
         if (_mr_config.code[i] == '\n')
         {
             start = i + 1;
@@ -61,7 +62,7 @@ void mr_illegal_chr_print(
     }
     fputc('\n', stderr);
 
-    for (i = start; i != error->idx; i++)
+    for (i = start; i != idx; i++)
         fputc(' ', stderr);
     fputs("^\n\n", stderr);
 }
@@ -74,8 +75,9 @@ void mr_invalid_syntax_print(
     else
         fputs("\nInvalid Syntax Error\n", stderr);
 
+    mr_long_t idx = MR_IDX_EXTRACT(error->idx);
     mr_long_t i, ln = 1, start = 0;
-    for (i = 0; i != error->idx; i++)
+    for (i = 0; i != idx; i++)
         if (_mr_config.code[i] == '\n')
         {
             start = i + 1;
@@ -84,13 +86,13 @@ void mr_invalid_syntax_print(
 
     fprintf(stderr, "File \"%s\", line %" PRIu32 "\n\n", _mr_config.fname, ln);
 
-    mr_long_t eidx = error->idx + mr_token_getsize(error->type, error->idx);
+    mr_long_t eidx = idx + mr_token_getsize(error->type, idx);
     if (eidx > _mr_config.size)
     {
         fwrite(_mr_config.code, sizeof(mr_chr_t), _mr_config.size - start, stderr);
         fputc('\n', stderr);
 
-        for (i = start; i != error->idx; i++)
+        for (i = start; i != idx; i++)
             fputc(' ', stderr);
         fputs("^\n\n", stderr);
         return;
@@ -108,7 +110,7 @@ void mr_invalid_syntax_print(
     }
     fputc('\n', stderr);
 
-    for (i = start; i != error->idx; i++)
+    for (i = start; i != idx; i++)
         fputc(' ', stderr);
 
     if (end >= eidx)
@@ -132,8 +134,9 @@ void mr_invalid_semantic_print(
 
     fprintf(stderr, "Error Type: %s\n", mr_invalid_semantic_label[error->type]);
 
+    mr_long_t idx = MR_IDX_EXTRACT(error->idx);
     mr_long_t i, ln = 1, start = 0;
-    for (i = 0; i != error->idx; i++)
+    for (i = 0; i != idx; i++)
         if (_mr_config.code[i] == '\n')
         {
             start = i + 1;
@@ -142,13 +145,14 @@ void mr_invalid_semantic_print(
 
     fprintf(stderr, "File \"%s\", line %" PRIu32 "\n\n", _mr_config.fname, ln);
 
-    mr_long_t eidx = error->idx + error->size;
+    mr_long_t eidx = idx + error->size;
+    eidx += mr_token_getsize(error->etype, eidx);
     if (eidx > _mr_config.size)
     {
         fwrite(_mr_config.code, sizeof(mr_chr_t), _mr_config.size - start, stderr);
         fputc('\n', stderr);
 
-        for (i = start; i != error->idx; i++)
+        for (i = start; i != idx; i++)
             fputc(' ', stderr);
         fputs("^\n\n", stderr);
         return;
@@ -166,7 +170,7 @@ void mr_invalid_semantic_print(
     }
     fputc('\n', stderr);
 
-    for (i = start; i != error->idx; i++)
+    for (i = start; i != idx; i++)
         fputc(' ', stderr);
 
     if (end >= eidx)

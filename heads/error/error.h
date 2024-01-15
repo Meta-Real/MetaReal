@@ -32,7 +32,7 @@ copies or substantial portions of the Software.
  * The illegal or missing character.
  * @var mr_bool_t __MR_ILLEGAL_CHR_T::expected
  * It indicates whether the character is illegal (MR_FALSE) or is it missing (MR_TRUE).
- * @var mr_long_t __MR_ILLEGAL_CHR_T::idx
+ * @var mr_idx_t __MR_ILLEGAL_CHR_T::idx
  * Index of the error.
 */
 #pragma pack(push, 1)
@@ -41,7 +41,7 @@ struct __MR_ILLEGAL_CHR_T
     mr_chr_t chr;
     mr_bool_t expected;
 
-    mr_long_t idx;
+    mr_idx_t idx;
 };
 #pragma pack(pop)
 typedef struct __MR_ILLEGAL_CHR_T mr_illegal_chr_t;
@@ -53,7 +53,7 @@ typedef struct __MR_ILLEGAL_CHR_T mr_illegal_chr_t;
  * @var mr_str_ct __MR_INVALID_SYNTAX_T::detail
  * Details of the error. \n
  * This field will be NULL if the thrown error is a general invalid syntax error.
- * @var mr_long_t __MR_INVALID_SYNTAX_T::idx
+ * @var mr_idx_t __MR_INVALID_SYNTAX_T::idx
  * Index of the start of the error.
  * @var mr_byte_t __MR_INVALID_SYNTAX_T::type
  * Type of the last token in error range.
@@ -63,7 +63,7 @@ struct __MR_INVALID_SYNTAX_T
 {
     mr_str_ct detail;
 
-    mr_long_t idx;
+    mr_idx_t idx;
     mr_byte_t type;
 };
 #pragma pack(pop)
@@ -80,10 +80,12 @@ typedef struct __MR_INVALID_SYNTAX_T mr_invalid_syntax_t;
  * It determines that the \a detail is dynamic and should be freed or not.
  * @var mr_byte_t __MR_INVALID_SEMANTIC_T::type
  * Type of the error (from __MR_INVALID_SEMANTIC_ENUM).
- * @var mr_long_t __MR_INVALID_SEMANTIC_T::idx
+ * @var mr_idx_t __MR_INVALID_SEMANTIC_T::idx
  * Index of the start of the error.
+ * @var mr_byte_t __MR_INVALID_SEMANTIC_T::etype
+ * Type of the last token in the error segment.
  * @var mr_byte_t __MR_INVALID_SEMANTIC_T::size
- * Size of the error in characters.
+ * Size of the error before the last token in characters.
 */
 #pragma pack(push, 1)
 struct __MR_INVALID_SEMANTIC_T
@@ -92,7 +94,8 @@ struct __MR_INVALID_SEMANTIC_T
     mr_bool_t is_static : 1;
     mr_byte_t type : 7;
 
-    mr_long_t idx;
+    mr_idx_t idx;
+    mr_byte_t etype;
     mr_byte_t size;
 };
 #pragma pack(pop)

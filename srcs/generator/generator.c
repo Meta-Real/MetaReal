@@ -130,11 +130,11 @@ void mr_generator_visit(
 void mr_generator_visit_int(
     mr_generator_data_t *data, mr_node_t *node)
 {
-    mr_node_data_t vnode = node->value.data;
     if (node->useless)
         return;
 
-    mr_short_t size = 11 + vnode.size;
+    mr_long_t vsize = mr_token_getsize(MR_TOKEN_INT, (mr_long_t)(uintptr_t)node->value);
+    mr_long_t size = 11 + vsize;
     if (data->size + size > data->alloc)
     {
         mr_str_t block = realloc(data->data,
@@ -165,14 +165,15 @@ void mr_generator_visit_int(
     }
 
     sprintf(data->data + data->size, "\tmov\t%s, %.*s\n",
-        mr_generator_reg_label[data->reg], vnode.size, _mr_config.code + vnode.idx);
+        mr_generator_reg_label[data->reg], vsize,
+        _mr_config.code + (mr_long_t)(uintptr_t)node->value);
     data->size += size;
 }
 
 void mr_generator_visit_binary_op(
     mr_generator_data_t *data, mr_node_t *node)
 {
-    mr_node_binary_op_t *vnode = (mr_node_binary_op_t*)node->value.ptr;
+    mr_node_binary_op_t *vnode = (mr_node_binary_op_t*)node->value;
 
     mr_generator_visit(data, &vnode->left);
     if (data->error != MR_NOERROR)
@@ -250,11 +251,11 @@ void mr_generator_visit_cint(
 {
     if (node->useless)
     {
-        free(node->value.ptr);
+        free(node->value);
         return;
     }
 
-    mr_value_cint_t *vnode = (mr_value_cint_t*)node->value.ptr;
+    mr_value_cint_t *vnode = (mr_value_cint_t*)node->value;
 
     // We can do better
     mr_short_t size = 1;

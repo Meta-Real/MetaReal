@@ -63,7 +63,7 @@
                                                                              \
             *value = (mr_node_binary_op_t){op, left, res->nodes[res->size]}; \
             left.type = MR_NODE_BINARY_OP;                                   \
-            left.value.ptr = value;                                          \
+            left.value = value;                                              \
         }                                                                    \
                                                                              \
         res->nodes[res->size] = left;                                        \
@@ -86,15 +86,15 @@
  * @param typ
  * Type of the generated node.
 */
-#define mr_parser_node_data_sub(typ)                                          \
-    do                                                                        \
-    {                                                                         \
-        mr_node_t *node = res->nodes + res->size;                             \
-        node->type = typ;                                                     \
-        node->value.data = (mr_node_data_t){(*tokens)->idx, 20/*(*tokens)->size*/}; \
-                                                                              \
-        mr_parser_advance_newline;                                            \
-        return MR_NOERROR;                                                    \
+#define mr_parser_node_data_sub(typ)                                       \
+    do                                                                     \
+    {                                                                      \
+        mr_node_t *node = res->nodes + res->size;                          \
+        node->type = typ;                                                  \
+        node->value = (mr_ptr_t)(uintptr_t)MR_IDX_EXTRACT((*tokens)->idx); \
+                                                                           \
+        mr_parser_advance_newline;                                         \
+        return MR_NOERROR;                                                 \
     } while (0)
 
 /**
@@ -306,8 +306,7 @@ mr_byte_t mr_parser(
 
     if (ptr->type != MR_TOKEN_EOF)
     {
-        res->error = (mr_invalid_syntax_t){"Expected EOF",
-            MR_TOKEN_IDX(ptr), ptr->type};
+        res->error = (mr_invalid_syntax_t){"Expected EOF", ptr->idx, ptr->type};
 
         mr_parser_free;
         return MR_ERROR_BAD_FORMAT;
@@ -381,7 +380,7 @@ mr_byte_t mr_parser_factor(mr_parser_t *res, mr_token_t **tokens)
 {
     if ((*tokens)->type >= MR_TOKEN_PLUS && (*tokens)->type <= MR_TOKEN_NOT_K)
     {
-        mr_long_t sidx = MR_TOKEN_IDX(*tokens);
+        mr_idx_t sidx = (*tokens)->idx;
         mr_byte_t op = (*tokens)++->type;
 
         mr_byte_t retcode = mr_parser_factor(res, tokens);
@@ -399,7 +398,7 @@ mr_byte_t mr_parser_factor(mr_parser_t *res, mr_token_t **tokens)
 
         *value = (mr_node_unary_op_t){op, *node, sidx};
         node->type = MR_NODE_UNARY_OP;
-        node->value.ptr = value;
+        node->value = value;
         return MR_NOERROR;
     }
 
@@ -431,10 +430,10 @@ mr_byte_t mr_parser_call(mr_parser_t *res, mr_token_t **tokens)
             }
 
             tokens++;
-            *value = (mr_node_ex_func_call_t){*node, MR_TOKEN_IDX(*tokens)};
+            *value = (mr_node_ex_func_call_t){*node, (*tokens)->idx};
 
             node->type = MR_NODE_EX_FUNC_CALL;
-            node->value.ptr = value;
+            node->value = value;
             return MR_NOERROR;
         }
 
@@ -468,7 +467,7 @@ mr_byte_t mr_parser_call(mr_parser_t *res, mr_token_t **tokens)
 
                     res->error = (mr_invalid_syntax_t){
                         "Number of function call arguments exceeds the limit",
-                        MR_TOKEN_IDX(*tokens), (*tokens)->type};
+                        (*tokens)->idx, (*tokens)->type};
                     return MR_ERROR_BAD_FORMAT;
                 }
 
@@ -484,11 +483,11 @@ mr_byte_t mr_parser_call(mr_parser_t *res, mr_token_t **tokens)
             block = value->args + value->size;
             if ((*tokens)->type == MR_TOKEN_IDENTIFIER && (*tokens)[1].type == MR_TOKEN_ASSIGN)
             {
-                block->name = (mr_node_data_t){(*tokens)->idx, 20};//(*tokens)->size};
+                block->idx = (*tokens)->idx;
                 (*tokens) += 2;
             }
             else
-                block->name.size = 0;
+                block->idx = MR_INVALID_IDX;
 
             retcode = mr_parser_or(res, tokens);
             if (retcode != MR_NOERROR)
@@ -511,7 +510,7 @@ mr_byte_t mr_parser_call(mr_parser_t *res, mr_token_t **tokens)
             mr_node_func_call_free(value);
 
             res->error = (mr_invalid_syntax_t){"Expected ')' or ','",
-                MR_TOKEN_IDX(*tokens), (*tokens)->type};
+                (*tokens)->idx, (*tokens)->type};
             return MR_ERROR_BAD_FORMAT;
         }
 
@@ -530,7 +529,7 @@ mr_byte_t mr_parser_call(mr_parser_t *res, mr_token_t **tokens)
         mr_parser_advance_newline;
 
         node->type = MR_NODE_FUNC_CALL;
-        node->value.ptr = value;
+        node->value = value;
         return MR_NOERROR;
     }
 
@@ -561,7 +560,7 @@ mr_byte_t mr_parser_core(mr_parser_t *res, mr_token_t **tokens)
             mr_node_free(res->nodes + res->size);
 
             res->error = (mr_invalid_syntax_t){"Expected ')'",
-                MR_TOKEN_IDX(*tokens), (*tokens)->type};
+                (*tokens)->idx, (*tokens)->type};
             return MR_ERROR_BAD_FORMAT;
         }
 
@@ -571,23 +570,23 @@ mr_byte_t mr_parser_core(mr_parser_t *res, mr_token_t **tokens)
         return mr_parser_handle_dollar_method(res, tokens);
     }
 
-    res->error = (mr_invalid_syntax_t){NULL, MR_TOKEN_IDX(*tokens), (*tokens)->type};
+    res->error = (mr_invalid_syntax_t){NULL, (*tokens)->idx, (*tokens)->type};
     return MR_ERROR_BAD_FORMAT;
 }
 
 mr_byte_t mr_parser_handle_dollar_method(mr_parser_t *res, mr_token_t **tokens)
 {
     mr_node_t *node = res->nodes + res->size;
-    mr_long_t sidx = MR_TOKEN_IDX(*tokens);
+    mr_idx_t sidx = (*tokens)->idx;
 
     if ((++*tokens)->type != MR_TOKEN_IDENTIFIER)
     {
         res->error = (mr_invalid_syntax_t){"Expected an identifier",
-            MR_TOKEN_IDX(*tokens), (*tokens)->type};
+            (*tokens)->idx, (*tokens)->type};
         return MR_ERROR_BAD_FORMAT;
     }
 
-    mr_node_data_t name = {(*tokens)->idx, 20};//(*tokens)->size};
+    mr_idx_t idx = (*tokens)->idx;
     mr_parser_advance_newline;
 
     if ((*tokens)->type != MR_TOKEN_COLON)
@@ -596,10 +595,10 @@ mr_byte_t mr_parser_handle_dollar_method(mr_parser_t *res, mr_token_t **tokens)
         if (!value)
             return MR_ERROR_NOT_ENOUGH_MEMORY;
 
-        *value = (mr_node_ex_dollar_method_t){name, sidx};
+        *value = (mr_node_ex_dollar_method_t){idx, sidx};
 
         node->type = MR_NODE_EX_DOLLAR_METHOD;
-        node->value.ptr = value;
+        node->value = value;
         return MR_NOERROR;
     }
 
@@ -630,7 +629,7 @@ mr_byte_t mr_parser_handle_dollar_method(mr_parser_t *res, mr_token_t **tokens)
 
                 res->error = (mr_invalid_syntax_t){
                     "Number of dollar method parameters exceeds the limit",
-                    MR_TOKEN_IDX(*tokens), (*tokens)->type};
+                    (*tokens)->idx, (*tokens)->type};
                 return MR_ERROR_BAD_FORMAT;
             }
 
@@ -658,10 +657,10 @@ mr_byte_t mr_parser_handle_dollar_method(mr_parser_t *res, mr_token_t **tokens)
         value->params[value->size++] = res->nodes[res->size];
     } while ((*tokens)->type == MR_TOKEN_COMMA);
 
-    value->name = name;
+    value->idx = idx;
     value->sidx = sidx;
 
     node->type = MR_NODE_DOLLAR_METHOD;
-    node->value.ptr = value;
+    node->value = value;
     return MR_NOERROR;
 }

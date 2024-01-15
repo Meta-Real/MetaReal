@@ -39,27 +39,18 @@ enum __MR_VALUE_ENUM
 };
 
 /**
- * Number of valid values
-*/
-#define MR_VALUE_COUNT (MR_VALUE_CINT - MR_NODE_COUNT + 1)
-
-/**
  * @struct __MR_VALUE_CINT_T
  * Data structure that holds C-style integers.
  * @var mr_longlong_t __MR_VALUE_CINT_T::value
  * Value of the integer.
- * @var mr_long_t __MR_VALUE_CINT_T::idx
+ * @var mr_idx_t __MR_VALUE_CINT_T::idx
  * Starting index of the integer.
- * @var mr_short_t __MR_VALUE_CINT_T::size
- * Size of the integer in characters.
 */
 #pragma pack(push, 1)
 struct __MR_VALUE_CINT_T
 {
     mr_longlong_t value;
-
-    mr_long_t idx;
-    mr_short_t size;
+    mr_idx_t idx;
 };
 #pragma pack(pop)
 typedef struct __MR_VALUE_CINT_T mr_value_cint_t;
@@ -81,18 +72,6 @@ void mr_value_free(
  * Size of the \a values list.
 */
 void mr_values_free(
-    mr_node_t *values, mr_long_t size);
-
-/**
- * It prints out the values list into \a outstream according to its size. \n
- * \a outstream is \a stdout by default and
- * can be changed with the \a $set_outstream dollar method.
- * @param values
- * List of values.
- * @param size
- * Size of the \a values list.
-*/
-void mr_values_print(
     mr_node_t *values, mr_long_t size);
 
 #endif

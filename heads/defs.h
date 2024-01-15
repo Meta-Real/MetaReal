@@ -42,6 +42,50 @@ typedef const mr_chr_t *mr_str_ct;
 #define MR_TRUE ((mr_bool_t)1)
 #define MR_FALSE ((mr_bool_t)0)
 
+/**
+ * @struct __MR_IDX_T
+ * A data structure that points to the position of characters in the source code.
+ * @var __MR_IDX_T::lidx
+ * Index of the character (low part).
+ * @var __MR_IDX_T::hidx
+ * Index of the character (high part).
+*/
+#pragma pack(push, 1)
+struct __MR_IDX_T
+{
+    mr_short_t lidx;
+    mr_byte_t hidx;
+};
+#pragma pack(pop)
+typedef struct __MR_IDX_T mr_idx_t;
+
+#define MR_INVALID_IDX ((mr_idx_t){0xffff, 0xff})
+
+/**
+ * @def MR_IDX_EXTRACT(idx)
+ * It extracts the index as 32 bit integer. \n
+ * This is achieved by concatenating \a hidx and \a lidx fields.
+ * @param idx
+ * An instance of the \a mr_idx_t data structure
+*/
+#define MR_IDX_EXTRACT(idx) ((mr_long_t)((idx).hidx << 16) | (idx).lidx)
+
+/**
+ * @def MR_IDX_DECOMPOSE(st, idx)
+ * Constructs an index structure based on the 32 bit <em>idx</em>.
+ * @param st
+ * The \a mr_idx_t structure.
+ * @param idx
+ * Index passed as a 32 bit integer.
+*/
+#define MR_IDX_DECOMPOSE(st, idx)                 \
+    do                                            \
+    {                                             \
+        (st).lidx = (mr_short_t)((idx) & 0xffff); \
+        (st).hidx = (mr_byte_t)((idx) >> 16);     \
+    } while (0)
+    
+
 /* error codes */
 
 #define MR_NOERROR 0
