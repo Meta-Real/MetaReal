@@ -105,7 +105,7 @@ struct __MR_CONFIG_T
 typedef struct __MR_CONFIG_T mr_config_t;
 
 /**
- * The mr_config_t instant that holds all information
+ * The \a mr_config_t instant that holds all information
  * about the code and its compilation process.
 */
 extern mr_config_t _mr_config;

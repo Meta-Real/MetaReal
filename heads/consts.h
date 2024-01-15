@@ -49,6 +49,19 @@ copies or substantial portions of the Software.
 */
 #define MR_FILE_MAXSIZE 0x1000000ULL
 
+/**
+ * Factor for figuring out the stack size allocation step. \n
+ * Formula: `AllocationStep = SourceCodeSize * MR_STACK_SIZE_FACTOR`
+*/
+#define MR_STACK_SIZE_FACTOR 16
+
+/**
+ * Default size of the stack pointers chunk. \n
+ * This number is used to calculate allocation size of the \a ptrs list. \n
+ * Formula: `AllocationSize = SourceCodeSize / MR_STACK_PSIZE_CHUNK`
+*/
+#define MR_STACK_PSIZE_CHUNK 256
+
 /* Lexer */
 
 /**
@@ -57,11 +70,6 @@ copies or substantial portions of the Software.
  * Formula: `AllocationSize = SourceCodeSize / MR_LEXER_TOKENS_CHUNK`
 */
 #define MR_LEXER_TOKENS_CHUNK 16
-
-/**
- * Maximum legal size of a single identifier in characters
-*/
-#define MR_LEXER_IDENTIFIER_MAXSIZE 128
 
 /* Parser */
 

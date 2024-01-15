@@ -3,6 +3,7 @@
 #include <optimizer/operation.h>
 #include <lexer/token.h>
 #include <config.h>
+#include <stack.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -24,10 +25,7 @@ mr_byte_t mr_optimizer(
     {
         retcode = mr_visit(&res->error, nodes + res->size);
         if (retcode != MR_NOERROR)
-        {
-            mr_values_free(nodes, size);
             return retcode;
-        }
     }
 
     res->values = nodes;
@@ -57,15 +55,18 @@ mr_byte_t mr_visit_int(
     if (!_mr_config.opt_const_fold)
         return MR_NOERROR;
 
-    mr_long_t idx = (mr_long_t)(uintptr_t)node->value;
-    mr_value_cint_t *value = malloc(sizeof(mr_value_cint_t));
-    if (!value)
-        return MR_ERROR_NOT_ENOUGH_MEMORY;
+    mr_long_t idx = node->value;
+
+    mr_long_t ptr;
+    mr_byte_t retcode = mr_stack_push(&ptr, sizeof(mr_value_cint_t));
+    if (retcode != MR_NOERROR)
+        return retcode;
 
     // We can do better
+    mr_value_cint_t *value = (mr_value_cint_t*)(_mr_stack.data + ptr);
     value->value = 0;
 
-    mr_str_ct num = _mr_config.code + idx;
+    mr_str_ct num = _mr_config.code + node->value;
     do
     {
         if (*num == '_')
@@ -80,7 +81,7 @@ mr_byte_t mr_visit_int(
     MR_IDX_DECOMPOSE(value->idx, idx);
 
     node->type = MR_VALUE_CINT;
-    node->value = value;
+    node->value = ptr;
     return MR_NOERROR;
 }
 
@@ -88,7 +89,7 @@ mr_byte_t mr_visit_binary_op(
     mr_invalid_semantic_t *error, mr_node_t *node)
 {
     node->useless = _mr_config.opt_rem_useless;
-    mr_node_binary_op_t *data = (mr_node_binary_op_t*)node->value;
+    mr_node_binary_op_t *data = (mr_node_binary_op_t*)(_mr_stack.data + node->value);
 
     mr_byte_t retcode = mr_visit(error, &data->left);
     if (retcode != MR_NOERROR)
@@ -110,15 +111,14 @@ mr_byte_t mr_visit_binary_op(
 
     node->type = data->left.type;
     node->value = data->left.value;
-
-    free(data);
     return MR_NOERROR;
 }
 
 mr_byte_t mr_visit_ex_dollar_method(
     mr_invalid_semantic_t *error, mr_node_t *node)
 {
-    mr_node_ex_dollar_method_t *data = (mr_node_ex_dollar_method_t*)node->value;
+    mr_node_ex_dollar_method_t *data =
+        (mr_node_ex_dollar_method_t*)(_mr_stack.data + node->value);
 
     mr_long_t idx = MR_IDX_EXTRACT(data->idx);
     mr_long_t size = mr_token_getsize(MR_TOKEN_IDENTIFIER, idx);
@@ -151,7 +151,5 @@ mr_byte_t mr_visit_ex_dollar_method(
     }
 
     node->type = MR_NODE_NONE;
-
-    free(data);
     return MR_NOERROR;
 }

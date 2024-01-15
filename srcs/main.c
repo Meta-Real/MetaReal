@@ -25,6 +25,7 @@ copies or substantial portions of the Software.
 #include <optimizer/optimizer.h>
 #include <generator/generator.h>
 #include <optimizer/value.h>
+#include <stack.h>
 #include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -175,12 +176,20 @@ mr_byte_t mr_compile(void)
         return MR_NOERROR;
     }
 
+    retcode = mr_stack_init(
+        _mr_config.size * MR_STACK_SIZE_FACTOR,
+        _mr_config.size / MR_STACK_PSIZE_CHUNK + 1);
+    if (retcode != MR_NOERROR)
+        return retcode;
+
     mr_parser_t parser;
     retcode = mr_parser(&parser, lexer.tokens);
     if (retcode != MR_NOERROR)
     {
         if (retcode == MR_ERROR_BAD_FORMAT)
             mr_invalid_syntax_print(&parser.error);
+
+        mr_stack_free();
         return retcode;
     }
 
@@ -190,6 +199,8 @@ mr_byte_t mr_compile(void)
     {
         if (retcode == MR_ERROR_BAD_FORMAT)
             mr_invalid_semantic_print(&optimizer.error);
+
+        mr_stack_free();
         return retcode;
     }
 
@@ -198,7 +209,10 @@ mr_byte_t mr_compile(void)
         optimizer.size, optimizer.size * MR_GENERATOR_STRING_FACTOR);
 
     if (retcode != MR_NOERROR)
+    {
+        mr_stack_free();
         return retcode;
+    }
 
     mr_byte_t asize = 5 + (mr_byte_t)strlen(_mr_config.fname);
     mr_str_t afile = malloc(asize);
@@ -223,6 +237,8 @@ mr_byte_t mr_compile(void)
     free(generator.data);
     free(afile);
     free(command);
+
+    mr_stack_free();
     return MR_NOERROR;
 }
 

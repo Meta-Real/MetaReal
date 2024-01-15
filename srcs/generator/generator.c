@@ -18,6 +18,7 @@ copies or substantial portions of the Software.
 #include <optimizer/value.h>
 #include <lexer/token.h>
 #include <config.h>
+#include <stack.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -77,11 +78,8 @@ mr_byte_t mr_generator(
         mr_generator_visit(&data, nodes + i);
         if (data.error != MR_NOERROR)
         {
-            for (; i < size; i++)
-                mr_node_free(nodes + i);
             free(nodes);
             free(data.data);
-
             return data.error;
         }
     }
@@ -173,24 +171,17 @@ void mr_generator_visit_int(
 void mr_generator_visit_binary_op(
     mr_generator_data_t *data, mr_node_t *node)
 {
-    mr_node_binary_op_t *vnode = (mr_node_binary_op_t*)node->value;
+    mr_node_binary_op_t *vnode = (mr_node_binary_op_t*)(_mr_stack.data + node->value);
 
     mr_generator_visit(data, &vnode->left);
     if (data->error != MR_NOERROR)
-    {
-        mr_value_free(&vnode->right);
-        free(vnode);
         return;
-    }
 
     mr_byte_t reg = data->reg;
 
     mr_generator_visit(data, &vnode->right);
     if (data->error != MR_NOERROR || node->useless)
-    {
-        free(vnode);
         return;
-    }
 
     if (data->size + 14 > data->alloc)
     {
@@ -198,8 +189,6 @@ void mr_generator_visit_binary_op(
             (data->alloc += data->exalloc + 14) * sizeof(mr_chr_t));
         if (!block)
         {
-            free(vnode);
-
             data->error = MR_ERROR_NOT_ENOUGH_MEMORY;
             return;
         }
@@ -243,19 +232,15 @@ void mr_generator_visit_binary_op(
     }
 
     data->reg = reg;
-    free(vnode);
 }
 
 void mr_generator_visit_cint(
     mr_generator_data_t *data, mr_node_t *node)
 {
     if (node->useless)
-    {
-        free(node->value);
         return;
-    }
 
-    mr_value_cint_t *vnode = (mr_value_cint_t*)node->value;
+    mr_value_cint_t *vnode = (mr_value_cint_t*)(_mr_stack.data + node->value);
 
     // We can do better
     mr_short_t size = 1;
@@ -270,8 +255,6 @@ void mr_generator_visit_cint(
             (data->alloc += data->exalloc + size) * sizeof(mr_chr_t));
         if (!block)
         {
-            free(vnode);
-
             data->error = MR_ERROR_NOT_ENOUGH_MEMORY;
             return;
         }
@@ -298,6 +281,4 @@ void mr_generator_visit_cint(
     sprintf(data->data + data->size, "\tmov\t%s, %" PRIu64 "\n",
         mr_generator_reg_label[data->reg], vnode->value);
     data->size += size;
-
-    free(vnode);
 }

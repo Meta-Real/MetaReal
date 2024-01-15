@@ -18,7 +18,7 @@ copies or substantial portions of the Software.
  * @file node.h
  * Definitions of the node data structure which is used by the parser to
  * create AST (abstract syntax tree) of the code. \n
- * All things defined in \a node.c and this file have the \a mr_node prefix.
+ * All things defined in this file have the \a mr_node prefix.
 */
 
 #ifndef __MR_NODE__
@@ -33,7 +33,7 @@ copies or substantial portions of the Software.
  * and the grammar of that statement.
  * @var mr_byte_t __MR_NODE_T::type
  * Type of the <em>node</em>.
- * @var mr_ptr_t __MR_NODE_T::value
+ * @var mr_long_t __MR_NODE_T::value
  * Value of the <em>node</em>.
  * @var mr_bool_t __MR_NODE_T::useless
  * Determines if the node is useless or not (used for optimization purposes).
@@ -42,7 +42,7 @@ copies or substantial portions of the Software.
 struct __MR_NODE_T
 {
     mr_byte_t type;
-    mr_ptr_t value;
+    mr_long_t value;
 
     mr_bool_t useless : 1;
 };
@@ -164,23 +164,22 @@ typedef struct __MR_NODE_CALL_ARG_T mr_node_call_arg_t;
 /**
  * @struct __MR_NODE_FUNC_CALL_T
  * Data structure that holds information about a function call (with arguments).
- * @var mr_node_t __MR_NODE_FUNC_CALL_T::func
- * Function that needs to be called.
- * @var mr_node_call_arg_t* __MR_NODE_FUNC_CALL_T::args
+ * @var mr_long_t __MR_NODE_FUNC_CALL_T::args
  * List of function call arguments.
  * @var mr_byte_t __MR_NODE_FUNC_CALL_T::size
  * Size of the \a args list.
+ * @var mr_node_t __MR_NODE_FUNC_CALL_T::func
+ * Function that needs to be called.
  * @var mr_idx_t __MR_NODE_FUNC_CALL_T::eidx
  * Ending index of the call.
 */
 #pragma pack(push, 1)
 struct __MR_NODE_FUNC_CALL_T
 {
-    mr_node_t func;
-
-    mr_node_call_arg_t *args;
+    mr_long_t args;
     mr_byte_t size;
 
+    mr_node_t func;
     mr_idx_t eidx;
 };
 #pragma pack(pop)
@@ -206,23 +205,22 @@ typedef struct __MR_NODE_EX_FUNC_CALL_T mr_node_ex_func_call_t;
 /**
  * @struct __MR_NODE_DOLLAR_METHOD_T
  * Data structure that holds information about a dollar method call (with arguments).
- * @var mr_idx_t __MR_NODE_DOLLAR_METHOD_T::idx
- * Index of the name of dollar method.
- * @var mr_node_t* __MR_NODE_DOLLAR_METHOD_T::params
+ * @var mr_long_t __MR_NODE_DOLLAR_METHOD_T::params
  * List of parameters.
  * @var mr_byte_t __MR_NODE_DOLLAR_METHOD_T::size
  * Size of the \a params list.
+ * @var mr_idx_t __MR_NODE_DOLLAR_METHOD_T::idx
+ * Index of the name of dollar method.
  * @var mr_short_t __MR_NODE_DOLLAR_METHOD_T::sidx
  * Starting index of dollar method.
 */
 #pragma pack(push, 1)
 struct __MR_NODE_DOLLAR_METHOD_T
 {
-    mr_idx_t idx;
-
-    mr_node_t *params;
+    mr_long_t params;
     mr_byte_t size;
 
+    mr_idx_t idx;
     mr_idx_t sidx;
 };
 #pragma pack(pop)
@@ -244,31 +242,5 @@ struct __MR_NODE_EX_DOLLAR_METHOD_T
 };
 #pragma pack(pop)
 typedef struct __MR_NODE_EX_DOLLAR_METHOD_T mr_node_ex_dollar_method_t;
-
-/**
- * It deallocates a single node passed as a pointer.
- * @param node
- * Node that needs to be deallocated.
-*/
-void mr_node_free(
-    mr_node_t *node);
-
-/**
- * It deallocates the nodes list and its elements from memory according to its size.
- * @param nodes
- * List of nodes.
- * @param size
- * Size of the \a nodes list.
-*/
-void mr_nodes_free(
-    mr_node_t *nodes, mr_long_t size);
-
-/**
- * It deallocates a \a mr_node_func_call_t structure from memory.
- * @param node
- * Node value that needs to be deallocated.
-*/
-void mr_node_func_call_free(
-    mr_node_func_call_t *node);
 
 #endif
