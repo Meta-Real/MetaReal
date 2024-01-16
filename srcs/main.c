@@ -234,11 +234,11 @@ mr_byte_t mr_compile(void)
     fwrite(generator.data, sizeof(mr_chr_t), generator.size, file);
     fclose(file);
 
-    asize += 50 + sizeof(__MR_ASSEMBLER__);
+    asize += 58 + sizeof(__MR_ASSEMBLER__) + generator.ssize;
     mr_str_t command = malloc(asize);
     sprintf(command, "\"%s\" %s "
-        "/link /entry:main /subsystem:console "
-        ">nul 2>nul", __MR_ASSEMBLER__, afile);
+        "/link /entry:main /subsystem:console /stack:%" PRIu32
+        ">nul 2>nul", __MR_ASSEMBLER__, afile, generator.stacksize);
     system(command);
 
     free(generator.data);

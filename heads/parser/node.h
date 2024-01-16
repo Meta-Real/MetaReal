@@ -45,6 +45,9 @@ struct __MR_NODE_T
     mr_long_t value;
 
     mr_bool_t useless : 1;
+
+    mr_byte_t reg : 4;
+    mr_long_t rsp;
 };
 #pragma pack(pop)
 typedef struct __MR_NODE_T mr_node_t;
