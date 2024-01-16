@@ -159,9 +159,14 @@ int main(
     return MR_ERROR_BAD_COMMAND;
 }
 
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
 mr_byte_t mr_compile(void)
 {
+    LARGE_INTEGER s, e;
+
     mr_lexer_t lexer;
+    QueryPerformanceCounter(&s);
     mr_byte_t retcode = mr_lexer(&lexer);
     if (retcode != MR_NOERROR)
     {
@@ -203,6 +208,8 @@ mr_byte_t mr_compile(void)
         mr_stack_free();
         return retcode;
     }
+    QueryPerformanceCounter(&e);
+    printf("%lf msc\n", (e.QuadPart - s.QuadPart) / 10000.0);
 
     mr_generator_t generator;
     retcode = mr_generator(&generator, optimizer.values,

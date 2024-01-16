@@ -53,7 +53,7 @@ copies or substantial portions of the Software.
  * Factor for figuring out the stack size allocation step. \n
  * Formula: `AllocationStep = SourceCodeSize * MR_STACK_SIZE_FACTOR`
 */
-#define MR_STACK_SIZE_FACTOR 16
+#define MR_STACK_SIZE_FACTOR 8
 
 /**
  * Default size of the stack pointers chunk. \n

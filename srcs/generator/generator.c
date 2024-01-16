@@ -22,18 +22,31 @@ copies or substantial portions of the Software.
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
+
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+#include <intrin.h>
+#endif
 
 enum __MR_GENERATOR_REG_ENUM
 {
+    MR_GENERATOR_REG_RAX,
+    MR_GENERATOR_REG_RBX,
     MR_GENERATOR_REG_RCX,
     MR_GENERATOR_REG_RDX,
-    MR_GENERATOR_REG_RAX
+    MR_GENERATOR_REG_RSI,
+    MR_GENERATOR_REG_RDI,
+    MR_GENERATOR_REG_RBP
 };
 
-#define MR_GENERATOR_REG_COUNT (MR_GENERATOR_REG_RAX + 1)
+#define MR_GENERATOR_REG_COUNT (MR_GENERATOR_REG_RBP + 1)
 
 mr_str_ct mr_generator_reg_label[MR_GENERATOR_REG_COUNT] =
-{"rcx", "rdx", "rax"};
+{
+    "rax", "rbx", "rcx", "rdx", "rsi", "rdi", "rbp"
+};
 
 #pragma pack(push, 1)
 struct __MR_GENERATOR_DATA_T
@@ -45,10 +58,16 @@ struct __MR_GENERATOR_DATA_T
 
     mr_byte_t error;
 
+    mr_bool_t rax_free : 1;
+    mr_bool_t rbx_free : 1;
     mr_bool_t rcx_free : 1;
     mr_bool_t rdx_free : 1;
-    mr_bool_t rax_free : 1;
-    mr_byte_t reg : 2;
+    mr_bool_t rsi_free : 1;
+    mr_bool_t rdi_free : 1;
+    mr_bool_t rbp_free : 1;
+    mr_byte_t reg;
+
+    mr_longlong_t rsp;
 };
 #pragma pack(pop)
 typedef struct __MR_GENERATOR_DATA_T mr_generator_data_t;
@@ -62,12 +81,18 @@ void mr_generator_visit_binary_op(
 void mr_generator_visit_cint(
     mr_generator_data_t *data, mr_node_t *node);
 
+void mr_generator_print(
+    mr_generator_data_t *data, mr_short_t size, mr_str_ct format, ...);
+
+mr_byte_t b16_digits(mr_longlong_t num);
+
 mr_byte_t mr_generator(
     mr_generator_t *res,
     mr_node_t *nodes, mr_long_t size, mr_long_t alloc)
 {
     mr_generator_data_t data = {malloc(alloc), 16, alloc, alloc, MR_NOERROR,
-        MR_TRUE, MR_TRUE, MR_TRUE, MR_TRUE};
+        MR_TRUE, MR_TRUE, MR_TRUE, MR_TRUE, MR_TRUE, MR_TRUE, MR_TRUE,
+        MR_GENERATOR_REG_RAX, 0};
     if (!data.data)
         return MR_ERROR_NOT_ENOUGH_MEMORY;
 
@@ -84,24 +109,15 @@ mr_byte_t mr_generator(
         }
     }
 
-    size = data.size + 31;
-    if (size > data.alloc)
-    {
-        mr_str_t block = realloc(data.data, size * sizeof(mr_chr_t));
-        if (!block)
-        {
-            free(nodes);
-            free(data.data);
-            return MR_ERROR_NOT_ENOUGH_MEMORY;
-        }
+    if (data.rsp)
+        mr_generator_print(&data, 43 + b16_digits(data.rsp),
+            "\tadd rsp, %" PRIx64 "h\n\tmov rax, 0\n\tret\nmain endp\nend\n",
+            data.rsp);
+    else
+        mr_generator_print(&data, 31,
+            "\tmov rax, 0\n\tret\nmain endp\nend\n");
 
-        data.data = block;
-    }
-
-    memcpy(data.data + data.size,
-        "\tmov\trax, 0\n\tret\nmain endp\nend\n", 31 * sizeof(mr_chr_t));
-
-    *res = (mr_generator_t){data.data, size};
+    *res = (mr_generator_t){data.data, data.size};
     free(nodes);
     return MR_NOERROR;
 }
@@ -131,22 +147,20 @@ void mr_generator_visit_int(
     if (node->useless)
         return;
 
-    mr_long_t vsize = mr_token_getsize(MR_TOKEN_INT, (mr_long_t)(uintptr_t)node->value);
-    mr_long_t size = 11 + vsize;
-    if (data->size + size > data->alloc)
+    mr_long_t vsize = mr_token_getsize(MR_TOKEN_INT,
+        (mr_long_t)(uintptr_t)node->value);
+
+    if (data->rax_free)
     {
-        mr_str_t block = realloc(data->data,
-            (data->alloc += data->exalloc + size) * sizeof(mr_chr_t));
-        if (!block)
-        {
-            data->error = MR_ERROR_NOT_ENOUGH_MEMORY;
-            return;
-        }
-
-        data->data = block;
+        data->reg = MR_GENERATOR_REG_RAX;
+        data->rax_free = MR_FALSE;
     }
-
-    if (data->rcx_free)
+    else if (data->rbx_free)
+    {
+        data->reg = MR_GENERATOR_REG_RBX;
+        data->rbx_free = MR_FALSE;
+    }
+    else if (data->rcx_free)
     {
         data->reg = MR_GENERATOR_REG_RCX;
         data->rcx_free = MR_FALSE;
@@ -156,16 +170,32 @@ void mr_generator_visit_int(
         data->reg = MR_GENERATOR_REG_RDX;
         data->rdx_free = MR_FALSE;
     }
-    else if (data->rax_free)
+    else if (data->rsi_free)
     {
-        data->reg = MR_GENERATOR_REG_RAX;
-        data->rax_free = MR_FALSE;
+        data->reg = MR_GENERATOR_REG_RSI;
+        data->rsi_free = MR_FALSE;
+    }
+    else if (data->rdi_free)
+    {
+        data->reg = MR_GENERATOR_REG_RDI;
+        data->rdi_free = MR_FALSE;
+    }
+    else if (data->rbp_free)
+    {
+        data->reg = MR_GENERATOR_REG_RBP;
+        data->rbp_free = MR_FALSE;
+    }
+    else
+    {
+        mr_generator_print(data, 7 + (mr_short_t)vsize, "\tpush %.*s\n",
+            vsize, _mr_config.code + node->value);
+        data->rsp += 8;
+        return;
     }
 
-    sprintf(data->data + data->size, "\tmov\t%s, %.*s\n",
+    mr_generator_print(data, 11 + (mr_short_t)vsize, "\tmov %s, %.*s\n",
         mr_generator_reg_label[data->reg], vsize,
-        _mr_config.code + (mr_long_t)(uintptr_t)node->value);
-    data->size += size;
+        _mr_config.code + node->value);
 }
 
 void mr_generator_visit_binary_op(
@@ -183,51 +213,47 @@ void mr_generator_visit_binary_op(
     if (data->error != MR_NOERROR || node->useless)
         return;
 
-    if (data->size + 14 > data->alloc)
-    {
-        mr_str_t block = realloc(data->data,
-            (data->alloc += data->exalloc + 14) * sizeof(mr_chr_t));
-        if (!block)
-        {
-            data->error = MR_ERROR_NOT_ENOUGH_MEMORY;
-            return;
-        }
-
-        data->data = block;
-    }
-
     switch (vnode->op)
     {
     case MR_TOKEN_PLUS:
-        sprintf(data->data + data->size, "\tadd\t%s, %s\n",
-            mr_generator_reg_label[reg],
-            mr_generator_reg_label[data->reg]);
-        data->size += 14;
+        mr_generator_print(data, 14, "\tadd %s, %s\n",
+            mr_generator_reg_label[reg], mr_generator_reg_label[data->reg]);
         break;
     case MR_TOKEN_MINUS:
-        sprintf(data->data + data->size, "\tsub\t%s, %s\n",
-            mr_generator_reg_label[reg],
-            mr_generator_reg_label[data->reg]);
-        data->size += 14;
+        mr_generator_print(data, 14, "\tsub %s, %s\n",
+            mr_generator_reg_label[reg], mr_generator_reg_label[data->reg]);
         break;
     case MR_TOKEN_MULTIPLY:
-        sprintf(data->data + data->size, "\tmul\t%s, %s\n",
-            mr_generator_reg_label[reg],
-            mr_generator_reg_label[data->reg]);
-        data->size += 14;
+        mr_generator_print(data, 14, "\tmul %s, %s\n",
+            mr_generator_reg_label[reg], mr_generator_reg_label[data->reg]);
         break;
     }
 
+    if (data->error != MR_NOERROR)
+        return;
+
     switch (data->reg)
     {
+    case MR_GENERATOR_REG_RAX:
+        data->rax_free = MR_TRUE;
+        break;
+    case MR_GENERATOR_REG_RBX:
+        data->rdx_free = MR_TRUE;
+        break;
     case MR_GENERATOR_REG_RCX:
         data->rcx_free = MR_TRUE;
         break;
     case MR_GENERATOR_REG_RDX:
         data->rdx_free = MR_TRUE;
         break;
-    case MR_GENERATOR_REG_RAX:
-        data->rax_free = MR_TRUE;
+    case MR_GENERATOR_REG_RSI:
+        data->rsi_free = MR_TRUE;
+        break;
+    case MR_GENERATOR_REG_RDI:
+        data->rdi_free = MR_TRUE;
+        break;
+    case MR_GENERATOR_REG_RBP:
+        data->rbp_free = MR_TRUE;
         break;
     }
 
@@ -240,15 +266,64 @@ void mr_generator_visit_cint(
     if (node->useless)
         return;
 
+    if (data->rax_free)
+    {
+        data->reg = MR_GENERATOR_REG_RAX;
+        data->rax_free = MR_FALSE;
+    }
+    else if (data->rbx_free)
+    {
+        data->reg = MR_GENERATOR_REG_RBX;
+        data->rbx_free = MR_FALSE;
+    }
+    else if (data->rcx_free)
+    {
+        data->reg = MR_GENERATOR_REG_RCX;
+        data->rcx_free = MR_FALSE;
+    }
+    else if (data->rdx_free)
+    {
+        data->reg = MR_GENERATOR_REG_RDX;
+        data->rdx_free = MR_FALSE;
+    }
+    else if (data->rsi_free)
+    {
+        data->reg = MR_GENERATOR_REG_RSI;
+        data->rsi_free = MR_FALSE;
+    }
+    else if (data->rdi_free)
+    {
+        data->reg = MR_GENERATOR_REG_RDI;
+        data->rdi_free = MR_FALSE;
+    }
+    else if (data->rbp_free)
+    {
+        data->reg = MR_GENERATOR_REG_RBP;
+        data->rbp_free = MR_FALSE;
+    }
+    else
+    {
+        mr_value_cint_t *vnode = (mr_value_cint_t*)(_mr_stack.data + node->value);
+
+        mr_generator_print(data, 7 + b16_digits(vnode->value),
+            "\tpush %" PRIx64 "\n", vnode->value);
+        data->rsp += 8;
+        return;
+    }
+
     mr_value_cint_t *vnode = (mr_value_cint_t*)(_mr_stack.data + node->value);
 
-    // We can do better
-    mr_short_t size = 1;
-    mr_longlong_t copy = vnode->value;
-    while (copy /= 10)
-        size++;
+    mr_generator_print(data, b16_digits(vnode->value) + 12,
+        "\tmov %s, %" PRIx64 "h\n",
+        mr_generator_reg_label[data->reg], vnode->value);
+}
 
-    size += 11;
+void mr_generator_print(
+    mr_generator_data_t *data, mr_short_t size, mr_str_ct format, ...)
+{
+    va_list params;
+    va_start(params, format);
+
     if (data->size + size > data->alloc)
     {
         mr_str_t block = realloc(data->data,
@@ -262,23 +337,25 @@ void mr_generator_visit_cint(
         data->data = block;
     }
 
-    if (data->rcx_free)
-    {
-        data->reg = MR_GENERATOR_REG_RCX;
-        data->rcx_free = MR_FALSE;
-    }
-    else if (data->rdx_free)
-    {
-        data->reg = MR_GENERATOR_REG_RDX;
-        data->rdx_free = MR_FALSE;
-    }
-    else if (data->rax_free)
-    {
-        data->reg = MR_GENERATOR_REG_RAX;
-        data->rax_free = MR_FALSE;
-    }
-
-    sprintf(data->data + data->size, "\tmov\t%s, %" PRIu64 "\n",
-        mr_generator_reg_label[data->reg], vnode->value);
+    vsprintf(data->data + data->size, format, params);
     data->size += size;
+
+    va_end(params);
+}
+
+mr_byte_t b16_digits(mr_longlong_t num)
+{
+    if (!num)
+        return 1;
+
+#if defined(__GNUC__) || defined(__clang__)
+    return (67 - __builtin_clzll(x)) / 4;
+#elif defined(_MSC_VER)
+    if (num == 1)
+        return 1;
+
+    mr_byte_t idx;
+    BitScanReverse64((DWORD*)&idx, num);
+    return (idx + 3) / 4;
+#endif
 }

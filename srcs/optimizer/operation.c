@@ -29,7 +29,8 @@ void mr_operation_add(
         {
         case MR_VALUE_CINT:
         {
-            mr_value_cint_t *rvalue = (mr_value_cint_t*)(_mr_stack.data + left->value);
+            mr_value_cint_t *rvalue =
+                (mr_value_cint_t*)(_mr_stack.data + right->value);
             lvalue->value += rvalue->value;
             return;
         }
