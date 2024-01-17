@@ -52,19 +52,15 @@ mr_byte_t mr_visit_int(
     mr_node_t *node)
 {
     node->useless = _mr_config.opt_rem_useless;
-    if (!_mr_config.opt_const_fold)
-        return MR_NOERROR;
-
-    mr_long_t idx = node->value;
 
     mr_long_t ptr;
     mr_byte_t retcode = mr_stack_push(&ptr, sizeof(mr_value_cint_t));
     if (retcode != MR_NOERROR)
         return retcode;
 
-    // We can do better
     mr_value_cint_t *value = (mr_value_cint_t*)(_mr_stack.data + ptr);
     value->value = 0;
+    value->storage = MR_VALUE_REG_ALL;
 
     mr_str_ct num = _mr_config.code + node->value;
     do
@@ -78,7 +74,7 @@ mr_byte_t mr_visit_int(
         value->value = 10 * value->value + *num++ - '0';
     } while ((*num >= '0' && *num <= '9') || *num == '_');
 
-    MR_IDX_DECOMPOSE(value->idx, idx);
+    MR_IDX_DECOMPOSE(value->idx, node->value);
 
     node->type = MR_VALUE_CINT;
     node->value = ptr;
