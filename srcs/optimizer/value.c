@@ -14,28 +14,4 @@ The above copyright notice and this permission notice shall be included in all
 copies or substantial portions of the Software.
 */
 
-#include <optimizer/operation.h>
-#include <stack.h>
-
-void mr_operation_add(
-    mr_node_t *left, mr_node_t *right)
-{
-    switch (left->type)
-    {
-    case MR_VALUE_CINT:
-    {
-        mr_value_cint_t *lvalue =
-            (mr_value_cint_t*)(_mr_stack.data + left->value);
-        switch (right->type)
-        {
-        case MR_VALUE_CINT:
-        {
-            mr_value_cint_t *rvalue =
-                (mr_value_cint_t*)(_mr_stack.data + right->value);
-            lvalue->value += rvalue->value;
-            return;
-        }
-        }
-    }
-    }
-}
+#include <optimizer/value.h>

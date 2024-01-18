@@ -161,12 +161,13 @@ int main(
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
+
 mr_byte_t mr_compile(void)
 {
     LARGE_INTEGER s, e;
+    QueryPerformanceCounter(&s);
 
     mr_lexer_t lexer;
-    QueryPerformanceCounter(&s);
     mr_byte_t retcode = mr_lexer(&lexer);
     if (retcode != MR_NOERROR)
     {
@@ -208,8 +209,6 @@ mr_byte_t mr_compile(void)
         mr_stack_free();
         return retcode;
     }
-    QueryPerformanceCounter(&e);
-    printf("%lf msc\n", (e.QuadPart - s.QuadPart) / 10000.0);
 
     mr_generator_t generator;
     retcode = mr_generator(&generator, optimizer.values,
@@ -234,18 +233,20 @@ mr_byte_t mr_compile(void)
     fwrite(generator.data, sizeof(mr_chr_t), generator.size, file);
     fclose(file);
 
-    asize += 58 + sizeof(__MR_ASSEMBLER__) + generator.ssize;
+    /*asize += 58 + sizeof(__MR_ASSEMBLER__) + generator.ssize;
     mr_str_t command = malloc(asize);
     sprintf(command, "\"%s\" %s "
         "/link /entry:main /subsystem:console /stack:%" PRIu32
         ">nul 2>nul", __MR_ASSEMBLER__, afile, generator.stacksize);
-    system(command);
+    system(command);*/
 
     free(generator.data);
     free(afile);
-    free(command);
 
     mr_stack_free();
+
+    QueryPerformanceCounter(&e);
+    printf("%lf msc\n", (e.QuadPart - s.QuadPart) / 10000.0);
     return MR_NOERROR;
 }
 

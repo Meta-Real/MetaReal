@@ -38,9 +38,6 @@ struct __MR_GENERATOR_T
 {
     mr_str_t data;
     mr_long_t size;
-
-    mr_long_t stacksize;
-    mr_byte_t ssize;
 };
 #pragma pack(pop)
 typedef struct __MR_GENERATOR_T mr_generator_t;
