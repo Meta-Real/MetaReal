@@ -1,3 +1,18 @@
+/*
+MIT License
+
+Copyright (c) 2023 MetaReal
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+*/
 
 #include <optimizer/optimizer.h>
 #include <optimizer/operation.h>
@@ -101,7 +116,7 @@ void mr_visit_int(
         vnode->value = 10 * vnode->value + *num++ - '0';
     } while ((*num >= '0' && *num <= '9') || *num == '_');
 
-    MR_IDX_DECOMPOSE(vnode->idx, node->value);
+    vnode->idx = MR_IDX_DECOMPOSE(node->value);
 
     node->type = MR_VALUE_CINT;
     node->value = ptr;
@@ -150,7 +165,21 @@ void mr_visit_var_access(
         node->value = MR_VALUE_BIFUNC_PRINT;
 
         data->props |= MR_OPTIMIZER_USEFUL;
+        return;
     }
+
+    mr_invalid_semantic_t *error = data->error;
+    *error = (mr_invalid_semantic_t){
+        malloc(17 + size), MR_FALSE, MR_INVALID_SEMANTIC_NOT_DEFINED,
+        MR_IDX_DECOMPOSE(node->value), MR_TOKEN_EOF, (mr_byte_t)size};
+    if (!error->detail)
+    {
+        data->flag = MR_ERROR_NOT_ENOUGH_MEMORY;
+        return;
+    }
+
+    sprintf(error->detail, "\"%.*s\" is not defined", size, name);
+    data->flag = MR_ERROR_BAD_FORMAT;
 }
 
 void mr_visit_func_call(
@@ -185,31 +214,41 @@ void mr_visit_ex_dollar_method(
     mr_str_ct name = _mr_config.code + idx;
 
     if (size == 13 && !memcmp(name, "od_const_fold", 13 * sizeof(mr_chr_t)))
-        _mr_config.opt_const_fold = MR_FALSE;
-    else if (size == 13 && !memcmp(name, "oe_const_fold", 13 * sizeof(mr_chr_t)))
-        _mr_config.opt_const_fold = MR_TRUE;
-    else if (size == 14 && !memcmp(name, "od_rem_useless", 14 * sizeof(mr_chr_t)))
-        _mr_config.opt_rem_useless = MR_FALSE;
-    else if (size == 14 && !memcmp(name, "oe_rem_useless", 14 * sizeof(mr_chr_t)))
-        _mr_config.opt_rem_useless = MR_TRUE;
-    else
     {
-        mr_invalid_semantic_t *error = data->error;
-
-        *error = (mr_invalid_semantic_t){
-            malloc(25 + mr_token_getsize(MR_TOKEN_IDENTIFIER, MR_IDX_EXTRACT(vnode->idx))),
-            MR_FALSE, MR_INVALID_SEMANTIC_DOLLAR_METHOD,
-            vnode->idx, MR_TOKEN_IDENTIFIER, 0};
-        if (!error->detail)
-        {
-            data->flag = MR_ERROR_NOT_ENOUGH_MEMORY;
-            return;
-        }
-
-        sprintf(error->detail, "Invalid dollar method \"%.*s\"", size, name);
-        data->flag = MR_ERROR_BAD_FORMAT;
+        _mr_config.opt_const_fold = MR_FALSE;
+        node->type = MR_NODE_NONE;
+        return;
+    }
+    else if (size == 13 && !memcmp(name, "oe_const_fold", 13 * sizeof(mr_chr_t)))
+    {
+        _mr_config.opt_const_fold = MR_TRUE;
+        node->type = MR_NODE_NONE;
+        return;
+    }
+    else if (size == 14 && !memcmp(name, "od_rem_useless", 14 * sizeof(mr_chr_t)))
+    {
+        _mr_config.opt_rem_useless = MR_FALSE;
+        node->type = MR_NODE_NONE;
+        return;
+    }
+    else if (size == 14 && !memcmp(name, "oe_rem_useless", 14 * sizeof(mr_chr_t)))
+    {
+        _mr_config.opt_rem_useless = MR_TRUE;
+        node->type = MR_NODE_NONE;
         return;
     }
 
-    node->type = MR_NODE_NONE;
+    mr_invalid_semantic_t *error = data->error;
+
+    *error = (mr_invalid_semantic_t){
+        malloc(25 + size), MR_FALSE, MR_INVALID_SEMANTIC_DOLLAR_METHOD,
+        vnode->idx, MR_TOKEN_EOF, (mr_byte_t)size};
+    if (!error->detail)
+    {
+        data->flag = MR_ERROR_NOT_ENOUGH_MEMORY;
+        return;
+    }
+
+    sprintf(error->detail, "Invalid dollar method \"%.*s\"", size, name);
+    data->flag = MR_ERROR_BAD_FORMAT;
 }

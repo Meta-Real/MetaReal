@@ -40,14 +40,14 @@
  * @param inc
  * Size of the token in characters (to increment the <em>idx</em>).
 */
-#define mr_lexer_token_set(typ, inc)             \
-    do                                           \
-    {                                            \
-        token->type = typ;                       \
-        MR_IDX_DECOMPOSE(token->idx, data->idx); \
-                                                 \
-        data->idx += inc;                        \
-        data->size++;                            \
+#define mr_lexer_token_set(typ, inc)              \
+    do                                            \
+    {                                             \
+        token->type = typ;                        \
+        token->idx = MR_IDX_DECOMPOSE(data->idx); \
+                                                  \
+        data->idx += inc;                         \
+        data->size++;                             \
     } while (0)
 
 /**
@@ -446,7 +446,7 @@ mr_byte_t mr_lexer(
             else
                 res->error = (mr_illegal_chr_t){(mr_chr_t)data.alloc, MR_TRUE};
 
-            MR_IDX_DECOMPOSE(res->error.idx, data.idx);
+            res->error.idx = MR_IDX_DECOMPOSE(data.idx);
             return MR_ERROR_BAD_FORMAT;
         }
     }
@@ -773,7 +773,7 @@ void mr_lexer_generate_identifier(
 {
     mr_token_t *token = data->tokens + data->size;
     mr_long_t idx = data->idx;
-    MR_IDX_DECOMPOSE(token->idx, idx);
+    token->idx = MR_IDX_DECOMPOSE(idx);
 
     mr_chr_t chr;
     do
@@ -814,7 +814,7 @@ void mr_lexer_generate_number(
 {
     mr_token_t *token = data->tokens + data->size;
     token->type = MR_TOKEN_INT;
-    MR_IDX_DECOMPOSE(token->idx, data->idx);
+    token->idx = MR_IDX_DECOMPOSE(data->idx);
 
     mr_bool_t is_float = MR_FALSE;
     mr_chr_t chr = _mr_config.code[data->idx];
@@ -893,7 +893,7 @@ void mr_lexer_generate_str(
 {
     mr_token_t *token = data->tokens + data->size;
     token->type = MR_TOKEN_STR;
-    MR_IDX_DECOMPOSE(token->idx, data->idx);
+    token->idx = MR_IDX_DECOMPOSE(data->idx);
 
     if (!esc)
         data->idx++;
@@ -918,7 +918,7 @@ void mr_lexer_generate_fstr(
 {
     mr_token_t *token = data->tokens + data->size++;
     token->type = MR_TOKEN_FSTR_START;
-    MR_IDX_DECOMPOSE(token->idx, data->idx);
+    token->idx = MR_IDX_DECOMPOSE(data->idx);
 
     data->idx += esc ? 1 : 2;
     mr_chr_t quot = _mr_config.code[data->idx++];
@@ -932,7 +932,7 @@ void mr_lexer_generate_fstr(
 
         token = data->tokens + data->size++;
         token->type = MR_TOKEN_FSTR_END;
-        MR_IDX_DECOMPOSE(token->idx, data->idx);
+        token->idx = MR_IDX_DECOMPOSE(data->idx);
         return;
     }
 
@@ -982,7 +982,7 @@ void mr_lexer_generate_fstr(
 
         token = data->tokens + data->size;
         token->type = MR_TOKEN_FSTR;
-        MR_IDX_DECOMPOSE(token->idx, data->idx);
+        token->idx = MR_IDX_DECOMPOSE(data->idx);
 
         do
             mr_lexer_str_sub;

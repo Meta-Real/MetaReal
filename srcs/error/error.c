@@ -25,10 +25,18 @@ copies or substantial portions of the Software.
 #include <stdlib.h>
 #include <stdio.h>
 
+/**
+ * Number of invalid semantic types
+*/
 #define MR_INVALID_SEMANTIC_COUNT (MR_INVALID_SEMANTIC_DOLLAR_METHOD + 1)
+
+/**
+ * Display names for different invalid semantic error types
+*/
 mr_str_ct mr_invalid_semantic_label[MR_INVALID_SEMANTIC_COUNT] =
 {
     "DivByZeroError",
+    "NotDefinedError",
     "InvalidDollarMethod"
 };
 
@@ -146,17 +154,8 @@ void mr_invalid_semantic_print(
     fprintf(stderr, "File \"%s\", line %" PRIu32 "\n\n", _mr_config.fname, ln);
 
     mr_long_t eidx = idx + error->size;
-    eidx += mr_token_getsize(error->etype, eidx);
-    if (eidx > _mr_config.size)
-    {
-        fwrite(_mr_config.code, sizeof(mr_chr_t), _mr_config.size - start, stderr);
-        fputc('\n', stderr);
-
-        for (i = start; i != idx; i++)
-            fputc(' ', stderr);
-        fputs("^\n\n", stderr);
-        return;
-    }
+    if (error->etype != MR_TOKEN_EOF)
+        eidx += mr_token_getsize(error->etype, eidx);
 
     mr_long_t end;
     mr_chr_t chr;

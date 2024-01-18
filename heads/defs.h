@@ -71,20 +71,12 @@ typedef struct __MR_IDX_T mr_idx_t;
 #define MR_IDX_EXTRACT(idx) ((mr_long_t)((idx).hidx << 16) | (idx).lidx)
 
 /**
- * @def MR_IDX_DECOMPOSE(st, idx)
+ * @def MR_IDX_DECOMPOSE(idx)
  * Constructs an index structure based on the 32 bit <em>idx</em>.
- * @param st
- * The \a mr_idx_t structure.
  * @param idx
  * Index passed as a 32 bit integer.
 */
-#define MR_IDX_DECOMPOSE(st, idx)                 \
-    do                                            \
-    {                                             \
-        (st).lidx = (mr_short_t)((idx) & 0xffff); \
-        (st).hidx = (mr_byte_t)((idx) >> 16);     \
-    } while (0)
-    
+#define MR_IDX_DECOMPOSE(idx) ((mr_idx_t){(idx) & 0xffff, (mr_byte_t)((idx) >> 16)})
 
 /* error codes */
 

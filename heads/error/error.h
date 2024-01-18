@@ -107,12 +107,15 @@ typedef struct __MR_INVALID_SEMANTIC_T mr_invalid_semantic_t;
  * These are default semantic error types and customized types are stored differently.
  * @var __MR_INVALID_SEMANTIC_ENUM::MR_INVALID_SEMANTIC_DIVBYZERO
  * Division by zero error.
+ * @var __MR_INVALID_SEMANTIC_ENUM::MR_NOT_DEFINED_ERROR
+ * Variable not defined error.
  * @var __MR_INVALID_SEMANTIC_ENUM::MR_INVALID_SEMANTIC_DOLLAR_METHOD
  * Calling invalid dollar method error.
 */
 enum __MR_INVALID_SEMANTIC_ENUM
 {
     MR_INVALID_SEMANTIC_DIVBYZERO,
+    MR_INVALID_SEMANTIC_NOT_DEFINED,
     MR_INVALID_SEMANTIC_DOLLAR_METHOD
 };
 
