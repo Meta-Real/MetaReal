@@ -29,11 +29,8 @@ add_executable(MetaReal
     srcs/main.c srcs/config.c srcs/stack.c
     srcs/error/error.c
     srcs/lexer/lexer.c srcs/lexer/token.c
-    srcs/parser/parser.c
-    srcs/optimizer/optimizer.c srcs/optimizer/operation.c srcs/optimizer/value.c
-    srcs/generator/generator.c)
+    srcs/parser/parser.c)
 target_include_directories(MetaReal PRIVATE "heads")
-target_compile_definitions(MetaReal PRIVATE $<$<CONFIG:Debug>:__MR_DEBUG__>)
 
 add_custom_command(TARGET MetaReal POST_BUILD COMMAND ${CMAKE_COMMAND}
     -E copy $<TARGET_FILE:MetaReal> ..)

@@ -22,9 +22,6 @@ copies or substantial portions of the Software.
 
 #include <lexer/lexer.h>
 #include <parser/parser.h>
-#include <optimizer/optimizer.h>
-#include <generator/generator.h>
-#include <optimizer/value.h>
 #include <stack.h>
 #include <config.h>
 #include <stdio.h>
@@ -199,7 +196,7 @@ mr_byte_t mr_compile(void)
         return retcode;
     }
 
-    mr_optimizer_t optimizer;
+    /*mr_optimizer_t optimizer;
     retcode = mr_optimizer(&optimizer, parser.nodes, parser.size);
     if (retcode != MR_NOERROR)
     {
@@ -233,15 +230,15 @@ mr_byte_t mr_compile(void)
     fwrite(generator.data, sizeof(mr_chr_t), generator.size, file);
     fclose(file);
 
-    /*asize += 58 + sizeof(__MR_ASSEMBLER__) + generator.ssize;
+    asize += 58 + sizeof(__MR_ASSEMBLER__) + generator.ssize;
     mr_str_t command = malloc(asize);
     sprintf(command, "\"%s\" %s "
         "/link /entry:main /subsystem:console /stack:%" PRIu32
         ">nul 2>nul", __MR_ASSEMBLER__, afile, generator.stacksize);
-    system(command);*/
+    system(command);
 
     free(generator.data);
-    free(afile);
+    free(afile);*/
 
     mr_stack_free();
 

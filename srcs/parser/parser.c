@@ -535,7 +535,7 @@ mr_byte_t mr_parser_core(mr_parser_t *res, mr_token_t **tokens)
             return MR_ERROR_BAD_FORMAT;
         }
 
-        ++*tokens;
+        mr_parser_advance_newline;
         return MR_NOERROR;
     case MR_TOKEN_DOLLAR:
         return mr_parser_handle_dollar_method(res, tokens);
