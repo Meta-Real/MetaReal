@@ -381,7 +381,10 @@ void mr_lexer_generate_dot(
 mr_byte_t mr_lexer(
     mr_lexer_t *res)
 {
+    mr_chr_t chr;
+    mr_token_t *block;
     mr_lexer_match_t data;
+
     data.flag = MR_LEXER_MATCH_FLAG_OK;
     data.alloc = _mr_config.size / MR_LEXER_TOKENS_CHUNK + 1;
     data.tokens = malloc(data.alloc * sizeof(mr_token_t));
@@ -392,7 +395,7 @@ mr_byte_t mr_lexer(
     data.exalloc = data.alloc;
     data.idx = 0;
 
-    mr_chr_t chr = _mr_config.code[data.idx];
+    chr = _mr_config.code[data.idx];
     while (1)
     {
         mr_lexer_skip_spaces(chr, _mr_config.code, data.idx);
@@ -417,7 +420,6 @@ mr_byte_t mr_lexer(
         break;
     }
 
-    mr_token_t *block;
     while (chr != '\0')
     {
         if (data.size == data.alloc)
@@ -463,8 +465,8 @@ mr_byte_t mr_lexer(
         data.tokens = block;
     }
 
-    mr_token_t *token = data.tokens + data.size;
-    token->type = MR_TOKEN_EOF;
+    block = data.tokens + data.size;
+    block->type = MR_TOKEN_EOF;
 
     res->tokens = data.tokens;
     return MR_NOERROR;
@@ -473,8 +475,11 @@ mr_byte_t mr_lexer(
 void mr_lexer_match(
     mr_lexer_match_t *data)
 {
-    mr_token_t *token = data->tokens + data->size;
-    mr_chr_t chr = _mr_config.code[data->idx];
+    mr_chr_t chr;
+    mr_token_t *token;
+
+    token = data->tokens + data->size;
+    chr = _mr_config.code[data->idx];
 
     if (chr == '#')
     {
@@ -486,7 +491,9 @@ void mr_lexer_match(
 
     if (chr == '\n')
     {
-        mr_token_t *prev = token - 1;
+        mr_token_t *prev;
+
+        prev = token - 1;
         if (mr_lexer_add_newline(prev->type))
         {
             mr_lexer_token_set(MR_TOKEN_NEWLINE, 1);
@@ -512,8 +519,9 @@ void mr_lexer_match(
 
     if (chr == 'f')
     {
-        mr_bool_t esc = MR_TRUE;
+        mr_bool_t esc;
 
+        esc = MR_TRUE;
         chr = _mr_config.code[data->idx + 1];
         if (chr == '\\')
         {
@@ -741,8 +749,9 @@ void mr_lexer_match(
 void mr_lexer_skip_comment(
     mr_lexer_match_t *data)
 {
-    mr_chr_t chr = _mr_config.code[++data->idx];
+    mr_chr_t chr;
 
+    chr = _mr_config.code[++data->idx];
     if (chr != '*')
     {
         while (chr != '\0' && chr != '\n')
@@ -771,18 +780,22 @@ void mr_lexer_skip_comment(
 void mr_lexer_generate_identifier(
     mr_lexer_match_t *data)
 {
-    mr_token_t *token = data->tokens + data->size;
-    mr_long_t idx = data->idx;
+    mr_long_t idx;
+    mr_short_t size;
+    mr_byte_t i;
+    mr_chr_t chr;
+    mr_token_t *token;
+
+    token = data->tokens + data->size;
+    idx = data->idx;
     token->idx = MR_IDX_DECOMPOSE(idx);
 
-    mr_chr_t chr;
     do
         chr = _mr_config.code[++data->idx];
     while ((chr >= 'A' && chr <= 'Z') || (chr >= 'a' && chr <= 'z') ||
         (chr >= '0' && chr <= '9') || chr == '_');
 
-    mr_byte_t i;
-    mr_short_t size = (mr_short_t)(data->idx - idx);
+    size = (mr_short_t)(data->idx - idx);
     if (size <= MR_TOKEN_KEYWORD_MAXSIZE)
     {
         for (i = 0; i != MR_TOKEN_KEYWORD_COUNT; i++)
@@ -812,12 +825,16 @@ void mr_lexer_generate_identifier(
 void mr_lexer_generate_number(
     mr_lexer_match_t *data)
 {
-    mr_token_t *token = data->tokens + data->size;
+    mr_token_t *token;
+    mr_chr_t chr;
+    mr_bool_t is_float;
+
+    token = data->tokens + data->size;
     token->type = MR_TOKEN_INT;
     token->idx = MR_IDX_DECOMPOSE(data->idx);
 
-    mr_bool_t is_float = MR_FALSE;
-    mr_chr_t chr = _mr_config.code[data->idx];
+    is_float = MR_FALSE;
+    chr = _mr_config.code[data->idx];
     do
     {
         if (chr == '_')
@@ -864,7 +881,10 @@ void mr_lexer_generate_number(
 void mr_lexer_generate_chr(
     mr_lexer_match_t *data)
 {
-    mr_chr_t chr = _mr_config.code[data->idx + 1];
+    mr_chr_t chr;
+    mr_token_t *token;
+
+    chr = _mr_config.code[data->idx + 1];
     if (chr != '\\')
     {
         if (_mr_config.code[data->idx + 2] != '\'')
@@ -873,7 +893,7 @@ void mr_lexer_generate_chr(
             return;
         }
 
-        mr_token_t *token = data->tokens + data->size;
+        token = data->tokens + data->size;
         mr_lexer_token_set(MR_TOKEN_CHR, 3);
         return;
     }
@@ -884,22 +904,25 @@ void mr_lexer_generate_chr(
         return;
     }
 
-    mr_token_t *token = data->tokens + data->size;
+    token = data->tokens + data->size;
     mr_lexer_token_set(MR_TOKEN_CHR, 4);
 }
 
 void mr_lexer_generate_str(
     mr_lexer_match_t *data, mr_bool_t esc)
 {
-    mr_token_t *token = data->tokens + data->size;
+    mr_chr_t quot, chr;
+    mr_token_t *token;
+
+    token = data->tokens + data->size;
     token->type = MR_TOKEN_STR;
     token->idx = MR_IDX_DECOMPOSE(data->idx);
 
     if (!esc)
         data->idx++;
 
-    mr_chr_t quot = _mr_config.code[data->idx++];
-    mr_chr_t chr = _mr_config.code[data->idx];
+    quot = _mr_config.code[data->idx++];
+    chr = _mr_config.code[data->idx];
     if (chr == quot)
     {
         data->size++;
@@ -916,15 +939,19 @@ void mr_lexer_generate_str(
 void mr_lexer_generate_fstr(
     mr_lexer_match_t *data, mr_bool_t esc)
 {
-    mr_token_t *token = data->tokens + data->size++;
+    mr_long_t lcurly_count;
+    mr_chr_t quot, chr;
+    mr_ptr_t block;
+    mr_token_t *token;
+
+    token = data->tokens + data->size++;
     token->type = MR_TOKEN_FSTR_START;
     token->idx = MR_IDX_DECOMPOSE(data->idx);
 
     data->idx += esc ? 1 : 2;
-    mr_chr_t quot = _mr_config.code[data->idx++];
-    mr_chr_t chr = _mr_config.code[data->idx];
+    quot = _mr_config.code[data->idx++];
+    chr = _mr_config.code[data->idx];
 
-    mr_ptr_t block;
     if (chr == quot)
     {
         data->idx++;
@@ -936,7 +963,7 @@ void mr_lexer_generate_fstr(
         return;
     }
 
-    mr_long_t lcurly_count = 0;
+    lcurly_count = 0;
     do
     {
         if (chr == '\0')
@@ -999,15 +1026,17 @@ void mr_lexer_generate_fstr(
 void mr_lexer_generate_dot(
     mr_lexer_match_t *data)
 {
-    mr_chr_t chr = _mr_config.code[data->idx + 1];
+    mr_chr_t chr;
+    mr_token_t *token;
 
+    chr = _mr_config.code[data->idx + 1];
     if (chr >= '0' && chr <= '9')
     {
         mr_lexer_generate_number(data);
         return;
     }
 
-    mr_token_t *token = data->tokens + data->size;
+    token = data->tokens + data->size;
     if (chr == '.' && _mr_config.code[data->idx + 2] == '.')
         mr_lexer_token_set(MR_TOKEN_ELLIPSIS, 3);
     else

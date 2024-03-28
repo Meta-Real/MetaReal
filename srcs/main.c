@@ -63,6 +63,11 @@ int main(
 
     if (argc >= 2)
     {
+        mr_long_t size;
+        mr_byte_t retcode;
+        mr_str_t code;
+        FILE *file;
+
         if (!strcmp(argv[1], "--help"))
         {
             mr_print_help();
@@ -91,10 +96,9 @@ int main(
             mr_handle_args(argv + 2, (mr_byte_t)argc - 2);
 
 #if defined(__GNUC__) || defined(__clang__)
-        FILE *file = fopen(argv[1], "rb");
+        file = fopen(argv[1], "rb");
         if (!file)
 #elif defined(_MSC_VER)
-        FILE *file;
         if (fopen_s(&file, argv[1], "rb"))
 #endif
         {
@@ -105,7 +109,7 @@ int main(
         }
 
         fseek(file, 0, SEEK_END);
-        mr_long_t size = ftell(file);
+        size = ftell(file);
         rewind(file);
 
         if (size >= MR_FILE_MAXSIZE)
@@ -124,7 +128,7 @@ int main(
             return MR_NOERROR;
         }
 
-        mr_str_t code = malloc((size + 1) * sizeof(mr_chr_t));
+        code = malloc((size + 1) * sizeof(mr_chr_t));
         if (!code)
         {
             fclose(file);
@@ -140,7 +144,7 @@ int main(
         _mr_config.size = size;
         _mr_config.fname = argv[1];
 
-        mr_byte_t retcode = mr_compile();
+        retcode = mr_compile();
         free(code);
 
         if (retcode == MR_ERROR_NOT_ENOUGH_MEMORY)
@@ -156,16 +160,13 @@ int main(
     return MR_ERROR_BAD_COMMAND;
 }
 
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
-
 mr_byte_t mr_compile(void)
 {
-    LARGE_INTEGER s, e;
-    QueryPerformanceCounter(&s);
-
+    mr_byte_t retcode;
     mr_lexer_t lexer;
-    mr_byte_t retcode = mr_lexer(&lexer);
+    mr_parser_t parser;
+
+    retcode = mr_lexer(&lexer);
     if (retcode != MR_NOERROR)
     {
         if (retcode == MR_ERROR_BAD_FORMAT)
@@ -185,7 +186,6 @@ mr_byte_t mr_compile(void)
     if (retcode != MR_NOERROR)
         return retcode;
 
-    mr_parser_t parser;
     retcode = mr_parser(&parser, lexer.tokens);
     if (retcode != MR_NOERROR)
     {
@@ -196,60 +196,14 @@ mr_byte_t mr_compile(void)
         return retcode;
     }
 
-    /*mr_optimizer_t optimizer;
-    retcode = mr_optimizer(&optimizer, parser.nodes, parser.size);
-    if (retcode != MR_NOERROR)
-    {
-        if (retcode == MR_ERROR_BAD_FORMAT)
-            mr_invalid_semantic_print(&optimizer.error);
-
-        mr_stack_free();
-        return retcode;
-    }
-
-    mr_generator_t generator;
-    retcode = mr_generator(&generator, optimizer.values,
-        optimizer.size, optimizer.size * MR_GENERATOR_STRING_FACTOR);
-
-    if (retcode != MR_NOERROR)
-    {
-        mr_stack_free();
-        return retcode;
-    }
-
-    mr_byte_t asize = 5 + (mr_byte_t)strlen(_mr_config.fname);
-    mr_str_t afile = malloc(asize);
-    sprintf(afile, "%s.asm", _mr_config.fname);
-
-#if defined(__GNUC__) || defined(__clang__)
-    FILE *file = fopen(afile, "w");
-#elif defined(_MSC_VER)
-    FILE *file;
-    fopen_s(&file, afile, "w");
-#endif
-    fwrite(generator.data, sizeof(mr_chr_t), generator.size, file);
-    fclose(file);
-
-    asize += 58 + sizeof(__MR_ASSEMBLER__) + generator.ssize;
-    mr_str_t command = malloc(asize);
-    sprintf(command, "\"%s\" %s "
-        "/link /entry:main /subsystem:console /stack:%" PRIu32
-        ">nul 2>nul", __MR_ASSEMBLER__, afile, generator.stacksize);
-    system(command);
-
-    free(generator.data);
-    free(afile);*/
-
     mr_stack_free();
-
-    QueryPerformanceCounter(&e);
-    printf("%lf msc\n", (e.QuadPart - s.QuadPart) / 10000.0);
     return MR_NOERROR;
 }
 
 void mr_handle_args(mr_str_ct argv[], mr_byte_t size)
 {
     mr_str_ct str;
+
     for (; size; size--)
     {
         str = *argv++;

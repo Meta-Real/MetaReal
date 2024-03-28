@@ -43,13 +43,17 @@ mr_str_ct mr_invalid_semantic_label[MR_INVALID_SEMANTIC_COUNT] =
 void mr_illegal_chr_print(
     mr_illegal_chr_t *error)
 {
+    mr_long_t idx, i, ln, start;
+    mr_chr_t chr;
+
     if (error->expected)
         fprintf(stderr, "\nExpected Character Error: '%c'\n", error->chr);
     else
         fprintf(stderr, "\nIllegal Character Error: '%c'\n", error->chr);
 
-    mr_long_t idx = MR_IDX_EXTRACT(error->idx);
-    mr_long_t i, ln = 1, start = 0;
+    idx = MR_IDX_EXTRACT(error->idx);
+    ln = 1;
+    start = 0;
     for (i = 0; i != idx; i++)
         if (_mr_config.code[i] == '\n')
         {
@@ -59,7 +63,6 @@ void mr_illegal_chr_print(
 
     fprintf(stderr, "File \"%s\", line %" PRIu32 "\n\n", _mr_config.fname, ln);
 
-    mr_chr_t chr;
     for (i = start; i != _mr_config.size; i++)
     {
         chr = _mr_config.code[i];
@@ -78,13 +81,17 @@ void mr_illegal_chr_print(
 void mr_invalid_syntax_print(
     mr_invalid_syntax_t *error)
 {
+    mr_long_t idx, i, ln, start, eidx, end;
+    mr_chr_t chr;
+
     if (error->detail)
         fprintf(stderr, "\nInvalid Syntax Error: %s\n", error->detail);
     else
         fputs("\nInvalid Syntax Error\n", stderr);
 
-    mr_long_t idx = MR_IDX_EXTRACT(error->idx);
-    mr_long_t i, ln = 1, start = 0;
+    idx = MR_IDX_EXTRACT(error->idx);
+    ln = 1;
+    start = 0;
     for (i = 0; i != idx; i++)
         if (_mr_config.code[i] == '\n')
         {
@@ -94,7 +101,7 @@ void mr_invalid_syntax_print(
 
     fprintf(stderr, "File \"%s\", line %" PRIu32 "\n\n", _mr_config.fname, ln);
 
-    mr_long_t eidx = idx + mr_token_getsize(error->type, idx);
+    eidx = idx + mr_token_getsize(error->type, idx);
     if (eidx > _mr_config.size)
     {
         fwrite(_mr_config.code, sizeof(mr_chr_t), _mr_config.size - start, stderr);
@@ -106,8 +113,6 @@ void mr_invalid_syntax_print(
         return;
     }
 
-    mr_long_t end;
-    mr_chr_t chr;
     for (end = start; end != _mr_config.size; end++)
     {
         chr = _mr_config.code[end];
@@ -137,13 +142,17 @@ void mr_invalid_syntax_print(
 void mr_invalid_semantic_print(
     mr_invalid_semantic_t *error)
 {
+    mr_long_t idx, i, ln, start, eidx, end;
+    mr_chr_t chr;
+
     fprintf(stderr, "\nInvalid Semantic Error: %s\n", error->detail);
     free(error->detail);
 
     fprintf(stderr, "Error Type: %s\n", mr_invalid_semantic_label[error->type]);
 
-    mr_long_t idx = MR_IDX_EXTRACT(error->idx);
-    mr_long_t i, ln = 1, start = 0;
+    idx = MR_IDX_EXTRACT(error->idx);
+    ln = 1;
+    start = 0;
     for (i = 0; i != idx; i++)
         if (_mr_config.code[i] == '\n')
         {
@@ -153,12 +162,10 @@ void mr_invalid_semantic_print(
 
     fprintf(stderr, "File \"%s\", line %" PRIu32 "\n\n", _mr_config.fname, ln);
 
-    mr_long_t eidx = idx + error->size;
+    eidx = idx + error->size;
     if (error->etype != MR_TOKEN_EOF)
         eidx += mr_token_getsize(error->etype, eidx);
 
-    mr_long_t end;
-    mr_chr_t chr;
     for (end = start; end != _mr_config.size; end++)
     {
         chr = _mr_config.code[end];

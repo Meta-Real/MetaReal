@@ -52,7 +52,9 @@ mr_byte_t mr_stack_push(
 {
     if (_mr_stack.ptr + size > _mr_stack.size)
     {
-        mr_byte_t *block = realloc(_mr_stack.data,
+        mr_byte_t *block;
+
+        block = realloc(_mr_stack.data,
             (_mr_stack.size += _mr_stack.exalloc) * sizeof(mr_byte_t));
         if (!block)
             return MR_ERROR_NOT_ENOUGH_MEMORY;
@@ -70,7 +72,9 @@ mr_byte_t mr_stack_palloc(
 {
     if (_mr_stack.pptr == _mr_stack.psize)
     {
-        mr_ptr_t *block = realloc(_mr_stack.ptrs,
+        mr_ptr_t *block;
+
+        block = realloc(_mr_stack.ptrs,
             (_mr_stack.psize += _mr_stack.pexalloc) * sizeof(mr_ptr_t));
         if (!block)
             return MR_ERROR_NOT_ENOUGH_MEMORY;
@@ -89,7 +93,9 @@ mr_byte_t mr_stack_palloc(
 mr_byte_t mr_stack_prealloc(
     mr_long_t ptr, mr_long_t size)
 {
-    mr_ptr_t block = realloc(_mr_stack.ptrs[ptr], size);
+    mr_ptr_t block;
+
+    block = realloc(_mr_stack.ptrs[ptr], size);
     if (!block)
         return MR_ERROR_NOT_ENOUGH_MEMORY;
 

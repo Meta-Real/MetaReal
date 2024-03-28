@@ -58,6 +58,10 @@ mr_byte_t mr_token_symbol_size[MR_TOKEN_KEYWORD_PAD] =
 mr_long_t mr_token_getsize(
     mr_byte_t type, mr_long_t idx)
 {
+    mr_long_t start;
+    mr_chr_t chr;
+    mr_bool_t dot;
+
     if (type >= MR_TOKEN_OBJECT_T)
         return mr_token_type_size[type - MR_TOKEN_TYPE_PAD];
 
@@ -73,8 +77,8 @@ mr_long_t mr_token_getsize(
         return _mr_config.code[idx] == '!' ? 1 : *mr_token_keyword_size;
     case MR_TOKEN_IDENTIFIER:
     {
-        mr_long_t start = idx++;
-        mr_chr_t chr = _mr_config.code[idx];
+        start = idx++;
+        chr = _mr_config.code[idx];
 
         while ((chr >= 'A' && chr <= 'Z') || (chr >= 'a' && chr <= 'z') ||
             (chr >= '0' && chr <= '9') || chr == '_')
@@ -84,8 +88,8 @@ mr_long_t mr_token_getsize(
     }
     case MR_TOKEN_INT:
     {
-        mr_long_t start = idx++;
-        mr_chr_t chr = _mr_config.code[idx];
+        start = idx++;
+        chr = _mr_config.code[idx];
 
         while ((chr >= '0' && chr <= '9') || chr == '_')
             chr = _mr_config.code[++idx];
@@ -94,10 +98,10 @@ mr_long_t mr_token_getsize(
     }
     case MR_TOKEN_FLOAT:
     {
-        mr_long_t start = idx++;
-        mr_chr_t chr = _mr_config.code[idx];
+        start = idx++;
+        chr = _mr_config.code[idx];
 
-        mr_bool_t dot = MR_FALSE;
+        dot = MR_FALSE;
         while (1)
         {
             if (chr == '.')
@@ -126,10 +130,10 @@ mr_long_t mr_token_getsize(
     }
     case MR_TOKEN_IMAGINARY:
     {
-        mr_long_t start = idx++;
-        mr_chr_t chr = _mr_config.code[idx];
+        start = idx++;
+        chr = _mr_config.code[idx];
 
-        mr_bool_t dot = MR_FALSE;
+        dot = MR_FALSE;
         while (1)
         {
             if (chr == '.')
@@ -160,10 +164,13 @@ mr_long_t mr_token_getsize(
         return 3 + (_mr_config.code[idx + 1] == '\\');
     case MR_TOKEN_STR:
     {
-        mr_long_t start = idx++;
-        mr_chr_t chr = _mr_config.code[idx];
+        mr_chr_t quot;
+        mr_bool_t esc;
 
-        mr_bool_t esc = MR_FALSE;
+        start = idx++;
+        chr = _mr_config.code[idx];
+
+        esc = MR_FALSE;
         if (chr == '\\')
         {
             chr = _mr_config.code[++idx];
@@ -184,7 +191,7 @@ mr_long_t mr_token_getsize(
             }
         }
 
-        mr_chr_t quot = _mr_config.code[idx];
+        quot = _mr_config.code[idx];
         chr = _mr_config.code[++idx];
         while (chr != quot)
         {

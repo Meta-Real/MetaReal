@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 
 set(CMAKE_C_STANDARD 99)
-set(CMAKE_C_STANDARD_REQUIRED True)
+set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
 
 if (NOT CMAKE_BUILD_TYPE)
@@ -20,9 +20,6 @@ elseif (MSVC)
     set(CMAKE_C_FLAGS "/Wall /wd5045 /wd5105 /wd4324 /wd4820 /wd4710 /wd4711 /wd4996 /Zi /WX")
     set(CMAKE_C_FLAGS_DEBUG "/Od")
     set(CMAKE_C_FLAGS_RELEASE "/O2")
-
-    enable_language(ASM_MASM)
-    add_compile_definitions(__MR_ASSEMBLER__="${CMAKE_ASM_MASM_COMPILER}")
 endif()
 
 add_executable(MetaReal
@@ -31,6 +28,3 @@ add_executable(MetaReal
     srcs/lexer/lexer.c srcs/lexer/token.c
     srcs/parser/parser.c)
 target_include_directories(MetaReal PRIVATE "heads")
-
-add_custom_command(TARGET MetaReal POST_BUILD COMMAND ${CMAKE_COMMAND}
-    -E copy $<TARGET_FILE:MetaReal> ..)

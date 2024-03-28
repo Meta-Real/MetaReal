@@ -23,15 +23,16 @@
 #define mr_parser_bin_op(func1, func2, cond)                                 \
     do                                                                       \
     {                                                                        \
-        mr_byte_t retcode = func1(res, tokens);                              \
+        mr_long_t ptr;                                                       \
+        mr_byte_t retcode, op;                                               \
+        mr_node_t left;                                                      \
+        mr_node_binary_op_t *value;                                          \
+                                                                             \
+        retcode = func1(res, tokens);                                        \
         if (retcode != MR_NOERROR)                                           \
             return retcode;                                                  \
                                                                              \
-        mr_byte_t op;                                                        \
-        mr_node_t left = res->nodes[res->size];                              \
-                                                                             \
-        mr_long_t ptr;                                                       \
-        mr_node_binary_op_t *value;                                          \
+        left = res->nodes[res->size];                                        \
         while (cond)                                                         \
         {                                                                    \
             op = (*tokens)++->type;                                          \
@@ -44,7 +45,7 @@
             if (retcode != MR_NOERROR)                                       \
                 return MR_ERROR_NOT_ENOUGH_MEMORY;                           \
                                                                              \
-            value = (mr_node_binary_op_t*)(_mr_stack.data + ptr);            \
+            value = (mr_node_binary_op_t *)(_mr_stack.data + ptr);           \
             *value = (mr_node_binary_op_t){op, left, res->nodes[res->size]}; \
                                                                              \
             left.type = MR_NODE_BINARY_OP;                                   \
@@ -74,7 +75,9 @@
 #define mr_parser_node_data_sub(typ)                  \
     do                                                \
     {                                                 \
-        mr_node_t *node = res->nodes + res->size;     \
+        mr_node_t *node;                              \
+                                                      \
+        node = res->nodes + res->size;                \
         node->type = typ;                             \
         node->value = MR_IDX_EXTRACT((*tokens)->idx); \
                                                       \
@@ -254,7 +257,12 @@ mr_byte_t mr_parser_handle_dollar_method(mr_parser_t *res, mr_token_t **tokens);
 mr_byte_t mr_parser(
     mr_parser_t *res, mr_token_t *tokens)
 {
-    mr_long_t alloc = _mr_config.size / MR_PARSER_NODES_CHUNK + 1;
+    mr_long_t alloc, size;
+    mr_byte_t retcode;
+    mr_token_t *ptr;
+    mr_node_t *block;
+
+    alloc = _mr_config.size / MR_PARSER_NODES_CHUNK + 1;
     res->nodes = malloc(alloc * sizeof(mr_node_t));
     if (!res->nodes)
     {
@@ -263,11 +271,9 @@ mr_byte_t mr_parser(
     }
 
     res->size = 0;
-    mr_long_t size = alloc;
+    size = alloc;
 
-    mr_token_t *ptr = tokens;
-    mr_byte_t retcode;
-    mr_node_t *block;
+    ptr = tokens;
     do
     {
         if (res->size == size)
@@ -371,20 +377,25 @@ mr_byte_t mr_parser_factor(mr_parser_t *res, mr_token_t **tokens)
 {
     if ((*tokens)->type >= MR_TOKEN_PLUS && (*tokens)->type <= MR_TOKEN_NOT_K)
     {
-        mr_idx_t sidx = (*tokens)->idx;
-        mr_byte_t op = (*tokens)++->type;
+        mr_long_t ptr;
+        mr_byte_t op, retcode;
+        mr_idx_t sidx;
+        mr_node_t *node;
+        mr_node_unary_op_t *value;
 
-        mr_byte_t retcode = mr_parser_factor(res, tokens);
+        sidx = (*tokens)->idx;
+        op = (*tokens)++->type;
+
+        retcode = mr_parser_factor(res, tokens);
         if (retcode != MR_NOERROR)
             return retcode;
 
-        mr_long_t ptr;
         retcode = mr_stack_push(&ptr, sizeof(mr_node_unary_op_t));
         if (retcode != MR_NOERROR)
             return retcode;
 
-        mr_node_unary_op_t *value = (mr_node_unary_op_t*)(_mr_stack.data + ptr);
-        mr_node_t *node = res->nodes + res->size;
+        value = (mr_node_unary_op_t*)(_mr_stack.data + ptr);
+        node = res->nodes + res->size;
         *value = (mr_node_unary_op_t){op, *node, sidx};
 
         node->type = MR_NODE_UNARY_OP;
@@ -403,34 +414,42 @@ mr_byte_t mr_parser_power(mr_parser_t *res, mr_token_t **tokens)
 
 mr_byte_t mr_parser_call(mr_parser_t *res, mr_token_t **tokens)
 {
-    mr_byte_t retcode = mr_parser_core(res, tokens);
+    mr_byte_t retcode;
+    mr_node_t *node;
+
+    retcode = mr_parser_core(res, tokens);
     if (retcode != MR_NOERROR)
         return retcode;
 
-    mr_node_t *node = res->nodes + res->size;
+    node = res->nodes + res->size;
     if ((*tokens)->type == MR_TOKEN_L_PAREN)
     {
+        mr_long_t ptr;
+        mr_byte_t alloc;
+        mr_node_func_call_t *value;
+        mr_node_call_arg_t *args, *arg;
+
         if ((++*tokens)->type == MR_TOKEN_R_PAREN)
         {
-            mr_long_t ptr;
+            mr_node_ex_func_call_t *ex_value;
+
             retcode = mr_stack_push(&ptr, sizeof(mr_node_ex_func_call_t));
             if (retcode != MR_NOERROR)
                 return retcode;
 
-            mr_node_ex_func_call_t *value = (mr_node_ex_func_call_t*)(_mr_stack.data + ptr);
-            *value = (mr_node_ex_func_call_t){*node, (++*tokens)->idx};
+            ex_value = (mr_node_ex_func_call_t*)(_mr_stack.data + ptr);
+            *ex_value = (mr_node_ex_func_call_t){*node, (++*tokens)->idx};
 
             node->type = MR_NODE_EX_FUNC_CALL;
             node->value = ptr;
             return MR_NOERROR;
         }
 
-        mr_long_t ptr;
         retcode = mr_stack_push(&ptr, sizeof(mr_node_func_call_t));
         if (retcode != MR_NOERROR)
             return retcode;
 
-        mr_node_func_call_t *value = (mr_node_func_call_t*)(_mr_stack.data + ptr);
+        value = (mr_node_func_call_t*)(_mr_stack.data + ptr);
         retcode = mr_stack_palloc(&value->args,
             MR_PARSER_FUNC_CALL_SIZE * sizeof(mr_node_call_arg_t));
         if (retcode != MR_NOERROR)
@@ -438,10 +457,9 @@ mr_byte_t mr_parser_call(mr_parser_t *res, mr_token_t **tokens)
 
         value->func = *node;
         value->size = 0;
-        mr_byte_t alloc = MR_PARSER_FUNC_CALL_SIZE;
+        alloc = MR_PARSER_FUNC_CALL_SIZE;
 
-        mr_node_call_arg_t *args = _mr_stack.ptrs[value->args];
-        mr_node_call_arg_t *arg;
+        args = _mr_stack.ptrs[value->args];
         do
         {
             if (value->size == alloc)
@@ -511,6 +529,8 @@ mr_byte_t mr_parser_call(mr_parser_t *res, mr_token_t **tokens)
 
 mr_byte_t mr_parser_core(mr_parser_t *res, mr_token_t **tokens)
 {
+    mr_byte_t retcode;
+
     switch ((*tokens)->type)
     {
     case MR_TOKEN_IDENTIFIER:
@@ -524,7 +544,7 @@ mr_byte_t mr_parser_core(mr_parser_t *res, mr_token_t **tokens)
     case MR_TOKEN_L_PAREN:
         ++*tokens;
 
-        mr_byte_t retcode = mr_parser_or(res, tokens);
+        retcode = mr_parser_or(res, tokens);
         if (retcode != MR_NOERROR)
             return retcode;
 
@@ -547,8 +567,14 @@ mr_byte_t mr_parser_core(mr_parser_t *res, mr_token_t **tokens)
 
 mr_byte_t mr_parser_handle_dollar_method(mr_parser_t *res, mr_token_t **tokens)
 {
-    mr_node_t *node = res->nodes + res->size;
-    mr_idx_t sidx = (*tokens)->idx;
+    mr_long_t ptr;
+    mr_byte_t retcode, alloc;
+    mr_idx_t sidx, idx;
+    mr_node_t *node, *params;
+    mr_node_dollar_method_t *value;
+
+    node = res->nodes + res->size;
+    sidx = (*tokens)->idx;
 
     if ((++*tokens)->type != MR_TOKEN_IDENTIFIER)
     {
@@ -557,40 +583,40 @@ mr_byte_t mr_parser_handle_dollar_method(mr_parser_t *res, mr_token_t **tokens)
         return MR_ERROR_BAD_FORMAT;
     }
 
-    mr_idx_t idx = (*tokens)->idx;
+    idx = (*tokens)->idx;
     mr_parser_advance_newline;
 
     if ((*tokens)->type != MR_TOKEN_COLON)
     {
-        mr_long_t ptr;
-        mr_byte_t retcode = mr_stack_push(&ptr, sizeof(mr_node_ex_dollar_method_t));
+        mr_node_ex_dollar_method_t *ex_value;
+
+        retcode = mr_stack_push(&ptr, sizeof(mr_node_ex_dollar_method_t));
         if (retcode != MR_NOERROR)
             return retcode;
 
-        mr_node_ex_dollar_method_t *value = (mr_node_ex_dollar_method_t*)(_mr_stack.data + ptr);
-        *value = (mr_node_ex_dollar_method_t){idx, sidx};
+        ex_value = (mr_node_ex_dollar_method_t*)(_mr_stack.data + ptr);
+        *ex_value = (mr_node_ex_dollar_method_t){idx, sidx};
 
         node->type = MR_NODE_EX_DOLLAR_METHOD;
         node->value = ptr;
         return MR_NOERROR;
     }
 
-    mr_long_t ptr;
-    mr_byte_t retcode = mr_stack_push(&ptr, sizeof(mr_node_dollar_method_t));
+    retcode = mr_stack_push(&ptr, sizeof(mr_node_dollar_method_t));
     if (retcode != MR_NOERROR)
         return retcode;
 
-    mr_node_dollar_method_t *value = (mr_node_dollar_method_t*)(_mr_stack.data + ptr);
+    value = (mr_node_dollar_method_t*)(_mr_stack.data + ptr);
 
     retcode = mr_stack_palloc(&value->params,
         MR_PARSER_DOLLAR_METHOD_SIZE * sizeof(mr_node_t));
     if (retcode != MR_NOERROR)
         return retcode;
 
-    mr_node_t *params = (mr_node_t*)(_mr_stack.ptrs + value->params);
+    params = (mr_node_t*)(_mr_stack.ptrs + value->params);
 
     value->size = 0;
-    mr_byte_t alloc = MR_PARSER_DOLLAR_METHOD_SIZE;
+    alloc = MR_PARSER_DOLLAR_METHOD_SIZE;
     do
     {
         if (value->size == alloc)
