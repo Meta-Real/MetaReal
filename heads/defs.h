@@ -29,7 +29,6 @@ typedef uint8_t mr_bool_t;
 typedef uint8_t mr_byte_t;
 typedef uint16_t mr_short_t;
 typedef uint32_t mr_long_t;
-typedef uint64_t mr_longlong_t;
 
 typedef size_t mr_size_t;
 
@@ -59,7 +58,16 @@ struct __MR_IDX_T
 #pragma pack(pop)
 typedef struct __MR_IDX_T mr_idx_t;
 
+/**
+ * Invalid index. \n
+ * Used for indicating missing data.
+*/
 #define MR_INVALID_IDX ((mr_idx_t){0xffff, 0xff})
+
+/**
+ * Invalid index converted to a long value.
+*/
+#define MR_INVALID_IDX_CODE ((mr_long_t)0xffffff)
 
 /**
  * @def MR_IDX_EXTRACT(idx)

@@ -25,6 +25,7 @@ copies or substantial portions of the Software.
 #define __MR_CONFIG__
 
 #include <defs.h>
+#include <stdio.h>
 
 /**
  * optimization level disable. \n
@@ -36,10 +37,6 @@ copies or substantial portions of the Software.
  * Optimization level 0. \n
  * Default optimization level of the MetaReal compiler. \n
  * It only handles basic optimizations. \n
- * Optimization subroutines: \n
- * 1. O-const-fold \n
- *    This optimization calculates trivial arithmetic operations at compile time. \n
- *    Example: 1 + 2 -> 3
 */
 #define OPT_LEVEL0 ((mr_byte_t)0)
 
@@ -47,10 +44,6 @@ copies or substantial portions of the Software.
  * Optimization level 1. \n
  * Basic optimization level of the MetaReal compiler. \n
  * The main focus of this level is on expressions and variables. \n
- * Optimization subroutines: \n
- * 1. O-rem-useless \n
- *    This optimization removes useless code that has no effect at runtime. \n
- *    Example: unused variables will be removed from the code.
 */
 #define OPT_LEVEL1 ((mr_byte_t)1)
 
@@ -80,28 +73,29 @@ copies or substantial portions of the Software.
  * @struct __MR_CONFIG_T
  * Main structure that holds information about
  * optimization levels, io system, debugging configurations, etc.
+ * @var FILE* __MR_CONFIG_T::outstream
+ * Default stream of all print functions.
+ * @var FILE* __MR_CONFIG_T::instream
+ * Default stream of all input functions.
+ * @var FILE* __MR_CONFIG_T::errstream
+ * Default stream of all error messages.
  * @var mr_str_ct __MR_CONFIG_T::code
  * The source code.
- * @var mr_long_t __MR_CONFIG_T::size
- * Size of the source code.
  * @var mr_str_ct __MR_CONFIG_T::fname
  * Name of the source file.
- * @var mr_bool_t __MR_CONFIG_T::opt_const_fold
- * A boolean that indicates whether or not the O-const-fold optimization subroutine is on.
- * @var mr_bool_t __MR_CONFIG_T::opt_rem_useless
- * A boolean that indicates whether or not the O-rem-useless optimization subroutine is on.
+ * @var mr_long_t __MR_CONFIG_T::size
+ * Size of the source code.
 */
-#pragma pack(push, 1)
 struct __MR_CONFIG_T
 {
-    mr_str_ct code;
-    mr_long_t size;
-    mr_str_ct fname;
+    FILE *outstream;
+    FILE *instream;
+    FILE *errstream;
 
-    mr_bool_t opt_const_fold : 1;
-    mr_bool_t opt_rem_useless : 1;
+    mr_str_ct code;
+    mr_str_ct fname;
+    mr_long_t size;
 };
-#pragma pack(pop)
 typedef struct __MR_CONFIG_T mr_config_t;
 
 /**
@@ -113,7 +107,7 @@ extern mr_config_t _mr_config;
 /**
  * It configures the optimization subroutines based on the optimization level passed to it.
  * @param olevel
- * Level of the optimization (one of 6 values)
+ * Level of the optimization (one of 6 values).
 */
 void mr_config_opt(
     mr_byte_t olevel);

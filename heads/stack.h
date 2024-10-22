@@ -31,14 +31,14 @@ copies or substantial portions of the Software.
  * The structure that organizes allocations in the parser and optimizer steps.
  * @var mr_byte_t* __MR_STACK_T::data
  * Data of the stack.
+ * @var mr_ptr_t* __MR_STACK_T::ptrs
+ * List of allocated pointers by the stack.
  * @var mr_long_t __MR_STACK_T::size
  * Allocated size of the data in bytes.
  * @var mr_long_t __MR_STACK_T::ptr
  * Pointer that points to the end of the stack data (stack pointer).
  * @var mr_long_t __MR_STACK_T::exalloc
  * Allocation step used for reallocating the stack data.
- * @var mr_ptr_t* __MR_STACK_T::ptrs
- * List of allocated pointers by the stack.
  * @var mr_long_t __MR_STACK_T::psize
  * Allocated size of the \a ptrs list.
  * @var mr_long_t __MR_STACK_T::pptr
@@ -46,20 +46,19 @@ copies or substantial portions of the Software.
  * @var mr_long_t __MR_STACK_T::pexalloc
  * Allocation step used for reallocating the \a ptrs list.
 */
-#pragma pack(push, 1)
 struct __MR_STACK_T
 {
     mr_byte_t *data;
+    mr_ptr_t *ptrs;
+
     mr_long_t size;
     mr_long_t ptr;
     mr_long_t exalloc;
 
-    mr_ptr_t *ptrs;
     mr_long_t psize;
     mr_long_t pptr;
     mr_long_t pexalloc;
 };
-#pragma pack(pop)
 typedef struct __MR_STACK_T mr_stack_t;
 
 /**
@@ -110,7 +109,7 @@ mr_byte_t mr_stack_push(
  * Otherwise, it returns the error code (defined in \a defs.h header file).
 */
 mr_byte_t mr_stack_palloc(
-    mr_long_t *ptr, mr_long_t size);
+    mr_idx_t *ptr, mr_long_t size);
 
 /**
  * It reallocates pointer that is stored in the specified index of the \a ptrs list. \n

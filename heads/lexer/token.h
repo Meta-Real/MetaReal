@@ -35,18 +35,16 @@ copies or substantial portions of the Software.
  * 2. Words: tokens that have a value and their value can change according to the code. \n
  *    Examples: numbers (int, float, complex), strings, identifiers, etc. \n
  * Tokens only hold the information about one symbol or word at a time. Not the grammar.
- * @var mr_byte_t __MR_TOKEN_T::type
- * Type of the token.
  * @var mr_idx_t __MR_TOKEN_T::idx
  * Starting index of the token (low part).
+ * @var mr_byte_t __MR_TOKEN_T::type
+ * Type of the token.
 */
-#pragma pack(push, 1)
 struct __MR_TOKEN_T
 {
-    mr_byte_t type;
     mr_idx_t idx;
+    mr_byte_t type;
 };
-#pragma pack(pop)
 typedef struct __MR_TOKEN_T mr_token_t;
 
 /**
@@ -423,35 +421,35 @@ enum __MR_TOKEN_ENUM
  * Padding for the keyword tokens. \n
  * Used by the keyword detection subroutine to assign the correct token type for a keyword.
 */
-#define MR_TOKEN_KEYWORD_PAD MR_TOKEN_NOT_K
+#define MR_TOKEN_KEYWORD_PAD ((mr_byte_t)MR_TOKEN_NOT_K)
 
 /**
  * Number of valid keywords.
 */
-#define MR_TOKEN_KEYWORD_COUNT (MR_TOKEN_CONTINUE_K - MR_TOKEN_KEYWORD_PAD + 1)
+#define MR_TOKEN_KEYWORD_COUNT ((mr_byte_t)(MR_TOKEN_CONTINUE_K - MR_TOKEN_KEYWORD_PAD + 1))
 
 /**
  * Maximum size of a keyword (<em>continue</em>). \n
  * Used by the keyword detection subroutine to optimize the search process.
 */
-#define MR_TOKEN_KEYWORD_MAXSIZE 8
+#define MR_TOKEN_KEYWORD_MAXSIZE ((mr_byte_t)8)
 
 /**
  * Padding for the type tokens. \n
  * Used by the type detection subroutine to assign the correct token type for a type.
 */
-#define MR_TOKEN_TYPE_PAD MR_TOKEN_OBJECT_T
+#define MR_TOKEN_TYPE_PAD ((mr_byte_t)MR_TOKEN_OBJECT_T)
 
 /**
  * Number of valid types.
 */
-#define MR_TOKEN_TYPE_COUNT (MR_TOKEN_TYPE_T - MR_TOKEN_TYPE_PAD + 1)
+#define MR_TOKEN_TYPE_COUNT ((mr_byte_t)(MR_TOKEN_TYPE_T - MR_TOKEN_TYPE_PAD + 1))
 
 /**
  * Maximum size of a type (<em>complex</em>). \n
  * Used by the type detection subroutine to optimize the search process.
 */
-#define MR_TOKEN_TYPE_MAXSIZE 7
+#define MR_TOKEN_TYPE_MAXSIZE ((mr_byte_t)7)
 
 /**
  * List of keywords (used by the keyword detection subroutine).
@@ -482,6 +480,16 @@ extern mr_byte_t mr_token_symbol_size[MR_TOKEN_KEYWORD_PAD];
 
 /**
  * It returns size of the token in characters.
+ * @param token
+ * Pointer to the token with the needed data.
+ * @return
+ * Size of the token in characters.
+*/
+mr_long_t mr_token_getsize(
+    mr_token_t *token);
+
+/**
+ * It returns size of the token in characters.
  * @param type
  * Type of the token.
  * @param idx
@@ -489,7 +497,38 @@ extern mr_byte_t mr_token_symbol_size[MR_TOKEN_KEYWORD_PAD];
  * @return
  * Size of the token in characters.
 */
-mr_long_t mr_token_getsize(
+mr_long_t mr_token_getsize2(
     mr_byte_t type, mr_long_t idx);
+
+#ifdef __MR_DEBUG__
+
+/**
+ * Number of valid tokens.
+*/
+#define MR_TOKEN_COUNT ((mr_byte_t)(MR_TOKEN_TYPE_T + 1))
+
+/**
+ * Labels for different token types.
+*/
+extern mr_str_ct mr_token_labels[MR_TOKEN_COUNT];
+
+/**
+ * It prints out a token (only available in Debug builds).
+ * @param token
+ * Pointer to the token that needs to be printed.
+ */
+void mr_token_print(
+    mr_token_t *token);
+
+/**
+ * It prints out a list of tokens until it hits and EOF token (only available in Debug builds).
+ * The list must be ended with an EOF token.
+ * @param tokens
+ * The list of tokens.
+*/
+void mr_token_prints(
+    mr_token_t *tokens);
+
+#endif
 
 #endif

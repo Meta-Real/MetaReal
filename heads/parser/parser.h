@@ -25,7 +25,6 @@ copies or substantial portions of the Software.
 #define __MR_PARSER__
 
 #include <parser/node.h>
-#include <lexer/token.h>
 #include <error/error.h>
 
 /**
@@ -38,7 +37,6 @@ copies or substantial portions of the Software.
  * @var mr_invalid_syntax_t __MR_PARSER_T::error
  * Invalid syntax error.
 */
-#pragma pack(push, 1)
 struct __MR_PARSER_T
 {
     mr_node_t *nodes;
@@ -46,7 +44,6 @@ struct __MR_PARSER_T
 
     mr_invalid_syntax_t error;
 };
-#pragma pack(pop)
 typedef struct __MR_PARSER_T mr_parser_t;
 
 /**

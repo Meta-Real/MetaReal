@@ -22,7 +22,7 @@ copies or substantial portions of the Software.
 #ifndef __MR_ERROR__
 #define __MR_ERROR__
 
-#include <defs.h>
+#include <lexer/token.h>
 
 /**
  * @struct __MR_ILLEGAL_CHR_T
@@ -32,18 +32,16 @@ copies or substantial portions of the Software.
  * The illegal or missing character.
  * @var mr_bool_t __MR_ILLEGAL_CHR_T::expected
  * It indicates whether the character is illegal (MR_FALSE) or is it missing (MR_TRUE).
- * @var mr_idx_t __MR_ILLEGAL_CHR_T::idx
+ * @var mr_long_t __MR_ILLEGAL_CHR_T::idx
  * Index of the error.
 */
-#pragma pack(push, 1)
 struct __MR_ILLEGAL_CHR_T
 {
     mr_chr_t chr;
     mr_bool_t expected;
 
-    mr_idx_t idx;
+    mr_long_t idx;
 };
-#pragma pack(pop)
 typedef struct __MR_ILLEGAL_CHR_T mr_illegal_chr_t;
 
 /**
@@ -53,20 +51,14 @@ typedef struct __MR_ILLEGAL_CHR_T mr_illegal_chr_t;
  * @var mr_str_ct __MR_INVALID_SYNTAX_T::detail
  * Details of the error. \n
  * This field will be NULL if the thrown error is a general invalid syntax error.
- * @var mr_idx_t __MR_INVALID_SYNTAX_T::idx
- * Index of the start of the error.
- * @var mr_byte_t __MR_INVALID_SYNTAX_T::type
- * Type of the last token in error range.
+ * @var mr_token_t* __MR_INVALID_SYNTAX_T::token
+ * Pointer to the token that caused the error.
 */
-#pragma pack(push, 1)
 struct __MR_INVALID_SYNTAX_T
 {
     mr_str_ct detail;
-
-    mr_idx_t idx;
-    mr_byte_t type;
+    mr_token_t *token;
 };
-#pragma pack(pop)
 typedef struct __MR_INVALID_SYNTAX_T mr_invalid_syntax_t;
 
 /**
@@ -76,29 +68,27 @@ typedef struct __MR_INVALID_SYNTAX_T mr_invalid_syntax_t;
  * @var mr_str_t __MR_INVALID_SEMANTIC_T::detail
  * Details of the error. \n
  * This field can be static or dynamic string.
- * @var mr_bool_t __MR_INVALID_SEMANTIC_T::is_const
+ * @var mr_token_t* __MR_INVALID_SEMANTIC_T::token
+ * Pointer to the last token that caused the error.
+ * @var mr_bool_t __MR_INVALID_SEMANTIC_T::is_static
  * It determines that the \a detail is dynamic and should be freed or not.
  * @var mr_byte_t __MR_INVALID_SEMANTIC_T::type
  * Type of the error (from __MR_INVALID_SEMANTIC_ENUM).
- * @var mr_idx_t __MR_INVALID_SEMANTIC_T::idx
+ * @var mr_long_t __MR_INVALID_SEMANTIC_T::idx
  * Index of the start of the error.
- * @var mr_byte_t __MR_INVALID_SEMANTIC_T::etype
- * Type of the last token in the error segment.
  * @var mr_byte_t __MR_INVALID_SEMANTIC_T::size
  * Size of the error before the last token in characters.
 */
-#pragma pack(push, 1)
 struct __MR_INVALID_SEMANTIC_T
 {
     mr_str_t detail;
+    mr_token_t *token;
     mr_bool_t is_static : 1;
     mr_byte_t type : 7;
 
-    mr_idx_t idx;
-    mr_byte_t etype;
+    mr_long_t idx;
     mr_byte_t size;
 };
-#pragma pack(pop)
 typedef struct __MR_INVALID_SEMANTIC_T mr_invalid_semantic_t;
 
 /**
@@ -141,7 +131,7 @@ enum __MR_INVALID_SEMANTIC_ENUM
  * Illegal character error that needs to be displayed.
 */
 void mr_illegal_chr_print(
-    mr_illegal_chr_t *error);
+    mr_illegal_chr_t error);
 
 /**
  * It displays an invalid syntax error in <em>errstream</em>. \n

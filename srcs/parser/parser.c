@@ -25,8 +25,8 @@
     {                                                                        \
         mr_long_t ptr;                                                       \
         mr_byte_t retcode, op;                                               \
-        mr_node_t left;                                                      \
         mr_node_binary_op_t *value;                                          \
+        mr_node_t left;                                                      \
                                                                              \
         retcode = func1(res, tokens);                                        \
         if (retcode != MR_NOERROR)                                           \
@@ -45,8 +45,8 @@
             if (retcode != MR_NOERROR)                                       \
                 return MR_ERROR_NOT_ENOUGH_MEMORY;                           \
                                                                              \
-            value = (mr_node_binary_op_t *)(_mr_stack.data + ptr);           \
-            *value = (mr_node_binary_op_t){op, left, res->nodes[res->size]}; \
+            value = (mr_node_binary_op_t*)(_mr_stack.data + ptr);            \
+            *value = (mr_node_binary_op_t){left, res->nodes[res->size], op}; \
                                                                              \
             left.type = MR_NODE_BINARY_OP;                                   \
             left.value = ptr;                                                \
@@ -259,16 +259,13 @@ mr_byte_t mr_parser(
 {
     mr_long_t alloc, size;
     mr_byte_t retcode;
-    mr_token_t *ptr;
     mr_node_t *block;
+    mr_token_t *ptr;
 
     alloc = _mr_config.size / MR_PARSER_NODES_CHUNK + 1;
     res->nodes = malloc(alloc * sizeof(mr_node_t));
     if (!res->nodes)
-    {
-        free(tokens);
         return MR_ERROR_NOT_ENOUGH_MEMORY;
-    }
 
     res->size = 0;
     size = alloc;
@@ -282,7 +279,6 @@ mr_byte_t mr_parser(
             if (!block)
             {
                 free(res->nodes);
-                free(tokens);
                 return MR_ERROR_NOT_ENOUGH_MEMORY;
             }
 
@@ -293,7 +289,6 @@ mr_byte_t mr_parser(
         if (retcode != MR_NOERROR)
         {
             free(res->nodes);
-            free(tokens);
             return retcode;
         }
 
@@ -302,14 +297,12 @@ mr_byte_t mr_parser(
 
     if (ptr->type != MR_TOKEN_EOF)
     {
-        res->error = (mr_invalid_syntax_t){"Expected EOF", ptr->idx, ptr->type};
+        res->error = (mr_invalid_syntax_t){"Expected EOF", ptr};
 
         free(res->nodes);
-        free(tokens);
         return MR_ERROR_BAD_FORMAT;
     }
 
-    free(tokens);
     return MR_NOERROR;
 }
 
@@ -379,9 +372,9 @@ mr_byte_t mr_parser_factor(mr_parser_t *res, mr_token_t **tokens)
     {
         mr_long_t ptr;
         mr_byte_t op, retcode;
-        mr_idx_t sidx;
-        mr_node_t *node;
         mr_node_unary_op_t *value;
+        mr_node_t *node;
+        mr_idx_t sidx;
 
         sidx = (*tokens)->idx;
         op = (*tokens)++->type;
@@ -396,7 +389,7 @@ mr_byte_t mr_parser_factor(mr_parser_t *res, mr_token_t **tokens)
 
         value = (mr_node_unary_op_t*)(_mr_stack.data + ptr);
         node = res->nodes + res->size;
-        *value = (mr_node_unary_op_t){op, *node, sidx};
+        *value = (mr_node_unary_op_t){*node, sidx, op};
 
         node->type = MR_NODE_UNARY_OP;
         node->value = ptr;
@@ -424,7 +417,7 @@ mr_byte_t mr_parser_call(mr_parser_t *res, mr_token_t **tokens)
     node = res->nodes + res->size;
     if ((*tokens)->type == MR_TOKEN_L_PAREN)
     {
-        mr_long_t ptr;
+        mr_long_t ptr, idx;
         mr_byte_t alloc;
         mr_node_func_call_t *value;
         mr_node_call_arg_t *args, *arg;
@@ -439,6 +432,8 @@ mr_byte_t mr_parser_call(mr_parser_t *res, mr_token_t **tokens)
 
             ex_value = (mr_node_ex_func_call_t*)(_mr_stack.data + ptr);
             *ex_value = (mr_node_ex_func_call_t){*node, (++*tokens)->idx};
+
+            mr_parser_advance_newline;
 
             node->type = MR_NODE_EX_FUNC_CALL;
             node->value = ptr;
@@ -459,7 +454,8 @@ mr_byte_t mr_parser_call(mr_parser_t *res, mr_token_t **tokens)
         value->size = 0;
         alloc = MR_PARSER_FUNC_CALL_SIZE;
 
-        args = _mr_stack.ptrs[value->args];
+        idx = MR_IDX_EXTRACT(value->args);
+        args = _mr_stack.ptrs[idx];
         do
         {
             if (value->size == alloc)
@@ -467,17 +463,16 @@ mr_byte_t mr_parser_call(mr_parser_t *res, mr_token_t **tokens)
                 if (alloc == MR_PARSER_FUNC_CALL_MAX)
                 {
                     res->error = (mr_invalid_syntax_t){
-                        "Number of function call arguments exceeds the limit",
-                        (*tokens)->idx, (*tokens)->type};
+                        "Number of function call arguments exceeds the limit", *tokens};
                     return MR_ERROR_BAD_FORMAT;
                 }
 
-                retcode = mr_stack_prealloc(value->args,
+                retcode = mr_stack_prealloc(idx,
                     (alloc += MR_PARSER_FUNC_CALL_SIZE) * sizeof(mr_node_call_arg_t));
                 if (retcode != MR_NOERROR)
                     return MR_ERROR_BAD_FORMAT;
 
-                args = _mr_stack.ptrs[value->args];
+                args = _mr_stack.ptrs[idx];
             }
 
             arg = (mr_node_call_arg_t*)(args + value->size);
@@ -505,14 +500,13 @@ mr_byte_t mr_parser_call(mr_parser_t *res, mr_token_t **tokens)
 
         if ((*tokens)->type != MR_TOKEN_R_PAREN)
         {
-            res->error = (mr_invalid_syntax_t){"Expected ')' or ','",
-                (*tokens)->idx, (*tokens)->type};
+            res->error = (mr_invalid_syntax_t){"Expected ')' or ','", *tokens};
             return MR_ERROR_BAD_FORMAT;
         }
 
         if (value->size != alloc)
         {
-            retcode = mr_stack_prealloc(value->args, value->size * sizeof(mr_node_call_arg_t));
+            retcode = mr_stack_prealloc(idx, value->size * sizeof(mr_node_call_arg_t));
             if (retcode != MR_NOERROR)
                 return retcode;
         }
@@ -550,8 +544,7 @@ mr_byte_t mr_parser_core(mr_parser_t *res, mr_token_t **tokens)
 
         if ((*tokens)->type != MR_TOKEN_R_PAREN)
         {
-            res->error = (mr_invalid_syntax_t){"Expected ')'",
-                (*tokens)->idx, (*tokens)->type};
+            res->error = (mr_invalid_syntax_t){"Expected ')'", *tokens};
             return MR_ERROR_BAD_FORMAT;
         }
 
@@ -561,25 +554,24 @@ mr_byte_t mr_parser_core(mr_parser_t *res, mr_token_t **tokens)
         return mr_parser_handle_dollar_method(res, tokens);
     }
 
-    res->error = (mr_invalid_syntax_t){NULL, (*tokens)->idx, (*tokens)->type};
+    res->error = (mr_invalid_syntax_t){NULL, *tokens};
     return MR_ERROR_BAD_FORMAT;
 }
 
 mr_byte_t mr_parser_handle_dollar_method(mr_parser_t *res, mr_token_t **tokens)
 {
-    mr_long_t ptr;
+    mr_long_t ptr, pidx;
     mr_byte_t retcode, alloc;
-    mr_idx_t sidx, idx;
-    mr_node_t *node, *params;
     mr_node_dollar_method_t *value;
+    mr_node_t *node, *params;
+    mr_idx_t sidx, idx;
 
     node = res->nodes + res->size;
     sidx = (*tokens)->idx;
 
     if ((++*tokens)->type != MR_TOKEN_IDENTIFIER)
     {
-        res->error = (mr_invalid_syntax_t){"Expected an identifier",
-            (*tokens)->idx, (*tokens)->type};
+        res->error = (mr_invalid_syntax_t){"Expected an identifier", *tokens};
         return MR_ERROR_BAD_FORMAT;
     }
 
@@ -613,7 +605,8 @@ mr_byte_t mr_parser_handle_dollar_method(mr_parser_t *res, mr_token_t **tokens)
     if (retcode != MR_NOERROR)
         return retcode;
 
-    params = (mr_node_t*)(_mr_stack.ptrs + value->params);
+    pidx = MR_IDX_EXTRACT(value->params);
+    params = (mr_node_t*)(_mr_stack.ptrs[pidx]);
 
     value->size = 0;
     alloc = MR_PARSER_DOLLAR_METHOD_SIZE;
@@ -624,17 +617,16 @@ mr_byte_t mr_parser_handle_dollar_method(mr_parser_t *res, mr_token_t **tokens)
             if (alloc == MR_PARSER_DOLLAR_METHOD_MAX)
             {
                 res->error = (mr_invalid_syntax_t){
-                    "Number of dollar method parameters exceeds the limit",
-                    (*tokens)->idx, (*tokens)->type};
+                    "Number of dollar method parameters exceeds the limit", *tokens};
                 return MR_ERROR_BAD_FORMAT;
             }
 
-            retcode = mr_stack_prealloc(value->params,
+            retcode = mr_stack_prealloc(pidx,
                 (alloc += MR_PARSER_DOLLAR_METHOD_SIZE) * sizeof(mr_node_t));
             if (retcode != MR_NOERROR)
                 return retcode;
 
-            params = (mr_node_t*)(_mr_stack.ptrs + value->params);
+            params = (mr_node_t*)(_mr_stack.ptrs[pidx]);
         }
 
         ++*tokens;

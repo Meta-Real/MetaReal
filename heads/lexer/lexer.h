@@ -24,7 +24,6 @@ copies or substantial portions of the Software.
 #ifndef __MR_LEXER__
 #define __MR_LEXER__
 
-#include <lexer/token.h>
 #include <error/error.h>
 
 /**
@@ -35,13 +34,11 @@ copies or substantial portions of the Software.
  * @var mr_illegal_chr_t __MR_LEXER_T::error
  * Illegal character error.
 */
-#pragma pack(push, 1)
 struct __MR_LEXER_T
 {
     mr_token_t *tokens;
     mr_illegal_chr_t error;
 };
-#pragma pack(pop)
 typedef struct __MR_LEXER_T mr_lexer_t;
 
 /**

@@ -20,7 +20,6 @@ copies or substantial portions of the Software.
 */
 
 #include <error/error.h>
-#include <lexer/token.h>
 #include <config.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -33,7 +32,7 @@ copies or substantial portions of the Software.
 /**
  * Display names for different invalid semantic error types
 */
-mr_str_ct mr_invalid_semantic_label[MR_INVALID_SEMANTIC_COUNT] =
+static mr_str_ct mr_invalid_semantic_label[MR_INVALID_SEMANTIC_COUNT] =
 {
     "DivByZeroError",
     "NotDefinedError",
@@ -41,27 +40,26 @@ mr_str_ct mr_invalid_semantic_label[MR_INVALID_SEMANTIC_COUNT] =
 };
 
 void mr_illegal_chr_print(
-    mr_illegal_chr_t *error)
+    mr_illegal_chr_t error)
 {
-    mr_long_t idx, i, ln, start;
+    mr_long_t i, ln, start;
     mr_chr_t chr;
 
-    if (error->expected)
-        fprintf(stderr, "\nExpected Character Error: '%c'\n", error->chr);
+    if (error.expected)
+        fprintf(_mr_config.errstream, "\nExpected Character Error: '%c'\n", error.chr);
     else
-        fprintf(stderr, "\nIllegal Character Error: '%c'\n", error->chr);
+        fprintf(_mr_config.errstream, "\nIllegal Character Error: '%c'\n", error.chr);
 
-    idx = MR_IDX_EXTRACT(error->idx);
     ln = 1;
     start = 0;
-    for (i = 0; i != idx; i++)
+    for (i = 0; i != error.idx; i++)
         if (_mr_config.code[i] == '\n')
         {
             start = i + 1;
             ln++;
         }
 
-    fprintf(stderr, "File \"%s\", line %" PRIu32 "\n\n", _mr_config.fname, ln);
+    fprintf(_mr_config.errstream, "File \"%s\", line %" PRIu32 "\n\n", _mr_config.fname, ln);
 
     for (i = start; i != _mr_config.size; i++)
     {
@@ -69,29 +67,29 @@ void mr_illegal_chr_print(
         if (chr == '\n' || (chr == '\r' && _mr_config.code[i + 1] == '\n'))
             break;
 
-        fputc(chr, stderr);
+        fputc(chr, _mr_config.errstream);
     }
-    fputc('\n', stderr);
+    fputc('\n', _mr_config.errstream);
 
-    for (i = start; i != idx; i++)
-        fputc(' ', stderr);
-    fputs("^\n\n", stderr);
+    for (i = start; i != error.idx; i++)
+        fputc(' ', _mr_config.errstream);
+    fputs("^\n\n", _mr_config.errstream);
 }
 
 void mr_invalid_syntax_print(
     mr_invalid_syntax_t *error)
 {
-    mr_long_t idx, i, ln, start, eidx, end;
+    mr_long_t i, idx, ln, start, eidx, end;
     mr_chr_t chr;
 
     if (error->detail)
-        fprintf(stderr, "\nInvalid Syntax Error: %s\n", error->detail);
+        fprintf(_mr_config.errstream, "\nInvalid Syntax Error: %s\n", error->detail);
     else
-        fputs("\nInvalid Syntax Error\n", stderr);
+        fputs("\nInvalid Syntax Error\n", _mr_config.errstream);
 
-    idx = MR_IDX_EXTRACT(error->idx);
     ln = 1;
     start = 0;
+    idx = MR_IDX_EXTRACT(error->token->idx);
     for (i = 0; i != idx; i++)
         if (_mr_config.code[i] == '\n')
         {
@@ -99,72 +97,71 @@ void mr_invalid_syntax_print(
             ln++;
         }
 
-    fprintf(stderr, "File \"%s\", line %" PRIu32 "\n\n", _mr_config.fname, ln);
+    fprintf(_mr_config.errstream, "File \"%s\", line %" PRIu32 "\n\n", _mr_config.fname, ln);
 
-    eidx = idx + mr_token_getsize(error->type, idx);
-    if (eidx > _mr_config.size)
+    if (error->token->type == MR_TOKEN_EOF)
     {
-        fwrite(_mr_config.code, sizeof(mr_chr_t), _mr_config.size - start, stderr);
-        fputc('\n', stderr);
+        fprintf(_mr_config.errstream, "%.*s\n", _mr_config.size - start, _mr_config.code);
 
         for (i = start; i != idx; i++)
-            fputc(' ', stderr);
-        fputs("^\n\n", stderr);
+            fputc(' ', _mr_config.errstream);
+        fputs("^\n\n", _mr_config.errstream);
         return;
     }
 
+    eidx = idx + mr_token_getsize(error->token);
     for (end = start; end != _mr_config.size; end++)
     {
         chr = _mr_config.code[end];
         if (chr == '\n' || (chr == '\r' && _mr_config.code[end + 1] == '\n'))
             break;
 
-        fputc(chr, stderr);
+        fputc(chr, _mr_config.errstream);
     }
-    fputc('\n', stderr);
+    fputc('\n', _mr_config.errstream);
 
     for (i = start; i != idx; i++)
-        fputc(' ', stderr);
+        fputc(' ', _mr_config.errstream);
 
     if (end >= eidx)
         for (; i != eidx; i++)
-            fputc('^', stderr);
+            fputc('^', _mr_config.errstream);
     else
     {
         for (; i != end; i++)
-            fputc('^', stderr);
-        fputc('~', stderr);
+            fputc('^', _mr_config.errstream);
+        fputc('~', _mr_config.errstream);
     }
 
-    fputs("\n\n", stderr);
+    fputs("\n\n", _mr_config.errstream);
 }
 
 void mr_invalid_semantic_print(
     mr_invalid_semantic_t *error)
 {
-    mr_long_t idx, i, ln, start, eidx, end;
+    mr_long_t i, ln, start, eidx, end;
     mr_chr_t chr;
 
-    fprintf(stderr, "\nInvalid Semantic Error: %s\n", error->detail);
-    free(error->detail);
+    fprintf(_mr_config.errstream, "\nInvalid Semantic Error: %s\n", error->detail);
+    if (error->is_static)
+        free(error->detail);
 
-    fprintf(stderr, "Error Type: %s\n", mr_invalid_semantic_label[error->type]);
+    fprintf(_mr_config.errstream, "Error Type: %s\n", mr_invalid_semantic_label[error->type]);
 
-    idx = MR_IDX_EXTRACT(error->idx);
     ln = 1;
     start = 0;
-    for (i = 0; i != idx; i++)
+    for (i = 0; i != error->idx; i++)
         if (_mr_config.code[i] == '\n')
         {
             start = i + 1;
             ln++;
         }
 
-    fprintf(stderr, "File \"%s\", line %" PRIu32 "\n\n", _mr_config.fname, ln);
+    fprintf(_mr_config.errstream, "File \"%s\", line %" PRIu32 "\n\n", _mr_config.fname, ln);
 
-    eidx = idx + error->size;
-    if (error->etype != MR_TOKEN_EOF)
-        eidx += mr_token_getsize(error->etype, eidx);
+    eidx = error->idx + error->size;
+    if (error->token->type != MR_TOKEN_EOF)
+        eidx += mr_token_getsize(error->token);
 
     for (end = start; end != _mr_config.size; end++)
     {
@@ -172,22 +169,22 @@ void mr_invalid_semantic_print(
         if (chr == '\n' || (chr == '\r' && _mr_config.code[end + 1] == '\n'))
             break;
 
-        fputc(chr, stderr);
+        fputc(chr, _mr_config.errstream);
     }
-    fputc('\n', stderr);
+    fputc('\n', _mr_config.errstream);
 
-    for (i = start; i != idx; i++)
-        fputc(' ', stderr);
+    for (i = start; i != error->idx; i++)
+        fputc(' ', _mr_config.errstream);
 
     if (end >= eidx)
         for (; i != eidx; i++)
-            fputc('^', stderr);
+            fputc('^', _mr_config.errstream);
     else
     {
         for (; i != end; i++)
-            fputc('^', stderr);
-        fputc('~', stderr);
+            fputc('^', _mr_config.errstream);
+        fputc('~', _mr_config.errstream);
     }
 
-    fputs("\n\n", stderr);
+    fputs("\n\n", _mr_config.errstream);
 }

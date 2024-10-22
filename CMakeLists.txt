@@ -26,5 +26,7 @@ add_executable(MetaReal
     srcs/main.c srcs/config.c srcs/stack.c
     srcs/error/error.c
     srcs/lexer/lexer.c srcs/lexer/token.c
-    srcs/parser/parser.c)
+    srcs/parser/parser.c srcs/parser/node.c)
+
+target_compile_definitions(MetaReal PRIVATE $<$<CONFIG:Debug>:__MR_DEBUG__>)
 target_include_directories(MetaReal PRIVATE "heads")

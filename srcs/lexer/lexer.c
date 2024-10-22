@@ -32,7 +32,7 @@
     } while (0)
 
 /**
- * @def mr_lexer_token_set(typ)
+ * @def mr_lexer_token_set(typ, inc)
  * It creates a new token with a given type. \n
  * Value of the created token is NULL (it's a symbol).
  * @param typ
@@ -48,6 +48,23 @@
                                                   \
         data->idx += inc;                         \
         data->size++;                             \
+    } while (0)
+
+/**
+ * @def mr_lexer_token_set2(typ, inc)
+ * It creates a new token with a given type. \n
+ * Value of the created token is NULL (it's a symbol).
+ * @param typ
+ * Type of the token that needs to be created.
+ * @param inc
+ * The ++ symbol if needed to increment the <em>size</em>.
+*/
+#define mr_lexer_token_set2(typ, inc)             \
+    do                                            \
+    {                                             \
+        token = data->tokens + data->size ## inc; \
+        token->type = typ;                        \
+        token->idx = MR_IDX_DECOMPOSE(data->idx); \
     } while (0)
 
 /**
@@ -261,7 +278,6 @@
  * @var mr_long_t __MR_LEXER_MATCH_T::idx
  * An index for the current character of the code.
 */
-#pragma pack(push, 1)
 struct __MR_LEXER_MATCH_T
 {
     mr_byte_t flag;
@@ -273,7 +289,6 @@ struct __MR_LEXER_MATCH_T
 
     mr_long_t idx;
 };
-#pragma pack(pop)
 typedef struct __MR_LEXER_MATCH_T mr_lexer_match_t;
 
 /**
@@ -448,7 +463,7 @@ mr_byte_t mr_lexer(
             else
                 res->error = (mr_illegal_chr_t){(mr_chr_t)data.alloc, MR_TRUE};
 
-            res->error.idx = MR_IDX_DECOMPOSE(data.idx);
+            res->error.idx = data.idx;
             return MR_ERROR_BAD_FORMAT;
         }
     }
@@ -467,6 +482,7 @@ mr_byte_t mr_lexer(
 
     block = data.tokens + data.size;
     block->type = MR_TOKEN_EOF;
+    block->idx = MR_IDX_DECOMPOSE(data.idx);
 
     res->tokens = data.tokens;
     return MR_NOERROR;
@@ -535,7 +551,7 @@ void mr_lexer_match(
             if (data->flag)
                 return;
 
-            chr = _mr_config.code[data->idx];
+            chr = _mr_config.code[++data->idx];
             mr_lexer_skip_spaces(chr, _mr_config.code, data->idx);
             return;
         }
@@ -588,9 +604,11 @@ void mr_lexer_match(
                 if (data->flag)
                     return;
 
+                data->idx++;
                 break;
             }
 
+            data->flag = MR_LEXER_MATCH_FLAG_ILLEGAL;
             break;
         case '\'':
         case '"':
@@ -598,6 +616,7 @@ void mr_lexer_match(
             if (data->flag)
                 return;
 
+            data->idx++;
             break;
         default:
             data->flag = MR_LEXER_MATCH_FLAG_ILLEGAL;
@@ -610,12 +629,14 @@ void mr_lexer_match(
         if (data->flag)
             return;
 
+        data->idx++;
         break;
     case '"':
         mr_lexer_generate_str(data, MR_TRUE);
         if (data->flag)
             return;
 
+        data->idx++;
         break;
     case '+':
         mr_lexer_token_sett(
@@ -829,9 +850,7 @@ void mr_lexer_generate_number(
     mr_chr_t chr;
     mr_bool_t is_float;
 
-    token = data->tokens + data->size;
-    token->type = MR_TOKEN_INT;
-    token->idx = MR_IDX_DECOMPOSE(data->idx);
+    mr_lexer_token_set2(MR_TOKEN_INT,);
 
     is_float = MR_FALSE;
     chr = _mr_config.code[data->idx];
@@ -914,9 +933,7 @@ void mr_lexer_generate_str(
     mr_chr_t quot, chr;
     mr_token_t *token;
 
-    token = data->tokens + data->size;
-    token->type = MR_TOKEN_STR;
-    token->idx = MR_IDX_DECOMPOSE(data->idx);
+    mr_lexer_token_set2(MR_TOKEN_STR,);
 
     if (!esc)
         data->idx++;
@@ -944,9 +961,7 @@ void mr_lexer_generate_fstr(
     mr_ptr_t block;
     mr_token_t *token;
 
-    token = data->tokens + data->size++;
-    token->type = MR_TOKEN_FSTR_START;
-    token->idx = MR_IDX_DECOMPOSE(data->idx);
+    mr_lexer_token_set2(MR_TOKEN_FSTR_START, ++);
 
     data->idx += esc ? 1 : 2;
     quot = _mr_config.code[data->idx++];
@@ -957,9 +972,7 @@ void mr_lexer_generate_fstr(
         data->idx++;
         mr_lexer_tokens_realloc;
 
-        token = data->tokens + data->size++;
-        token->type = MR_TOKEN_FSTR_END;
-        token->idx = MR_IDX_DECOMPOSE(data->idx);
+        mr_lexer_token_set2(MR_TOKEN_FSTR_END, ++);
         return;
     }
 
@@ -1006,10 +1019,7 @@ void mr_lexer_generate_fstr(
         }
 
         mr_lexer_tokens_realloc;
-
-        token = data->tokens + data->size;
-        token->type = MR_TOKEN_FSTR;
-        token->idx = MR_IDX_DECOMPOSE(data->idx);
+        mr_lexer_token_set2(MR_TOKEN_FSTR,);
 
         do
             mr_lexer_str_sub;
@@ -1018,9 +1028,7 @@ void mr_lexer_generate_fstr(
     } while (chr != quot);
 
     mr_lexer_tokens_realloc;
-
-    token = data->tokens + data->size++;
-    token->type = MR_TOKEN_FSTR_END;
+    mr_lexer_token_set2(MR_TOKEN_FSTR_END, ++);
 }
 
 void mr_lexer_generate_dot(
