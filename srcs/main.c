@@ -188,6 +188,7 @@ mr_byte_t mr_compile(void)
     }
 
     mr_token_prints(lexer.tokens);
+    putchar('\n');
 
     retcode = mr_parser(&parser, lexer.tokens);
     if (retcode != MR_NOERROR)

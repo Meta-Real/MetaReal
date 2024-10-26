@@ -45,7 +45,7 @@ mr_byte_t mr_token_type_size[MR_TOKEN_TYPE_COUNT] =
 
 mr_byte_t mr_token_symbol_size[MR_TOKEN_KEYWORD_PAD] =
 {
-    0, 1, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 1, 1, 1, 2, 2, 1, 1, 1, 2,
     2, 2, 2, 3, 3, 1, 1, 2, 2, 2,
     2, 1, 2, 2, 2, 2, 2, 2, 3, 3,
@@ -222,7 +222,7 @@ mr_long_t mr_token_getsize2(
 
 mr_str_ct mr_token_labels[MR_TOKEN_COUNT] =
 {
-    "TOKEN_EOF", "TOKEN_NEWLINE",
+    "TOKEN_EOF", "TOKEN_NEWLINE", "TOKEN_SEMICOLON",
     "TOKEN_IDENTIFIER",
     "TOKEN_INT", "TOKEN_FLOAT", "TOKEN_IMAGINARY", "TOKEN_CHR", "TOKEN_STR", "TOKEN_FSTR", "TOKEN_FSTR_START", "TOKEN_FSTR_END",
     "TOKEN_MULTIPLY", "TOKEN_DIVIDE", "TOKEN_MODULO", "TOKEN_QUOTIENT", "TOKEN_POWER",

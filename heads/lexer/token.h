@@ -57,7 +57,9 @@ typedef struct __MR_TOKEN_T mr_token_t;
  * <em>end of file</em> token type. \n
  * This token must be present at the end of \a tokens list (null terminator).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_NEWLINE
- * \a newline and \a semicolon token type ('\\n' and ';' equivalent).
+ * \a newline token type ('\\n' equivalent).
+ * @var __MR_TOKEN_ENUM::MR_TOKEN_SEMICOLON
+ * \a semicolon token type (';' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_IDENTIFIER
  * \a identifier token type. The \a identifier token is a word.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_INT
@@ -283,6 +285,7 @@ enum __MR_TOKEN_ENUM
 {
     MR_TOKEN_EOF,
     MR_TOKEN_NEWLINE,
+    MR_TOKEN_SEMICOLON,
 
     MR_TOKEN_IDENTIFIER,
 

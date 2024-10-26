@@ -293,7 +293,11 @@ mr_byte_t mr_parser(
         }
 
         res->size++;
-    } while (ptr[-1].type == MR_TOKEN_NEWLINE && ptr->type != MR_TOKEN_EOF);
+        if (ptr->type == MR_TOKEN_SEMICOLON)
+            ptr++;
+        else if (ptr[-1].type != MR_TOKEN_NEWLINE)
+            break;
+    } while (ptr->type != MR_TOKEN_EOF);
 
     if (ptr->type != MR_TOKEN_EOF)
     {

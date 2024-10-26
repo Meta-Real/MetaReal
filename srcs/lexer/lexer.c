@@ -227,8 +227,7 @@
     (prev <= MR_TOKEN_STR && prev >= MR_TOKEN_IDENTIFIER) || prev == MR_TOKEN_FSTR_END || \
     prev == MR_TOKEN_R_PAREN ||                                                           \
     (prev <= MR_TOKEN_NONE_K && prev >= MR_TOKEN_TRUE_K) ||                               \
-    prev == MR_TOKEN_RETURN_K ||                                                          \
-    prev >= MR_TOKEN_OBJECT_T
+    prev == MR_TOKEN_RETURN_K || prev >= MR_TOKEN_OBJECT_T
 
 /**
  * @def mr_lexer_str_sub
@@ -585,14 +584,25 @@ void mr_lexer_match(
     switch (chr)
     {
     case ';':
-        if (token[-1].type == MR_TOKEN_NEWLINE)
+    {
+        mr_token_t *ptr;
+
+        ptr = token - 1;
+        if (ptr->type == MR_TOKEN_SEMICOLON)
         {
             data->idx++;
             break;
         }
+        else if (ptr->type == MR_TOKEN_NEWLINE)
+        {
+            ptr->type = MR_TOKEN_SEMICOLON;
+            data->idx++;
+            break;
+        }
 
-        mr_lexer_token_set(MR_TOKEN_NEWLINE, 1);
+        mr_lexer_token_set(MR_TOKEN_SEMICOLON, 1);
         break;
+    }
     case '\\':
         switch (_mr_config.code[data->idx + 1])
         {
