@@ -47,8 +47,7 @@ typedef struct __MR_LEXER_T mr_lexer_t;
  * the function returns an error.
  * @param res
  * Result of the lexer process (it contains both error details and tokens list).
- * @return
- * It returns a code which indicates if the process was successful or not. \n
+ * @return It returns a code which indicates if the process was successful or not. \n
  * If the process was successful, it returns <em>MR_NOERROR</em>.
  * Otherwise, it returns the error code (defined in \a defs.h header file).
 */

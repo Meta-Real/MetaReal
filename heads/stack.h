@@ -73,8 +73,7 @@ extern mr_stack_t _mr_stack;
  * Size of the \a data field.
  * @param psize
  * Size of the \a ptrs field.
- * @return
- * It returns a code which indicates if the process was successful or not. \n
+ * @return It returns a code which indicates if the process was successful or not. \n
  * If the process was successful, it returns <em>MR_NOERROR</em>.
  * Otherwise, it returns the error code (defined in \a defs.h header file).
 */
@@ -88,8 +87,7 @@ mr_byte_t mr_stack_init(
  * Pointer to the allocated data.
  * @param size
  * Requested size for the block.
- * @return
- * It returns a code which indicates if the process was successful or not. \n
+ * @return It returns a code which indicates if the process was successful or not. \n
  * If the process was successful, it returns <em>MR_NOERROR</em>.
  * Otherwise, it returns the error code (defined in \a defs.h header file).
 */
@@ -103,8 +101,7 @@ mr_byte_t mr_stack_push(
  * Pointer to the allocated data.
  * @param size
  * Requested size for the block.
- * @return
- * It returns a code which indicates if the process was successful or not. \n
+ * @return It returns a code which indicates if the process was successful or not. \n
  * If the process was successful, it returns <em>MR_NOERROR</em>.
  * Otherwise, it returns the error code (defined in \a defs.h header file).
 */
@@ -118,8 +115,7 @@ mr_byte_t mr_stack_palloc(
  * Pointer to the allocated data.
  * @param size
  * Requested size for the block.
- * @return
- * It returns a code which indicates if the process was successful or not. \n
+ * @return It returns a code which indicates if the process was successful or not. \n
  * If the process was successful, it returns <em>MR_NOERROR</em>.
  * Otherwise, it returns the error code (defined in \a defs.h header file).
 */

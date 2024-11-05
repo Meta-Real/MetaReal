@@ -40,14 +40,13 @@
  * @param inc
  * Size of the token in characters (to increment the <em>idx</em>).
 */
-#define mr_lexer_token_set(typ, inc)              \
-    do                                            \
-    {                                             \
-        token->type = typ;                        \
-        token->idx = MR_IDX_DECOMPOSE(data->idx); \
-                                                  \
-        data->idx += inc;                         \
-        data->size++;                             \
+#define mr_lexer_token_set(typ, inc)                                        \
+    do                                                                      \
+    {                                                                       \
+        *token = (mr_token_t){.type=typ, .idx=MR_IDX_DECOMPOSE(data->idx)}; \
+                                                                            \
+        data->idx += inc;                                                   \
+        data->size++;                                                       \
     } while (0)
 
 /**
@@ -59,12 +58,11 @@
  * @param inc
  * The ++ symbol if needed to increment the <em>size</em>.
 */
-#define mr_lexer_token_set2(typ, inc)             \
-    do                                            \
-    {                                             \
-        token = data->tokens + data->size ## inc; \
-        token->type = typ;                        \
-        token->idx = MR_IDX_DECOMPOSE(data->idx); \
+#define mr_lexer_token_set2(typ, inc)                                       \
+    do                                                                      \
+    {                                                                       \
+        token = data->tokens + data->size ## inc;                           \
+        *token = (mr_token_t){.type=typ, .idx=MR_IDX_DECOMPOSE(data->idx)}; \
     } while (0)
 
 /**
@@ -399,8 +397,7 @@ mr_byte_t mr_lexer(
     mr_token_t *block;
     mr_lexer_match_t data;
 
-    data.flag = MR_LEXER_MATCH_FLAG_OK;
-    data.alloc = _mr_config.size / MR_LEXER_TOKENS_CHUNK + 1;
+    data = (mr_lexer_match_t){.flag=MR_LEXER_MATCH_FLAG_OK, .alloc=_mr_config.size / MR_LEXER_TOKENS_CHUNK + 1};
     data.tokens = malloc(data.alloc * sizeof(mr_token_t));
     if (!data.tokens)
         return MR_ERROR_NOT_ENOUGH_MEMORY;
@@ -458,9 +455,9 @@ mr_byte_t mr_lexer(
                 return MR_ERROR_NOT_ENOUGH_MEMORY;
 
             if (data.flag == MR_LEXER_MATCH_FLAG_ILLEGAL)
-                res->error = (mr_illegal_chr_t){_mr_config.code[data.idx], MR_FALSE};
+                res->error = (mr_illegal_chr_t){.chr=_mr_config.code[data.idx], .expected=MR_FALSE};
             else
-                res->error = (mr_illegal_chr_t){(mr_chr_t)data.alloc, MR_TRUE};
+                res->error = (mr_illegal_chr_t){.chr=(mr_chr_t)data.alloc, .expected=MR_TRUE};
 
             res->error.idx = data.idx;
             return MR_ERROR_BAD_FORMAT;
@@ -480,8 +477,7 @@ mr_byte_t mr_lexer(
     }
 
     block = data.tokens + data.size;
-    block->type = MR_TOKEN_EOF;
-    block->idx = MR_IDX_DECOMPOSE(data.idx);
+    *block = (mr_token_t){.type=MR_TOKEN_EOF, .idx=MR_IDX_DECOMPOSE(data.idx)};
 
     res->tokens = data.tokens;
     return MR_NOERROR;

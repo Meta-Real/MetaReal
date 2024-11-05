@@ -142,12 +142,13 @@ int main(
     fclose(file);
     code[size] = '\0';
 
-    _mr_config.outstream = stdout;
-    _mr_config.instream = stdin;
-    _mr_config.errstream = stderr;
-    _mr_config.code = code;
-    _mr_config.size = size;
-    _mr_config.fname = argv[1];
+    _mr_config = (mr_config_t){
+        .outstream=stdout,
+        .instream=stdin,
+        .errstream=stderr,
+        .code=code, .size=size,
+        .fname=argv[1]
+    };
 
     retcode = mr_compile();
     free(code);

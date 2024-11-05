@@ -27,8 +27,8 @@ mr_stack_t _mr_stack = {NULL, NULL, 0, 0, 0, 0, 0, 0};
 mr_byte_t mr_stack_init(
     mr_long_t size, mr_long_t psize)
 {
-    _mr_stack = (mr_stack_t){malloc(size * sizeof(mr_byte_t)), malloc(psize * sizeof(mr_ptr_t)),
-        size, 0, size, psize, 0, psize};
+    _mr_stack = (mr_stack_t){.data=malloc(size * sizeof(mr_byte_t)), .ptrs=malloc(psize * sizeof(mr_ptr_t)),
+        .size=size, .ptr=0, .exalloc=size, .psize=psize, .pptr=0, .pexalloc=psize};
 
     if (!_mr_stack.data)
     {

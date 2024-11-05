@@ -485,8 +485,7 @@ extern mr_byte_t mr_token_symbol_size[MR_TOKEN_KEYWORD_PAD];
  * It returns size of the token in characters.
  * @param token
  * Pointer to the token with the needed data.
- * @return
- * Size of the token in characters.
+ * @return Size of the token in characters.
 */
 mr_long_t mr_token_getsize(
     mr_token_t *token);
@@ -497,8 +496,7 @@ mr_long_t mr_token_getsize(
  * Type of the token.
  * @param idx
  * Starting index of the token.
- * @return
- * Size of the token in characters.
+ * @return Size of the token in characters.
 */
 mr_long_t mr_token_getsize2(
     mr_byte_t type, mr_long_t idx);

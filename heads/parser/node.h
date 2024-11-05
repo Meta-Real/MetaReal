@@ -56,12 +56,34 @@ typedef struct __MR_NODE_T mr_node_t;
  * \a Float node type.
  * @var __MR_NODE_ENUM::MR_NODE_IMAGINARY
  * \a Imaginary node type.
+ * @var __MR_NODE_ENUM::MR_NODE_BOOL
+ * \a Boolean node type.
+ * @var __MR_NODE_ENUM::MR_NODE_CHR
+ * \a Character node type.
+ * @var __MR_NODE_ENUM::MR_NODE_FSTR_FRAG
+ * Fragment of a formatted string (string parts).
+ * @var __MR_NODE_ENUM::MR_NODE_STR
+ * \a String node type.
+ * @var __MR_NODE_ENUM::MR_NODE_FSTR
+ * <em>Formatted String</em> node type.
+ * @var __MR_NODE_ENUM::MR_NODE_LIST
+ * \a List node type.
+ * @var __MR_NODE_ENUM::MR_NODE_TUPLE
+ * \a Tuple node type.
+ * @var __MR_NODE_ENUM::MR_NODE_DICT
+ * \a Dictionary node type.
+ * @var __MR_NODE_ENUM::MR_NODE_SET
+ * \a Set node type.
  * @var __MR_NODE_ENUM::MR_NODE_BINARY_OP
  * <em>Binary operation</em> node type.
  * @var __MR_NODE_ENUM::MR_NODE_UNARY_OP
  * <em>Unary operation</em> node type.
  * @var __MR_NODE_ENUM::MR_NODE_VAR_ACCESS
  * <em>Variable access</em> node type.
+ * @var __MR_NODE_ENUM::MR_NODE_VAR_ASSIGN
+ * <em>Variable assignment</em> node type.
+ * @var __MR_NODE_ENUM::MR_NODE_VAR_REASSIGN
+ * <em>Variable reassignment</em> node type.
  * @var __MR_NODE_ENUM::MR_NODE_FUNC_CALL
  * <em>Function call</em> node type.
  * @var __MR_NODE_ENUM::MR_NODE_EX_FUNC_CALL
@@ -78,11 +100,23 @@ enum __MR_NODE_ENUM
     MR_NODE_INT,
     MR_NODE_FLOAT,
     MR_NODE_IMAGINARY,
+    MR_NODE_BOOL,
+    MR_NODE_CHR,
+    MR_NODE_FSTR_FRAG,
+
+    MR_NODE_STR,
+    MR_NODE_FSTR,
+    MR_NODE_LIST,
+    MR_NODE_TUPLE,
+    MR_NODE_DICT,
+    MR_NODE_SET,
 
     MR_NODE_BINARY_OP,
     MR_NODE_UNARY_OP,
 
     MR_NODE_VAR_ACCESS,
+    MR_NODE_VAR_ASSIGN,
+    MR_NODE_VAR_REASSIGN,
 
     MR_NODE_FUNC_CALL,
     MR_NODE_EX_FUNC_CALL,
@@ -137,19 +171,99 @@ struct __MR_NODE_UNARY_OP_T
 typedef struct __MR_NODE_UNARY_OP_T mr_node_unary_op_t;
 
 /**
+ * @struct __MR_NODE_KEYVAL_T
+ * Data structure that holds information about a single key-value. \n
+ * This structure is used by the \a __MR_NODE_LIST_T data structure (for dictionaries).
+ * @var mr_node_t __MR_NODE_KEYVAL_T::key
+ * Key of the key-value.
+ * @var mr_node_t __MR_NODE_KEYVAL_T::value
+ * Value of the key-value.
+*/
+#pragma pack(push, 1)
+struct __MR_NODE_KEYVAL_T
+{
+    mr_node_t key;
+    mr_node_t value;
+};
+#pragma pack(pop)
+typedef struct __MR_NODE_KEYVAL_T mr_node_keyval_t;
+
+/**
+ * @struct __MR_NODE_LIST_T
+ * Data structure that holds information about a fstr, list, tuple, dict, or a set.
+ * @var mr_idx_t __MR_NODE_LIST_T::elems
+ * The list of elements.
+ * @var mr_idx_t __MR_NODE_LIST_T::size
+ * Size of the elements list.
+ * @var mr_idx_t __MR_NODE_LIST_T::sidx
+ * Starting index of the list.
+ * @var mr_idx_t __MR_NODE_LIST_T::eidx
+ * Ending index of the list.
+*/
+#pragma pack(push, 1)
+struct __MR_NODE_LIST_T
+{
+    mr_idx_t elems;
+    mr_idx_t size;
+    mr_idx_t sidx;
+    mr_idx_t eidx;
+};
+#pragma pack(pop)
+typedef struct __MR_NODE_LIST_T mr_node_list_t;
+
+/**
+ * @struct __MR_NODE_VAR_ASSIGN_T
+ * Data structure that holds information about a variable assignment.
+ * @var mr_idx_t __MR_NODE_VAR_ASSIGN_T::name
+ * Starting index of the name.
+ * @var mr_bool_t __MR_NODE_VAR_ASSIGN_T::is_public
+ * A boolean value that determines if the variable is public or not.
+ * @var mr_bool_t __MR_NODE_VAR_ASSIGN_T::is_global
+ * A boolean value that determines if the variable is global or not.
+ * @var mr_bool_t __MR_NODE_VAR_ASSIGN_T::is_const
+ * A boolean value that determines if the variable is constant or not.
+ * @var mr_bool_t __MR_NODE_VAR_ASSIGN_T::is_static
+ * A boolean value that determines if the variable is static or not.
+ * @var mr_bool_t __MR_NODE_VAR_ASSIGN_T::is_link
+ * A boolean value that determines if the assignment is linking or not.
+ * @var mr_node_t __MR_NODE_VAR_ASSIGN_T::value
+ * Value of the assignment.
+ * @var mr_byte_t __MR_NODE_VAR_ASSIGN_T::type
+ * Type of the variable (if specified). \n
+ * If the type is not specified in the code, the \a type would be equal to <em>MR_TOKEN_EOF</em>.
+ * @var mr_idx_t __MR_NODE_VAR_ASSIGN_T::sidx
+ * Starting index of the node.
+*/
+#pragma pack(push, 1)
+struct __MR_NODE_VAR_ASSIGN_T
+{
+    mr_idx_t name;
+    mr_bool_t is_public : 1;
+    mr_bool_t is_global : 1;
+    mr_bool_t is_const : 1;
+    mr_bool_t is_static : 1;
+    mr_bool_t is_link : 1;
+    mr_node_t value;
+    mr_byte_t type;
+    mr_idx_t sidx;
+};
+#pragma pack(pop)
+typedef struct __MR_NODE_VAR_ASSIGN_T mr_node_var_assign_t;
+
+/**
  * @struct __MR_NODE_CALL_ARG_T
  * Data structure that holds information about a single function call argument. \n
  * This structure is used by the \a __MR_NODE_FUNC_CALL_T data structure.
  * @var mr_node_t __MR_NODE_CALL_ARG_T::value
  * Value of the argument.
- * @var mr_idx_t __MR_NODE_CALL_ARG_T::idx
- * Starting index of the name.
- * If the name is not specified in the code, the \a size field of this parameter will be zero.
+ * @var mr_idx_t __MR_NODE_CALL_ARG_T::name
+ * Starting index of the name. \n
+ * If the name is not specified in the code, the \a name would be equal to <em>MR_INVALID_IDX</em>.
 */
 struct __MR_NODE_CALL_ARG_T
 {
     mr_node_t value;
-    mr_idx_t idx;
+    mr_idx_t name;
 };
 typedef struct __MR_NODE_CALL_ARG_T mr_node_call_arg_t;
 
@@ -198,7 +312,7 @@ typedef struct __MR_NODE_EX_FUNC_CALL_T mr_node_ex_func_call_t;
  * List of parameters.
  * @var mr_byte_t __MR_NODE_DOLLAR_METHOD_T::size
  * Size of the \a params list.
- * @var mr_idx_t __MR_NODE_DOLLAR_METHOD_T::idx
+ * @var mr_idx_t __MR_NODE_DOLLAR_METHOD_T::name
  * Index of the name of dollar method.
  * @var mr_short_t __MR_NODE_DOLLAR_METHOD_T::sidx
  * Starting index of dollar method.
@@ -208,7 +322,7 @@ struct __MR_NODE_DOLLAR_METHOD_T
 {
     mr_idx_t params;
     mr_byte_t size;
-    mr_idx_t idx;
+    mr_idx_t name;
     mr_idx_t sidx;
 };
 #pragma pack(pop)
@@ -217,7 +331,7 @@ typedef struct __MR_NODE_DOLLAR_METHOD_T mr_node_dollar_method_t;
 /**
  * @struct __MR_NODE_EX_DOLLAR_METHOD_T
  * Data structure that holds information about a dollar method call (without argument).
- * @var mr_idx_t __MR_NODE_EX_DOLLAR_METHOD_T::idx
+ * @var mr_idx_t __MR_NODE_EX_DOLLAR_METHOD_T::name
  * Index of the name of dollar method.
  * @var mr_idx_t __MR_NODE_EX_DOLLAR_METHOD_T::sidx
  * Starting index of dollar method call.
@@ -225,7 +339,7 @@ typedef struct __MR_NODE_DOLLAR_METHOD_T mr_node_dollar_method_t;
 #pragma pack(push, 1)
 struct __MR_NODE_EX_DOLLAR_METHOD_T
 {
-    mr_idx_t idx;
+    mr_idx_t name;
     mr_idx_t sidx;
 };
 #pragma pack(pop)

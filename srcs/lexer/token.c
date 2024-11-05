@@ -103,7 +103,6 @@ mr_long_t mr_token_getsize2(
     case MR_TOKEN_NOT_K:
         return _mr_config.code[idx] == '!' ? 1 : *mr_token_keyword_size;
     case MR_TOKEN_IDENTIFIER:
-    {
         start = idx++;
         chr = _mr_config.code[idx];
 
@@ -112,9 +111,7 @@ mr_long_t mr_token_getsize2(
             chr = _mr_config.code[++idx];
 
         return idx - start;
-    }
     case MR_TOKEN_INT:
-    {
         start = idx++;
         chr = _mr_config.code[idx];
 
@@ -122,9 +119,7 @@ mr_long_t mr_token_getsize2(
             chr = _mr_config.code[++idx];
 
         return idx - start;
-    }
     case MR_TOKEN_FLOAT:
-    {
         start = idx++;
         chr = _mr_config.code[idx];
 
@@ -154,9 +149,7 @@ mr_long_t mr_token_getsize2(
         }
 
         return idx - start;
-    }
     case MR_TOKEN_IMAGINARY:
-    {
         start = idx++;
         chr = _mr_config.code[idx];
 
@@ -186,11 +179,9 @@ mr_long_t mr_token_getsize2(
         }
 
         return idx - start + 1;
-    }
     case MR_TOKEN_CHR:
         return 3 + (_mr_config.code[idx + 1] == '\\');
     case MR_TOKEN_STR:
-    {
         start = idx;
         chr = _mr_config.code[idx];
 
@@ -212,7 +203,6 @@ mr_long_t mr_token_getsize2(
         }
 
         return idx - start + 1;
-    }
     default:
         return mr_token_symbol_size[type];
     }

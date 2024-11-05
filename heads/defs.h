@@ -62,7 +62,7 @@ typedef struct __MR_IDX_T mr_idx_t;
  * Invalid index. \n
  * Used for indicating missing data.
 */
-#define MR_INVALID_IDX ((mr_idx_t){0xffff, 0xff})
+#define MR_INVALID_IDX ((mr_idx_t){.lidx=0xffff, .hidx=0xff})
 
 /**
  * Invalid index converted to a long value.
@@ -84,7 +84,7 @@ typedef struct __MR_IDX_T mr_idx_t;
  * @param idx
  * Index passed as a 32 bit integer.
 */
-#define MR_IDX_DECOMPOSE(idx) ((mr_idx_t){(idx) & 0xffff, (mr_byte_t)((idx) >> 16)})
+#define MR_IDX_DECOMPOSE(idx) ((mr_idx_t){.lidx=(idx) & 0xffff, .hidx=(mr_byte_t)((idx) >> 16)})
 
 /* error codes */
 
