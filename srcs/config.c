@@ -17,9 +17,10 @@ copies or substantial portions of the Software.
 #include <config.h>
 #include <string.h>
 
-mr_config_t _mr_config = {NULL, NULL, NULL, NULL, NULL, 0};
+mr_config_t _mr_config = {.outstream=NULL, .instream=NULL, .errstream=NULL, .code=NULL, .fname=NULL, .size=0};
 
-void mr_config_opt(mr_byte_t olevel)
+void mr_config_opt(
+    mr_byte_t olevel)
 {
     switch (olevel)
     {

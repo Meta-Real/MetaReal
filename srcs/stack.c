@@ -22,20 +22,19 @@ copies or substantial portions of the Software.
 #include <stack.h>
 #include <stdlib.h>
 
-mr_stack_t _mr_stack = {NULL, NULL, 0, 0, 0, 0, 0, 0};
+mr_stack_t _mr_stack = {.data=NULL, .data=NULL, .size=0, .ptr=0, .exalloc=0, .psize=0, .pptr=0, .pexalloc=0};
 
 mr_byte_t mr_stack_init(
     mr_long_t size, mr_long_t psize)
 {
-    _mr_stack = (mr_stack_t){.data=malloc(size * sizeof(mr_byte_t)), .ptrs=malloc(psize * sizeof(mr_ptr_t)),
-        .size=size, .ptr=0, .exalloc=size, .psize=psize, .pptr=0, .pexalloc=psize};
 
+    _mr_stack = (mr_stack_t){.size=size, .ptr=0, .exalloc=size, .psize=psize, .pptr=0, .pexalloc=psize};
+
+    _mr_stack.data = malloc(size * sizeof(mr_byte_t));
     if (!_mr_stack.data)
-    {
-        free(_mr_stack.ptrs);
         return MR_ERROR_NOT_ENOUGH_MEMORY;
-    }
 
+    _mr_stack.ptrs = malloc(psize * sizeof(mr_ptr_t));
     if (!_mr_stack.ptrs)
     {
         free(_mr_stack.data);
@@ -52,8 +51,7 @@ mr_byte_t mr_stack_push(
     {
         mr_byte_t *block;
 
-        block = realloc(_mr_stack.data,
-            (_mr_stack.size += _mr_stack.exalloc) * sizeof(mr_byte_t));
+        block = realloc(_mr_stack.data, (_mr_stack.size += _mr_stack.exalloc) * sizeof(mr_byte_t));
         if (!block)
             return MR_ERROR_NOT_ENOUGH_MEMORY;
 
@@ -66,14 +64,13 @@ mr_byte_t mr_stack_push(
 }
 
 mr_byte_t mr_stack_palloc(
-    mr_idx_t *ptr, mr_long_t size)
+    mr_long_t *ptr, mr_long_t size)
 {
     if (_mr_stack.pptr == _mr_stack.psize)
     {
         mr_ptr_t *block;
 
-        block = realloc(_mr_stack.ptrs,
-            (_mr_stack.psize += _mr_stack.pexalloc) * sizeof(mr_ptr_t));
+        block = realloc(_mr_stack.ptrs, (_mr_stack.psize += _mr_stack.pexalloc) * sizeof(mr_ptr_t));
         if (!block)
             return MR_ERROR_NOT_ENOUGH_MEMORY;
 
@@ -84,8 +81,7 @@ mr_byte_t mr_stack_palloc(
     if (!_mr_stack.ptrs[_mr_stack.pptr])
         return MR_ERROR_NOT_ENOUGH_MEMORY;
 
-    *ptr = MR_IDX_DECOMPOSE(_mr_stack.pptr);
-    _mr_stack.pptr++;
+    *ptr = _mr_stack.pptr++;
     return MR_NOERROR;
 }
 

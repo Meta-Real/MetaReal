@@ -92,8 +92,7 @@ int main(
     }
     if (!strcmp(argv[1], "--dumpver"))
     {
-        fputs(MR_VERSION " " MR_CORE " " MR_CORE_VERSION " "
-            MR_PORT " " MR_PORT_VERSION "\n", stdout);
+        fputs(MR_VERSION " " MR_CORE " " MR_CORE_VERSION " " MR_PORT " " MR_PORT_VERSION "\n", stdout);
         return MR_NOERROR;
     }
 
@@ -117,8 +116,7 @@ int main(
 
     if (size > MR_FILE_MAXSIZE)
     {
-        fprintf(stderr, "Internal error: File size exceeds the limit (%" PRIu32 ")",
-            MR_FILE_MAXSIZE);
+        fprintf(stderr, "Internal error: File size exceeds the limit (%" PRIu32 ")", MR_FILE_MAXSIZE);
 
         fclose(file);
         return MR_ERROR_FILE_TOO_LARGE;
@@ -142,13 +140,8 @@ int main(
     fclose(file);
     code[size] = '\0';
 
-    _mr_config = (mr_config_t){
-        .outstream=stdout,
-        .instream=stdin,
-        .errstream=stderr,
-        .code=code, .size=size,
-        .fname=argv[1]
-    };
+    _mr_config = (mr_config_t){.outstream=stdout, .instream=stdin, .errstream=stderr,
+        .code=code, .fname=argv[1], .size=size};
 
     retcode = mr_compile();
     free(code);
@@ -180,8 +173,7 @@ mr_byte_t mr_compile(void)
         return MR_NOERROR;
     }
 
-    retcode = mr_stack_init(_mr_config.size * MR_STACK_SIZE_FACTOR,
-        _mr_config.size / MR_STACK_PSIZE_CHUNK + 1);
+    retcode = mr_stack_init(_mr_config.size * MR_STACK_SIZE_FACTOR, _mr_config.size / MR_STACK_PSIZE_CHUNK + 1);
     if (retcode != MR_NOERROR)
     {
         free(lexer.tokens);

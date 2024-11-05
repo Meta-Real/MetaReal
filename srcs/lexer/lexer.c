@@ -14,21 +14,20 @@
  * It reallocates the \a tokens list. \n
  * This macro is used by the \a mr_lexer_generate_fstr function.
 */
-#define mr_lexer_tokens_realloc                                       \
-    do                                                                \
-    {                                                                 \
-        if (data->size == data->alloc)                                \
-        {                                                             \
-            block = realloc(data->tokens,                             \
-                (data->alloc += data->exalloc) * sizeof(mr_token_t)); \
-            if (!block)                                               \
-            {                                                         \
-                data->flag = MR_LEXER_MATCH_FLAG_MEMORY;              \
-                return;                                               \
-            }                                                         \
-                                                                      \
-            data->tokens = block;                                     \
-        }                                                             \
+#define mr_lexer_tokens_realloc                                                                 \
+    do                                                                                          \
+    {                                                                                           \
+        if (data->size == data->alloc)                                                          \
+        {                                                                                       \
+            block = realloc(data->tokens, (data->alloc += data->exalloc) * sizeof(mr_token_t)); \
+            if (!block)                                                                         \
+            {                                                                                   \
+                data->flag = MR_LEXER_MATCH_FLAG_MEMORY;                                        \
+                return;                                                                         \
+            }                                                                                   \
+                                                                                                \
+            data->tokens = block;                                                               \
+        }                                                                                       \
     } while (0)
 
 /**
@@ -223,8 +222,7 @@
 */
 #define mr_lexer_add_newline(prev)                                                        \
     (prev <= MR_TOKEN_STR && prev >= MR_TOKEN_IDENTIFIER) || prev == MR_TOKEN_FSTR_END || \
-    prev == MR_TOKEN_R_PAREN ||                                                           \
-    (prev <= MR_TOKEN_NONE_K && prev >= MR_TOKEN_TRUE_K) ||                               \
+    prev == MR_TOKEN_R_PAREN || (prev <= MR_TOKEN_NONE_K && prev >= MR_TOKEN_TRUE_K) ||   \
     prev == MR_TOKEN_RETURN_K || prev >= MR_TOKEN_OBJECT_T
 
 /**
@@ -645,10 +643,7 @@ void mr_lexer_match(
         data->idx++;
         break;
     case '+':
-        mr_lexer_token_sett(
-            MR_TOKEN_INCREMENT, MR_TOKEN_PLUS_ASSIGN,
-            MR_TOKEN_PLUS,
-            '+', '=');
+        mr_lexer_token_sett(MR_TOKEN_INCREMENT, MR_TOKEN_PLUS_ASSIGN, MR_TOKEN_PLUS, '+', '=');
         break;
     case '-':
         switch (_mr_config.code[data->idx + 1])
@@ -668,65 +663,37 @@ void mr_lexer_match(
         }
         break;
     case '*':
-        mr_lexer_token_setq(
-            MR_TOKEN_MULTIPLY_ASSIGN, MR_TOKEN_POWER_ASSIGN,
-            MR_TOKEN_POWER, MR_TOKEN_MULTIPLY,
-            '=', '*', '=');
+        mr_lexer_token_setq(MR_TOKEN_MULTIPLY_ASSIGN, MR_TOKEN_POWER_ASSIGN, MR_TOKEN_POWER, MR_TOKEN_MULTIPLY, '=', '*', '=');
         break;
     case '/':
-        mr_lexer_token_setq(
-            MR_TOKEN_DIVIDE_ASSIGN, MR_TOKEN_QUOTIENT_ASSIGN,
-            MR_TOKEN_QUOTIENT, MR_TOKEN_DIVIDE,
-            '=', '/', '=');
+        mr_lexer_token_setq(MR_TOKEN_DIVIDE_ASSIGN, MR_TOKEN_QUOTIENT_ASSIGN, MR_TOKEN_QUOTIENT, MR_TOKEN_DIVIDE, '=', '/', '=');
         break;
     case '%':
-        mr_lexer_token_setd(
-            MR_TOKEN_MODULO_ASSIGN, MR_TOKEN_MODULO,
-            '=');
+        mr_lexer_token_setd(MR_TOKEN_MODULO_ASSIGN, MR_TOKEN_MODULO, '=');
         break;
     case '&':
-        mr_lexer_token_sett(
-            MR_TOKEN_AND_K, MR_TOKEN_B_AND_ASSIGN,
-            MR_TOKEN_B_AND,
-            '&', '=');
+        mr_lexer_token_sett(MR_TOKEN_AND_K, MR_TOKEN_B_AND_ASSIGN, MR_TOKEN_B_AND, '&', '=');
         break;
     case '|':
-        mr_lexer_token_sett(
-            MR_TOKEN_OR_K, MR_TOKEN_B_OR_ASSIGN,
-            MR_TOKEN_B_OR,
-            '|', '=');
+        mr_lexer_token_sett(MR_TOKEN_OR_K, MR_TOKEN_B_OR_ASSIGN, MR_TOKEN_B_OR, '|', '=');
         break;
     case '^':
-        mr_lexer_token_setd(
-            MR_TOKEN_B_XOR_ASSIGN, MR_TOKEN_B_XOR,
-            '=');
+        mr_lexer_token_setd(MR_TOKEN_B_XOR_ASSIGN, MR_TOKEN_B_XOR, '=');
         break;
     case '~':
         mr_lexer_token_set(MR_TOKEN_B_NOT, 1);
         break;
     case '=':
-        mr_lexer_token_settl(
-            MR_TOKEN_EX_EQUAL, MR_TOKEN_EQUAL,
-            MR_TOKEN_ASSIGN,
-            '=', '=');
+        mr_lexer_token_settl(MR_TOKEN_EX_EQUAL, MR_TOKEN_EQUAL, MR_TOKEN_ASSIGN, '=', '=');
         break;
     case '!':
-        mr_lexer_token_settl(
-            MR_TOKEN_EX_NEQUAL, MR_TOKEN_NEQUAL,
-            MR_TOKEN_NOT_K,
-            '=', '=');
+        mr_lexer_token_settl(MR_TOKEN_EX_NEQUAL, MR_TOKEN_NEQUAL, MR_TOKEN_NOT_K, '=', '=');
         break;
     case '<':
-        mr_lexer_token_setq(
-            MR_TOKEN_LESS_EQUAL, MR_TOKEN_L_SHIFT_ASSIGN,
-            MR_TOKEN_L_SHIFT, MR_TOKEN_LESS,
-            '=', '<', '=');
+        mr_lexer_token_setq(MR_TOKEN_LESS_EQUAL, MR_TOKEN_L_SHIFT_ASSIGN, MR_TOKEN_L_SHIFT, MR_TOKEN_LESS, '=', '<', '=');
         break;
     case '>':
-        mr_lexer_token_setq(
-            MR_TOKEN_GREATER_EQUAL, MR_TOKEN_R_SHIFT_ASSIGN,
-            MR_TOKEN_R_SHIFT, MR_TOKEN_GREATER,
-            '=', '>', '=');
+        mr_lexer_token_setq(MR_TOKEN_GREATER_EQUAL, MR_TOKEN_R_SHIFT_ASSIGN, MR_TOKEN_R_SHIFT, MR_TOKEN_GREATER, '=', '>', '=');
         break;
     case '(':
         mr_lexer_token_set(MR_TOKEN_L_PAREN, 1);
@@ -819,15 +786,13 @@ void mr_lexer_generate_identifier(
 
     do
         chr = _mr_config.code[++data->idx];
-    while ((chr >= 'A' && chr <= 'Z') || (chr >= 'a' && chr <= 'z') ||
-        (chr >= '0' && chr <= '9') || chr == '_');
+    while ((chr >= 'A' && chr <= 'Z') || (chr >= 'a' && chr <= 'z') || (chr >= '0' && chr <= '9') || chr == '_');
 
     size = (mr_short_t)(data->idx - idx);
     if (size <= MR_TOKEN_KEYWORD_MAXSIZE)
     {
         for (i = 0; i != MR_TOKEN_KEYWORD_COUNT; i++)
-            if (size == mr_token_keyword_size[i] &&
-                !memcmp(_mr_config.code + idx, mr_token_keyword[i], size))
+            if (size == mr_token_keyword_size[i] && !memcmp(_mr_config.code + idx, mr_token_keyword[i], size))
             {
                 token->type = i + MR_TOKEN_KEYWORD_PAD;
                 data->size++;
@@ -836,8 +801,7 @@ void mr_lexer_generate_identifier(
 
         if (size <= MR_TOKEN_TYPE_MAXSIZE)
             for (i = 0; i != MR_TOKEN_TYPE_COUNT; i++)
-                if (size == mr_token_type_size[i] &&
-                    !memcmp(_mr_config.code + idx, mr_token_type[i], size))
+                if (size == mr_token_type_size[i] && !memcmp(_mr_config.code + idx, mr_token_type[i], size))
                 {
                     token->type = i + MR_TOKEN_TYPE_PAD;
                     data->size++;

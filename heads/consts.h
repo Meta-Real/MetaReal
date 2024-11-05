@@ -88,6 +88,21 @@ copies or substantial portions of the Software.
 #define MR_PARSER_LIST_SIZE ((mr_byte_t)16)
 
 /**
+ * Default size of a <em>tuple</em>.
+*/
+#define MR_PARSER_TUPLE_SIZE ((mr_byte_t)8)
+
+/**
+ * Default size of a <em>dict</em>.
+*/
+#define MR_PARSER_DICT_SIZE ((mr_byte_t)8)
+
+/**
+ * Default size of a <em>set</em>.
+*/
+#define MR_PARSER_SET_SIZE ((mr_byte_t)8)
+
+/**
  * Default size of a <em>function call</em> argument list.
 */
 #define MR_PARSER_FUNC_CALL_SIZE ((mr_byte_t)4)

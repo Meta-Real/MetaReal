@@ -32,6 +32,40 @@ copies or substantial portions of the Software.
 #define MR_NODE_COUNT (MR_NODE_EX_DOLLAR_METHOD + 1)
 
 /**
+ * @def mr_node_list(typ)
+ * It handles \a mr_node_list_t and \a mr_node_tuple_t types.
+ * @param typ
+ * Type of the structure (<em>mr_node_list_t</em> and <em>mr_node_tuple_t</em>).
+*/
+#define mr_node_list(typ)                                                 \
+    {                                                                     \
+        typ *value;                                                       \
+        mr_node_t *elems;                                                 \
+                                                                          \
+        value = (typ*)(_mr_stack.data + node.value);                      \
+        size = MR_IDX_EXTRACT(value->size);                               \
+        if (!size)                                                        \
+        {                                                                 \
+            fputs("[]", stdout);                                          \
+            break;                                                        \
+        }                                                                 \
+                                                                          \
+        elems = (mr_node_t*)_mr_stack.ptrs[MR_IDX_EXTRACT(value->elems)]; \
+                                                                          \
+        fputs("[(", stdout);                                              \
+        mr_node_print(*elems);                                            \
+                                                                          \
+        for (mr_long_t i = 1; i != size; i++)                             \
+        {                                                                 \
+            fputs("), (", stdout);                                        \
+            mr_node_print(elems[i]);                                      \
+        }                                                                 \
+                                                                          \
+        fputs(")]", stdout);                                              \
+        break;                                                            \
+    }
+
+/**
  * Returns the corrsponding token type given its node type.
  * @param type
  * Type of the specified node.
@@ -50,7 +84,7 @@ static mr_str_ct mr_node_labels[MR_NODE_COUNT] =
     "NODE_INT", "NODE_FLOAT", "NODE_IMAGINARY", "NODE_BOOL", "NODE_CHR", "NODE_FSTR_FRAG",
     "NODE_STR", "NODE_FSTR", "NODE_LIST", "NODE_TUPLE", "NODE_DICT", "NODE_SET",
     "NODE_BINARY_OP", "NODE_UNARY_OP",
-    "NODE_VAR_ACCESS", "NODE_VAR_ASSIGN", "NODE_VAR_REASSIGN",
+    "NODE_VAR_ACCESS", "NODE_VAR_ASSIGN",
     "NODE_FUNC_CALL", "NODE_EX_FUNC_CALL", "NODE_DOLLAR_METHOD", "NODE_EX_DOLLAR_METHOD"
 };
 
@@ -82,34 +116,10 @@ void mr_node_print(
         break;
     case MR_NODE_FSTR:
     case MR_NODE_LIST:
-    case MR_NODE_TUPLE:
     case MR_NODE_SET:
-    {
-        mr_node_list_t *value;
-        mr_node_t *elems;
-
-        value = (mr_node_list_t*)(_mr_stack.data + node.value);
-        size = MR_IDX_EXTRACT(value->size);
-        if (!size)
-        {
-            fputs("[]", stdout);
-            break;
-        }
-
-        elems = (mr_node_t*)_mr_stack.ptrs[MR_IDX_EXTRACT(value->elems)];
-
-        fputs("[(", stdout);
-        mr_node_print(*elems);
-
-        for (mr_long_t i = 1; i != size; i++)
-        {
-            fputs("), (", stdout);
-            mr_node_print(elems[i]);
-        }
-
-        fputs(")]", stdout);
-        break;
-    }
+        mr_node_list(mr_node_list_t);
+    case MR_NODE_TUPLE:
+        mr_node_list(mr_node_tuple_t);
     case MR_NODE_DICT:
     {
         mr_node_list_t *value;
@@ -142,7 +152,6 @@ void mr_node_print(
         break;
     }
     case MR_NODE_BINARY_OP:
-    case MR_NODE_VAR_REASSIGN:
     {
         mr_node_binary_op_t *value;
 

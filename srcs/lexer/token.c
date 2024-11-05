@@ -64,7 +64,7 @@ mr_long_t mr_token_getsize(
         mr_long_t count;
 
         count = 0;
-        for (;;)
+        while (1)
         {
             if ((++token)->type == MR_TOKEN_FSTR_START)
                 count++;
@@ -93,8 +93,7 @@ mr_long_t mr_token_getsize2(
         return mr_token_type_size[type - MR_TOKEN_TYPE_PAD];
 
     if (type == MR_TOKEN_AND_K)
-        return _mr_config.code[idx] == '&' ? 2 :
-            mr_token_keyword_size[MR_TOKEN_AND_K - MR_TOKEN_KEYWORD_PAD];
+        return _mr_config.code[idx] == '&' ? 2 : mr_token_keyword_size[MR_TOKEN_AND_K - MR_TOKEN_KEYWORD_PAD];
     if (type > MR_TOKEN_NOT_K)
         return mr_token_keyword_size[type - MR_TOKEN_KEYWORD_PAD];
 
@@ -106,8 +105,7 @@ mr_long_t mr_token_getsize2(
         start = idx++;
         chr = _mr_config.code[idx];
 
-        while ((chr >= 'A' && chr <= 'Z') || (chr >= 'a' && chr <= 'z') ||
-            (chr >= '0' && chr <= '9') || chr == '_')
+        while ((chr >= 'A' && chr <= 'Z') || (chr >= 'a' && chr <= 'z') || (chr >= '0' && chr <= '9') || chr == '_')
             chr = _mr_config.code[++idx];
 
         return idx - start;

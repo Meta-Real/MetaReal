@@ -106,7 +106,7 @@ mr_byte_t mr_stack_push(
  * Otherwise, it returns the error code (defined in \a defs.h header file).
 */
 mr_byte_t mr_stack_palloc(
-    mr_idx_t *ptr, mr_long_t size);
+    mr_long_t *ptr, mr_long_t size);
 
 /**
  * It reallocates pointer that is stored in the specified index of the \a ptrs list. \n

@@ -116,7 +116,6 @@ enum __MR_NODE_ENUM
 
     MR_NODE_VAR_ACCESS,
     MR_NODE_VAR_ASSIGN,
-    MR_NODE_VAR_REASSIGN,
 
     MR_NODE_FUNC_CALL,
     MR_NODE_EX_FUNC_CALL,
@@ -190,7 +189,7 @@ typedef struct __MR_NODE_KEYVAL_T mr_node_keyval_t;
 
 /**
  * @struct __MR_NODE_LIST_T
- * Data structure that holds information about a fstr, list, tuple, dict, or a set.
+ * Data structure that holds information about a fstr, list, dict, or a set.
  * @var mr_idx_t __MR_NODE_LIST_T::elems
  * The list of elements.
  * @var mr_idx_t __MR_NODE_LIST_T::size
@@ -210,6 +209,23 @@ struct __MR_NODE_LIST_T
 };
 #pragma pack(pop)
 typedef struct __MR_NODE_LIST_T mr_node_list_t;
+
+/**
+ * @struct __MR_NODE_TUPLE_T
+ * Data structure that holds information about a tuple.
+ * @var mr_idx_t __MR_NODE_TUPLE_T::elems
+ * The list of elements.
+ * @var mr_idx_t __MR_NODE_TUPLE_T::size
+ * Size of the elements list.
+*/
+#pragma pack(push, 1)
+struct __MR_NODE_TUPLE_T
+{
+    mr_idx_t elems;
+    mr_idx_t size;
+};
+#pragma pack(pop)
+typedef struct __MR_NODE_TUPLE_T mr_node_tuple_t;
 
 /**
  * @struct __MR_NODE_VAR_ASSIGN_T
