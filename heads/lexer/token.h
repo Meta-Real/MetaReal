@@ -522,7 +522,7 @@ void mr_token_print(
     mr_token_t *token);
 
 /**
- * It prints out a list of tokens until it hits and EOF token (only available in Debug builds).
+ * It prints out a list of tokens until it hits and EOF token (only available in Debug builds). \n
  * The list must be ended with an EOF token.
  * @param tokens
  * The list of tokens.

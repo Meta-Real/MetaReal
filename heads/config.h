@@ -17,8 +17,7 @@ copies or substantial portions of the Software.
 /**
  * @file config.h
  * This file contains configuration features for MetaReal compiler. \n
- * Also, global variables like the source code pointer are defined here
- * to avoid parameter passing overhead.
+ * Also, global variables like the source code pointer are defined here to avoid parameter passing overhead.
 */
 
 #ifndef __MR_CONFIG__
@@ -36,21 +35,21 @@ copies or substantial portions of the Software.
 /**
  * Optimization level 0. \n
  * Default optimization level of the MetaReal compiler. \n
- * It only handles basic optimizations. \n
+ * It only handles basic optimizations.
 */
 #define OPT_LEVEL0 ((mr_byte_t)0)
 
 /**
  * Optimization level 1. \n
  * Basic optimization level of the MetaReal compiler. \n
- * The main focus of this level is on expressions and variables. \n
+ * The main focus of this level is on expressions and variables.
 */
 #define OPT_LEVEL1 ((mr_byte_t)1)
 
 /**
  * Optimization level 2. \n
  * Intermediate optimization level of the MetaReal compiler. \n
- * The main focus of this level is on statements and data structures. \n
+ * The main focus of this level is on statements and data structures.
 */
 #define OPT_LEVEL2 ((mr_byte_t)2)
 
@@ -64,8 +63,7 @@ copies or substantial portions of the Software.
 /**
  * Optimization level ultra. \n
  * Ultimate optimization level of the MetaReal compiler. \n
- * The compiler will slow down with this optimization level turned on.
- * So it's better suited for release builds.
+ * The compiler will slow down with this optimization level turned on. So it's better suited for release builds.
 */
 #define OPT_LEVELU ((mr_byte_t)4)
 
@@ -99,8 +97,7 @@ struct __MR_CONFIG_T
 typedef struct __MR_CONFIG_T mr_config_t;
 
 /**
- * The \a mr_config_t instant that holds all information
- * about the code and its compilation process.
+ * The \a mr_config_t instant that holds all information about the code and its compilation process.
 */
 extern mr_config_t _mr_config;
 

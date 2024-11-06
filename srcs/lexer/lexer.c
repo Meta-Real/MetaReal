@@ -1,3 +1,19 @@
+/*
+MIT License
+
+Copyright (c) 2023 MetaReal
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+*/
+
 /**
  * @file lexer.c
  * This file contains definitions of the \a lexer.h file.
@@ -89,8 +105,7 @@
 /**
  * @def mr_lexer_token_sett(type1, type2, type3, chr1, chr2)
  * It creates a new token based on three different types. \n
- * The \a chr1 and \a chr2 parameters determine which of the
- * three should be considered as the token type. \n
+ * The \a chr1 and \a chr2 parameters determine which of the three should be considered as the token type. \n
  * Type1 structure: `[base][chr1]` \n
  * Type2 structure: `[base][chr2]` \n
  * Type3 structure: `[base]`
@@ -125,8 +140,7 @@
 /**
  * @def mr_lexer_token_settl(type1, type2, type3, chr1, chr2)
  * It creates a new token based on three different types. \n
- * The \a chr1 and \a chr2 parameters determine which of the
- * three should be considered as the token type. \n
+ * The \a chr1 and \a chr2 parameters determine which of the three should be considered as the token type. \n
  * Type1 structure: `[base][chr1][chr2]` \n
  * Type2 structure: `[base][chr1]` \n
  * Type3 structure: `[base]`
@@ -158,8 +172,7 @@
 /**
  * @def mr_lexer_token_setq(type1, type2, type3, type4, chr1, chr2, chr3)
  * It creates a new token based on four different types. \n
- * The <em>chr1</em>, <em>chr2</em>, and \a chr3 parameters determine which of the
- * four should be considered as the token type. \n
+ * The <em>chr1</em>, <em>chr2</em>, and \a chr3 parameters determine which of the four should be considered as the token type. \n
  * Type1 structure: `[base][chr1]` \n
  * Type2 structure: `[base][chr2][chr3]` \n
  * Type3 structure: `[base][chr2]` \n
@@ -258,8 +271,7 @@
  * Input of the \a mr_lexer_match function.
  * @var mr_byte_t __MR_LEXER_MATCH_T::flag
  * The flag indicates that the matching process succeeded or failed. \n
- * If the process succeeded, flag will be 0.
- * Otherwise, its value will be the error code (<em>__MR_LEXER_MATCH_FLAG_ENUM</em>).
+ * If the process succeeded, flag will be 0. Otherwise, its value will be the error code (<em>__MR_LEXER_MATCH_FLAG_ENUM</em>).
  * @var mr_token_t* __MR_LEXER_MATCH_T::tokens
  * List of tokens.
  * @var mr_long_t __MR_LEXER_MATCH_T::size
@@ -316,10 +328,8 @@ void mr_lexer_match(
 
 /**
  * It skips comments (both singleline and multiline ones). \n
- * Singleline comment regex pattern:
- * `\#.*` \n
- * Multiline comment regex pattern:
- * `\#\*(.|\n)*?\*\#`
+ * Singleline comment regex pattern: `\#.*` \n
+ * Multiline comment regex pattern: `\#\*(.|\n)*?\*\#`
  * @param data
  * Data structure containing all necessary information about the code.
 */
@@ -328,8 +338,7 @@ void mr_lexer_skip_comment(
 
 /**
  * It generates an identifier, a keyword, or a type based on the code. \n
- * Identifier regex pattern:
- * `[a-zA-Z_]\w*`
+ * Identifier regex pattern: `[a-zA-Z_]\w*`
  * @param data
  * Data structure containing all necessary information about the code.
 */
@@ -338,12 +347,9 @@ void mr_lexer_generate_identifier(
 
 /**
  * It generates a number (int, float, or imaginary) based on the code. \n
- * Int regex pattern:
- * `\d[0-9_]*` \n
- * Float regex pattern:
- * `((\d[0-9_]*\.|\.)[0-9_]*([eE][+-]?\d+)?|\d[0-9_]*[eE][+-]?\d+)` \n
- * Imaginary regex pattern:
- * `\d[0-9_]*\.?|\.?)[0-9_]*([eE][+-]?\d+)?i`
+ * Int regex pattern: `\d[0-9_]*` \n
+ * Float regex pattern: `((\d[0-9_]*\.|\.)[0-9_]*([eE][+-]?\d+)?|\d[0-9_]*[eE][+-]?\d+)` \n
+ * Imaginary regex pattern: `\d[0-9_]*\.?|\.?)[0-9_]*([eE][+-]?\d+)?i`
  * @param data
  * Data structure containing all necessary information about the code.
 */
@@ -380,8 +386,7 @@ void mr_lexer_generate_fstr(
     mr_lexer_match_t *data, mr_bool_t esc);
 
 /**
- * Generates a <em>MR_TOKEN_DOT</em>, <em>MR_TOKEN_ELLIPSIS</em>,
- * or a floating point number based on the code.
+ * Generates a <em>MR_TOKEN_DOT</em>, <em>MR_TOKEN_ELLIPSIS</em>, or a floating point number based on the code.
  * @param data
  * Data structure containing all necessary information about the code.
 */

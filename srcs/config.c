@@ -14,6 +14,11 @@ The above copyright notice and this permission notice shall be included in all
 copies or substantial portions of the Software.
 */
 
+/**
+ * @file config.c
+ * This file contains definitions of the \a config.h file.
+*/
+
 #include <config.h>
 #include <string.h>
 
@@ -21,12 +26,4 @@ mr_config_t _mr_config = {.outstream=NULL, .instream=NULL, .errstream=NULL, .cod
 
 void mr_config_opt(
     mr_byte_t olevel)
-{
-    switch (olevel)
-    {
-    case OPT_LEVELD:
-        break;
-    case OPT_LEVEL0:
-        break;
-    }
-}
+{}

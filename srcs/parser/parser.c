@@ -1,3 +1,19 @@
+/*
+MIT License
+
+Copyright (c) 2023 MetaReal
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+*/
+
 /**
  * @file parser.c
  * This file contains definitions of the \a parser.h file.
@@ -133,8 +149,7 @@ mr_byte_t mr_parser_and(
     mr_parser_t *res, mr_token_t **tokens);
 
 /**
- * It handles less than `<`, greater than `>`,
- * less than or equal to `<=`, and greater than or equal to `>=` operation nodes.
+ * It handles less than `<`, greater than `>`, less than or equal to `<=`, and greater than or equal to `>=` operation nodes.
  * @param res
  * Result of the \a mr_parser function passed as a pointer.
  * @param tokens
@@ -146,8 +161,7 @@ mr_byte_t mr_parser_order(
     mr_parser_t *res, mr_token_t **tokens);
 
 /**
- * It handles equal `==`, not equal `!=`,
- * exactly equal `===`, and exactly not equal `!==` operation nodes.
+ * It handles equal `==`, not equal `!=`, exactly equal `===`, and exactly not equal `!==` operation nodes.
  * @param res
  * Result of the \a mr_parser function passed as a pointer.
  * @param tokens
@@ -219,8 +233,7 @@ mr_byte_t mr_parser_expr(
     mr_parser_t *res, mr_token_t **tokens);
 
 /**
- * It handles multiplication `*`, division `/`,
- * modulo `%`, and quotient `//` operation nodes.
+ * It handles multiplication `*`, division `/`, modulo `%`, and quotient `//` operation nodes.
  * @param res
  * Result of the \a mr_parser function passed as a pointer.
  * @param tokens
@@ -232,8 +245,7 @@ mr_byte_t mr_parser_term(
     mr_parser_t *res, mr_token_t **tokens);
 
 /**
- * It handles positive `+`, negative `-`,
- * binary not `~`, and logical not (`!`, `not`) unary operation nodes.
+ * It handles positive `+`, negative `-`, binary not `~`, and logical not (`!`, `not`) unary operation nodes.
  * @param res
  * Result of the \a mr_parser function passed as a pointer.
  * @param tokens

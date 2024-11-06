@@ -74,8 +74,7 @@ extern mr_stack_t _mr_stack;
  * @param psize
  * Size of the \a ptrs field.
  * @return It returns a code which indicates if the process was successful or not. \n
- * If the process was successful, it returns <em>MR_NOERROR</em>.
- * Otherwise, it returns the error code (defined in \a defs.h header file).
+ * If the process was successful, it returns <em>MR_NOERROR</em>. Otherwise, it returns the error code (defined in \a defs.h header file).
 */
 mr_byte_t mr_stack_init(
     mr_long_t size, mr_long_t psize);
@@ -88,8 +87,7 @@ mr_byte_t mr_stack_init(
  * @param size
  * Requested size for the block.
  * @return It returns a code which indicates if the process was successful or not. \n
- * If the process was successful, it returns <em>MR_NOERROR</em>.
- * Otherwise, it returns the error code (defined in \a defs.h header file).
+ * If the process was successful, it returns <em>MR_NOERROR</em>. Otherwise, it returns the error code (defined in \a defs.h header file).
 */
 mr_byte_t mr_stack_push(
     mr_long_t *ptr, mr_byte_t size);
@@ -102,8 +100,7 @@ mr_byte_t mr_stack_push(
  * @param size
  * Requested size for the block.
  * @return It returns a code which indicates if the process was successful or not. \n
- * If the process was successful, it returns <em>MR_NOERROR</em>.
- * Otherwise, it returns the error code (defined in \a defs.h header file).
+ * If the process was successful, it returns <em>MR_NOERROR</em>. Otherwise, it returns the error code (defined in \a defs.h header file).
 */
 mr_byte_t mr_stack_palloc(
     mr_long_t *ptr, mr_long_t size);
@@ -116,8 +113,7 @@ mr_byte_t mr_stack_palloc(
  * @param size
  * Requested size for the block.
  * @return It returns a code which indicates if the process was successful or not. \n
- * If the process was successful, it returns <em>MR_NOERROR</em>.
- * Otherwise, it returns the error code (defined in \a defs.h header file).
+ * If the process was successful, it returns <em>MR_NOERROR</em>. Otherwise, it returns the error code (defined in \a defs.h header file).
 */
 mr_byte_t mr_stack_prealloc(
     mr_long_t ptr, mr_long_t size);

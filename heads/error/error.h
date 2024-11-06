@@ -125,8 +125,7 @@ enum __MR_INVALID_SEMANTIC_ENUM
  * a = "Hello World
  *                 ^
  * </pre>
- * \a errstream is \a stderr by default and
- * can be changed with the \a $set_errstream dollar method.
+ * \a errstream is \a stderr by default and can be changed with the \a $set_errstream dollar method.
  * @param error
  * Illegal character error that needs to be displayed.
 */
@@ -156,8 +155,7 @@ void mr_illegal_chr_print(
  * int a = 9 "multiline string
  *           ^^^^^^^^^^^^^^^^^~
  * </pre>
- * \a errstream is \a stderr by default and
- * can be changed with the \a $set_errstream dollar method.
+ * \a errstream is \a stderr by default and can be changed with the \a $set_errstream dollar method.
  * @param error
  * Invalid syntax error that needs to be displayed.
 */
@@ -182,8 +180,7 @@ void mr_invalid_syntax_print(
  * var = 83 * if true {
  *            ^^^^^^^^^~
  * </pre>
- * \a errstream is \a stderr by default and
- * can be changed with the \a $set_errstream dollar method.
+ * \a errstream is \a stderr by default and can be changed with the \a $set_errstream dollar method.
  * @param error
  * Invalid semantic error that needs to be displayed.
 */

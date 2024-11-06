@@ -16,8 +16,7 @@ copies or substantial portions of the Software.
 
 /**
  * @file lexer.h
- * This file contains definitions of the lexer that
- * converts contents of the code into a list of tokens. \n
+ * This file contains definitions of the lexer that converts contents of the code into a list of tokens. \n
  * All things defined in \a lexer.c and this file have the \a mr_lexer prefix.
 */
 
@@ -43,13 +42,11 @@ typedef struct __MR_LEXER_T mr_lexer_t;
 
 /**
  * It creates a list of tokens based on contents of the code. \n
- * If there is an illegal character in the source code or a character is missing,
- * the function returns an error.
+ * If there is an illegal character in the source code or a character is missing, the function returns an error.
  * @param res
  * Result of the lexer process (it contains both error details and tokens list).
  * @return It returns a code which indicates if the process was successful or not. \n
- * If the process was successful, it returns <em>MR_NOERROR</em>.
- * Otherwise, it returns the error code (defined in \a defs.h header file).
+ * If the process was successful, it returns <em>MR_NOERROR</em>. Otherwise, it returns the error code (defined in \a defs.h header file).
 */
 mr_byte_t mr_lexer(
     mr_lexer_t *res);

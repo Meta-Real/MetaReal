@@ -16,8 +16,7 @@ copies or substantial portions of the Software.
 
 /**
  * @file node.h
- * Definitions of the node data structure which is used by the parser to
- * create AST (abstract syntax tree) of the code. \n
+ * Definitions of the node data structure which is used by the parser to create AST (abstract syntax tree) of the code. \n
  * All things defined in this file have the \a mr_node prefix.
 */
 
@@ -29,8 +28,7 @@ copies or substantial portions of the Software.
 /** 
  * @struct __MR_NODE_T
  * Sentence equivalent in the compilation process. \n
- * The node contains all the information needed about an statement
- * and the grammar of that statement.
+ * The node contains all the information needed about an statement and the grammar of that statement.
  * @var mr_byte_t __MR_NODE_T::type
  * Type of the <em>node</em>.
  * @var mr_long_t __MR_NODE_T::value
