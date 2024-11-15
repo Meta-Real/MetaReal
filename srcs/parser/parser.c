@@ -42,13 +42,14 @@ copies or substantial portions of the Software.
         mr_long_t ptr;                                                  \
         mr_byte_t retcode, op;                                          \
         mr_node_binary_op_t *value;                                     \
-        mr_node_t left;                                                 \
+        mr_node_t left, *node;                                          \
                                                                         \
         retcode = func1(res, tokens);                                   \
         if (retcode != MR_NOERROR)                                      \
             return retcode;                                             \
                                                                         \
-        left = res->nodes[res->size];                                   \
+        node = res->nodes + res->size;                                  \
+        left = *node;                                                   \
         while (cond)                                                    \
         {                                                               \
             op = (*tokens)++->type;                                     \
@@ -63,12 +64,12 @@ copies or substantial portions of the Software.
                                                                         \
             value = (mr_node_binary_op_t*)(_mr_stack.data + ptr);       \
             *value = (mr_node_binary_op_t){                             \
-                .left=left, .right=res->nodes[res->size], .op=op};      \
+                .left=left, .right=*node, .op=op};                      \
                                                                         \
             left = (mr_node_t){.type = MR_NODE_BINARY_OP, .value=ptr};  \
         }                                                               \
                                                                         \
-        res->nodes[res->size] = left;                                   \
+        *node = left;                                                   \
         return MR_NOERROR;                                              \
     } while (0)
 
@@ -297,7 +298,7 @@ mr_byte_t mr_parser_core(
  * @param res
  * Result of the \a mr_parser function passed as a pointer.
  * @param tokens
- * List of tokens passed as a pointer
+ * List of tokens passed as a pointer.
  * @return It returns a code which indicates if the process was successful or not. \n
  * If the process was successful, it returns 0. Otherwise, it returns the error code.
 */
@@ -309,7 +310,7 @@ mr_byte_t mr_parser_handle_list(
  * @param res
  * Result of the \a mr_parser function passed as a pointer.
  * @param tokens
- * List of tokens passed as a pointer
+ * List of tokens passed as a pointer.
  * @return It returns a code which indicates if the process was successful or not. \n
  * If the process was successful, it returns 0. Otherwise, it returns the error code.
 */
@@ -321,12 +322,14 @@ mr_byte_t mr_parser_handle_dict(
  * @param res
  * Result of the \a mr_parser function passed as a pointer.
  * @param tokens
- * List of tokens passed as a pointer
+ * List of tokens passed as a pointer.
+ * @param value
+ * Value of the \a set node type (created in the \a mr_parser_handle_dict function).
  * @return It returns a code which indicates if the process was successful or not. \n
  * If the process was successful, it returns 0. Otherwise, it returns the error code.
 */
 mr_byte_t mr_parser_handle_set(
-    mr_parser_t *res, mr_token_t **tokens);
+    mr_parser_t *res, mr_token_t **tokens, mr_long_t ptr);
 
 /**
  * It generates variable assignments.
@@ -455,7 +458,7 @@ mr_byte_t mr_parser_tuple(
             elems = (mr_node_t*)_mr_stack.ptrs[pidx];
         }
 
-        elems[size++] = res->nodes[res->size];
+        elems[size++] = *node;
     } while ((*tokens)->type == MR_TOKEN_COMMA);
 
     if (size != alloc)
@@ -657,7 +660,7 @@ mr_byte_t mr_parser_call(
             if (retcode != MR_NOERROR)
                 return retcode;
 
-            arg->value = res->nodes[res->size];
+            arg->value = *node;
             value->size++;
 
             if ((*tokens)->type != MR_TOKEN_COMMA)
@@ -720,6 +723,8 @@ mr_byte_t mr_parser_core(
         return MR_NOERROR;
     case MR_TOKEN_L_SQUARE:
         return mr_parser_handle_list(res, tokens);
+    case MR_TOKEN_L_CURLY:
+        return mr_parser_handle_dict(res, tokens);
     case MR_TOKEN_DOLLAR:
         return mr_parser_handle_dollar_method(res, tokens);
     }
@@ -749,10 +754,11 @@ mr_byte_t mr_parser_handle_list(
 
     if ((*tokens)->type == MR_TOKEN_R_SQUARE)
     {
-        value->size = (mr_idx_t){.lidx=0, .hidx=0};
-        value->eidx = (*tokens)++->idx;
+        value->size = MR_ZERO_IDX;
+        value->eidx = (*tokens)->idx;
 
         *node = (mr_node_t){.type=MR_NODE_LIST, .value=ptr};
+        mr_parser_advance_newline;
         return MR_NOERROR;
     }
 
@@ -780,7 +786,7 @@ mr_byte_t mr_parser_handle_list(
             elems = (mr_node_t*)_mr_stack.ptrs[pidx];
         }
 
-        elems[size++] = res->nodes[res->size];
+        elems[size++] = *node;
         if ((*tokens)->type != MR_TOKEN_COMMA || (++*tokens)->type == MR_TOKEN_R_SQUARE)
             break;
     } while (1);
@@ -799,9 +805,203 @@ mr_byte_t mr_parser_handle_list(
     }
 
     value->size = MR_IDX_DECOMPOSE(size);
-    value->eidx = (*tokens)++->idx;
+    value->eidx = (*tokens)->idx;
 
     *node = (mr_node_t){.type=MR_NODE_LIST, .value=ptr};
+    mr_parser_advance_newline;
+    return MR_NOERROR;
+}
+
+mr_byte_t mr_parser_handle_dict(
+    mr_parser_t *res, mr_token_t **tokens)
+{
+    mr_long_t ptr, pidx, size, alloc;
+    mr_byte_t retcode;
+    mr_node_keyval_t *elems;
+    mr_node_list_t *value;
+    mr_node_t *node;
+    mr_idx_t sidx;
+
+    sidx = (*tokens)->idx;
+
+    retcode = mr_stack_push(&ptr, sizeof(mr_node_list_t));
+    if (retcode != MR_NOERROR)
+        return retcode;
+
+    value = (mr_node_list_t*)(_mr_stack.data + ptr);
+    value->sidx = sidx;
+
+    if ((++*tokens)->type == MR_TOKEN_R_CURLY)
+    {
+        value->size = MR_ZERO_IDX;
+        value->eidx = (*tokens)->idx;
+
+        res->nodes[res->size] = (mr_node_t){.type=MR_NODE_DICT, .value=ptr};
+        mr_parser_advance_newline;
+        return MR_NOERROR;
+    }
+    if ((*tokens)->type == MR_TOKEN_COMMA)
+    {
+        if ((++*tokens)->type != MR_TOKEN_R_CURLY)
+        {
+            res->error = (mr_invalid_syntax_t){.detail="Expected '}'", .token=*tokens};
+            return MR_ERROR_BAD_FORMAT;
+        }
+
+        value->size = MR_ZERO_IDX;
+        value->eidx = (*tokens)->idx;
+
+        res->nodes[res->size] = (mr_node_t){.type=MR_NODE_SET, .value=ptr};
+        mr_parser_advance_newline;
+        return MR_NOERROR;
+    }
+
+    retcode = mr_parser_reassign(res, tokens);
+    if (retcode != MR_NOERROR)
+        return retcode;
+
+    if ((*tokens)->type == MR_TOKEN_COMMA)
+        return mr_parser_handle_set(res, tokens, ptr);
+    if ((*tokens)->type != MR_TOKEN_COLON)
+    {
+        res->error = (mr_invalid_syntax_t){.detail="Expected ':' or ','", .token=*tokens};
+        return MR_ERROR_BAD_FORMAT;
+    }
+
+    retcode = mr_stack_palloc(&pidx, MR_PARSER_DICT_SIZE * sizeof(mr_node_keyval_t));
+    if (retcode != MR_NOERROR)
+        return retcode;
+
+    value->elems = MR_IDX_DECOMPOSE(pidx);
+    elems = (mr_node_keyval_t*)_mr_stack.ptrs[pidx];
+
+    node = res->nodes + res->size;
+    elems->key = *node;
+
+    ++*tokens;
+    retcode = mr_parser_reassign(res, tokens);
+    if (retcode != MR_NOERROR)
+        return retcode;
+
+    elems->value = *node;
+
+    size = 1;
+    alloc = MR_PARSER_DICT_SIZE;
+    while ((*tokens)->type == MR_TOKEN_COMMA)
+    {
+        if ((++*tokens)->type == MR_TOKEN_R_CURLY)
+            break;
+
+        if (size == alloc)
+        {
+            retcode = mr_stack_prealloc(pidx, (alloc += MR_PARSER_DICT_SIZE) * sizeof(mr_node_keyval_t));
+            if (retcode != MR_NOERROR)
+                return retcode;
+
+            elems = (mr_node_keyval_t*)_mr_stack.ptrs[pidx];
+        }
+
+        retcode = mr_parser_reassign(res, tokens);
+        if (retcode != MR_NOERROR)
+            return retcode;
+
+        if ((*tokens)->type != MR_TOKEN_COLON)
+        {
+            res->error = (mr_invalid_syntax_t){.detail="Expected ':'", .token=*tokens};
+            return MR_ERROR_BAD_FORMAT;
+        }
+
+        elems[size].key = *node;
+
+        ++*tokens;
+        retcode = mr_parser_reassign(res, tokens);
+        if (retcode != MR_NOERROR)
+            return retcode;
+
+        elems[size++].value = *node;
+    }
+
+    if ((*tokens)->type != MR_TOKEN_R_CURLY)
+    {
+        res->error = (mr_invalid_syntax_t){.detail="Expected '}' or ','", .token=*tokens};
+        return MR_ERROR_BAD_FORMAT;
+    }
+
+    if (size != alloc)
+    {
+        retcode = mr_stack_prealloc(pidx, size * sizeof(mr_node_keyval_t));
+        if (retcode != MR_NOERROR)
+            return retcode;
+    }
+
+    value->size = MR_IDX_DECOMPOSE(size);
+    value->eidx = (*tokens)->idx;
+
+    *node = (mr_node_t){.type=MR_NODE_DICT, .value=ptr};
+    mr_parser_advance_newline;
+    return MR_NOERROR;
+}
+
+mr_byte_t mr_parser_handle_set(
+    mr_parser_t *res, mr_token_t **tokens, mr_long_t ptr)
+{
+    mr_long_t pidx, size, alloc;
+    mr_byte_t retcode;
+    mr_node_list_t *value;
+    mr_node_t *node, *elems;
+
+    retcode = mr_stack_palloc(&pidx, MR_PARSER_SET_SIZE * sizeof(mr_node_t));
+    if (retcode != MR_NOERROR)
+        return retcode;
+
+    value = (mr_node_list_t*)(_mr_stack.data + ptr);
+    value->elems = MR_IDX_DECOMPOSE(pidx);
+    elems = (mr_node_t*)_mr_stack.ptrs[pidx];
+
+    node = res->nodes + res->size;
+    *elems = *node;
+
+    size = 1;
+    alloc = MR_PARSER_SET_SIZE;
+    do
+    {
+        if ((++*tokens)->type == MR_TOKEN_R_CURLY)
+            break;
+
+        if (size == alloc)
+        {
+            retcode = mr_stack_prealloc(pidx, (alloc += MR_PARSER_SET_SIZE) * sizeof(mr_node_t));
+            if (retcode != MR_NOERROR)
+                return retcode;
+
+            elems = (mr_node_t*)_mr_stack.ptrs[pidx];
+        }
+
+        retcode = mr_parser_reassign(res, tokens);
+        if (retcode != MR_NOERROR)
+            return retcode;
+
+        elems[size++] = *node;
+    } while ((*tokens)->type == MR_TOKEN_COMMA);
+
+    if ((*tokens)->type != MR_TOKEN_R_CURLY)
+    {
+        res->error = (mr_invalid_syntax_t){.detail="Expected '}' or ','", .token=*tokens};
+        return MR_ERROR_BAD_FORMAT;
+    }
+
+    if (size != alloc)
+    {
+        retcode = mr_stack_prealloc(pidx, size * sizeof(mr_node_t));
+        if (retcode != MR_NOERROR)
+            return retcode;
+    }
+
+    value->size = MR_IDX_DECOMPOSE(size);
+    value->eidx = (*tokens)->idx;
+
+    *node = (mr_node_t){.type=MR_NODE_SET, .value=ptr};
+    mr_parser_advance_newline;
     return MR_NOERROR;
 }
 
@@ -878,7 +1078,7 @@ mr_byte_t mr_parser_handle_dollar_method(
         if (retcode != MR_NOERROR)
             return retcode;
 
-        params[value->size++] = res->nodes[res->size];
+        params[value->size++] = *node;
     } while ((*tokens)->type == MR_TOKEN_COMMA);
 
     if (value->size != alloc)

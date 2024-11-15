@@ -26,4 +26,7 @@ mr_config_t _mr_config = {.outstream=NULL, .instream=NULL, .errstream=NULL, .cod
 
 void mr_config_opt(
     mr_byte_t olevel)
-{}
+{
+    if (olevel)
+        return;
+}

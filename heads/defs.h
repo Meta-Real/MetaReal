@@ -65,6 +65,12 @@ typedef struct __MR_IDX_T mr_idx_t;
 #define MR_INVALID_IDX ((mr_idx_t){.lidx=0xffff, .hidx=0xff})
 
 /**
+ * Zero index. \n
+ * Used for lists that have no elements.
+*/
+#define MR_ZERO_IDX ((mr_idx_t){.lidx=0, .hidx=0})
+
+/**
  * Invalid index converted to a long value.
 */
 #define MR_INVALID_IDX_CODE ((mr_long_t)0xffffff)
