@@ -729,6 +729,9 @@ mr_byte_t mr_parser_core(
         return mr_parser_handle_dollar_method(res, tokens);
     }
 
+    if ((*tokens)->type >= MR_TOKEN_PRIVATE_K && (*tokens)->type <= MR_TOKEN_STATIC_K)
+        return mr_parser_handle_var_assign(res, tokens);
+
     res->error = (mr_invalid_syntax_t){.detail=NULL, .token=*tokens};
     return MR_ERROR_BAD_FORMAT;
 }
@@ -1002,6 +1005,122 @@ mr_byte_t mr_parser_handle_set(
 
     *node = (mr_node_t){.type=MR_NODE_SET, .value=ptr};
     mr_parser_advance_newline;
+    return MR_NOERROR;
+}
+
+mr_byte_t mr_parser_handle_var_assign(
+    mr_parser_t *res, mr_token_t **tokens)
+{
+    mr_long_t ptr;
+    mr_byte_t retcode;
+    mr_bool_t used_private, used_local, used_const, used_static;
+    mr_node_var_assign_t *value;
+    mr_node_t *node;
+
+    retcode = mr_stack_push(&ptr, sizeof(mr_node_var_assign_t));
+    if (retcode != MR_NOERROR)
+        return retcode;
+
+    value = (mr_node_var_assign_t*)(_mr_stack.data + ptr);
+    *value = (mr_node_var_assign_t){.is_public=MR_FALSE, .is_private=MR_FALSE, .is_global=MR_FALSE, .is_local=MR_FALSE,
+        .is_const=MR_FALSE, .is_static=MR_FALSE, .is_link=MR_FALSE, .is_decl=MR_FALSE,
+        .type=MR_TOKEN_EOF, .sidx=(*tokens)->idx};
+
+    used_private = used_local = used_const = used_static = MR_FALSE;
+    while (1)
+    {
+        if ((*tokens)->type >= MR_TOKEN_OBJECT_T)
+        {
+            if (value->type != MR_TOKEN_EOF)
+                break;
+
+            value->type = (*tokens)->type;
+            mr_parser_advance_newline;
+            continue;
+        }
+
+        switch ((*tokens)->type)
+        {
+        case MR_TOKEN_PRIVATE_K:
+            if (used_private)
+                break;
+
+            value->is_private = MR_TRUE;
+            used_private = MR_TRUE;
+            ++*tokens;
+            continue;
+        case MR_TOKEN_PUBLIC_K:
+            if (used_private)
+                break;
+
+            value->is_public = MR_TRUE;
+            used_private = MR_TRUE;
+            ++*tokens;
+            continue;
+        case MR_TOKEN_LOCAL_K:
+            if (used_local)
+                break;
+
+            value->is_local = MR_TRUE;
+            used_local = MR_TRUE;
+            ++*tokens;
+            continue;
+        case MR_TOKEN_GLOBAL_K:
+            if (used_local)
+                break;
+
+            value->is_global = MR_TRUE;
+            used_local = MR_TRUE;
+            ++*tokens;
+            continue;
+        case MR_TOKEN_CONST_K:
+            if (used_const)
+                break;
+
+            value->is_const = MR_TRUE;
+            used_const = MR_TRUE;
+            ++*tokens;
+            continue;
+        case MR_TOKEN_STATIC_K:
+            if (used_static)
+                break;
+
+            value->is_static = MR_TRUE;
+            used_static = MR_TRUE;
+            ++*tokens;
+            continue;
+        }
+
+        break;
+    }
+
+    if ((*tokens)->type != MR_TOKEN_IDENTIFIER)
+    {
+        res->error = (mr_invalid_syntax_t){.detail="Expected an identifier", .token=*tokens};
+        return MR_ERROR_BAD_FORMAT;
+    }
+
+    node = res->nodes + res->size;
+    value->name = (*tokens)->idx;
+    mr_parser_advance_newline;
+
+    if ((*tokens)->type == MR_TOKEN_LINK)
+        value->is_link = MR_TRUE;
+    else if ((*tokens)->type != MR_TOKEN_ASSIGN)
+    {
+        value->is_decl = MR_TRUE;
+
+        *node = (mr_node_t){.type=MR_NODE_VAR_ASSIGN, .value=ptr};
+        return MR_NOERROR;
+    }
+
+    ++*tokens;
+    retcode = mr_parser_tuple(res, tokens);
+    if (retcode != MR_NOERROR)
+        return retcode;
+
+    value->value = *node;
+    *node = (mr_node_t){.type=MR_NODE_VAR_ASSIGN, .value=ptr};
     return MR_NOERROR;
 }
 

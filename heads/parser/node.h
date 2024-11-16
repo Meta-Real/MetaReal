@@ -72,6 +72,8 @@ typedef struct __MR_NODE_T mr_node_t;
  * \a Dictionary node type.
  * @var __MR_NODE_ENUM::MR_NODE_SET
  * \a Set node type.
+ * @var __MR_NODE_ENUM::MR_NODE_TYPE
+ * \a Type node type.
  * @var __MR_NODE_ENUM::MR_NODE_BINARY_OP
  * <em>Binary operation</em> node type.
  * @var __MR_NODE_ENUM::MR_NODE_UNARY_OP
@@ -108,6 +110,7 @@ enum __MR_NODE_ENUM
     MR_NODE_TUPLE,
     MR_NODE_DICT,
     MR_NODE_SET,
+    MR_NODE_TYPE,
 
     MR_NODE_BINARY_OP,
     MR_NODE_UNARY_OP,
@@ -231,15 +234,21 @@ typedef struct __MR_NODE_TUPLE_T mr_node_tuple_t;
  * @var mr_idx_t __MR_NODE_VAR_ASSIGN_T::name
  * Starting index of the name.
  * @var mr_bool_t __MR_NODE_VAR_ASSIGN_T::is_public
- * A boolean value that determines if the variable is public or not.
+ * A boolean value that determines if the \a public keyword is used or not.
+ * @var mr_bool_t __MR_NODE_VAR_ASSIGN_T::is_private
+ * A boolean value that determines if the \a private keyword is used or not.
  * @var mr_bool_t __MR_NODE_VAR_ASSIGN_T::is_global
- * A boolean value that determines if the variable is global or not.
+ * A boolean value that determines if the \a global keyword is used or not.
+ * @var mr_bool_t __MR_NODE_VAR_ASSIGN_T::is_local
+ * A boolean value that determines if the \a local keyword is used or not.
  * @var mr_bool_t __MR_NODE_VAR_ASSIGN_T::is_const
- * A boolean value that determines if the variable is constant or not.
+ * A boolean value that determines if the \a const keyword is used or not.
  * @var mr_bool_t __MR_NODE_VAR_ASSIGN_T::is_static
- * A boolean value that determines if the variable is static or not.
+ * A boolean value that determines if the \a static keyword is used or not.
  * @var mr_bool_t __MR_NODE_VAR_ASSIGN_T::is_link
  * A boolean value that determines if the assignment is linking or not.
+ * @var mr_bool_t __MR_NODE_VAR_ASSIGN_T::is_decl
+ * A boolean value that determines if the expression is declaration or definition.
  * @var mr_node_t __MR_NODE_VAR_ASSIGN_T::value
  * Value of the assignment.
  * @var mr_byte_t __MR_NODE_VAR_ASSIGN_T::type
@@ -253,10 +262,13 @@ struct __MR_NODE_VAR_ASSIGN_T
 {
     mr_idx_t name;
     mr_bool_t is_public : 1;
+    mr_bool_t is_private : 1;
     mr_bool_t is_global : 1;
+    mr_bool_t is_local : 1;
     mr_bool_t is_const : 1;
     mr_bool_t is_static : 1;
     mr_bool_t is_link : 1;
+    mr_bool_t is_decl : 1;
     mr_node_t value;
     mr_byte_t type;
     mr_idx_t sidx;

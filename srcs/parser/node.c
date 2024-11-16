@@ -82,7 +82,7 @@ static mr_str_ct mr_node_labels[MR_NODE_COUNT] =
 {
     "NODE_NONE",
     "NODE_INT", "NODE_FLOAT", "NODE_IMAGINARY", "NODE_BOOL", "NODE_CHR", "NODE_FSTR_FRAG",
-    "NODE_STR", "NODE_FSTR", "NODE_LIST", "NODE_TUPLE", "NODE_DICT", "NODE_SET",
+    "NODE_STR", "NODE_FSTR", "NODE_LIST", "NODE_TUPLE", "NODE_DICT", "NODE_SET", "NODE_TYPE",
     "NODE_BINARY_OP", "NODE_UNARY_OP",
     "NODE_VAR_ACCESS", "NODE_VAR_ASSIGN",
     "NODE_FUNC_CALL", "NODE_EX_FUNC_CALL", "NODE_DOLLAR_METHOD", "NODE_EX_DOLLAR_METHOD"
@@ -151,6 +151,9 @@ void mr_node_print(
         fputs(")}]", stdout);
         break;
     }
+    case MR_NODE_TYPE:
+        fputs(mr_token_labels[node.value], stdout);
+        break;
     case MR_NODE_BINARY_OP:
     {
         mr_node_binary_op_t *value;
@@ -187,11 +190,17 @@ void mr_node_print(
         idx = MR_IDX_EXTRACT(value->name);
         size = mr_token_getsize2(MR_TOKEN_IDENTIFIER, idx);
 
-        printf("%.*s, public=%hhu, global=%hhu, const=%hhu, static=%hhu, link=%hhu, %s, (",
-            size, _mr_config.code + idx, value->is_public, value->is_global,
+        printf("%.*s, public=%hhu, private=%hhu, global=%hhu, local=%hhu, const=%hhu, static=%hhu, link=%hhu, %s",
+            size, _mr_config.code + idx, value->is_public, value->is_private, value->is_global, value->is_local,
             value->is_const, value->is_static, value->is_link, mr_token_labels[value->type]);
+
+        if (value->is_decl)
+            return;
+
+        fputs(", (", stdout);
         mr_node_print(value->value);
         putchar(')');
+        break;
     }
     case MR_NODE_FUNC_CALL:
     {
