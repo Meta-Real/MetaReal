@@ -27,7 +27,8 @@ mr_str_ct mr_token_keyword[MR_TOKEN_KEYWORD_COUNT] =
     "not",
     "true", "false", "none",
     "func", "struct", "class", "enum",
-    "private", "public", "local", "global", "const", "static",
+    "private", "public", "protected",
+    "global", "readonly", "const", "static",
     "is", "are", "in", "and", "or",
     "if", "elif", "else",
     "switch", "case", "default",
@@ -40,7 +41,7 @@ mr_str_ct mr_token_keyword[MR_TOKEN_KEYWORD_COUNT] =
 
 mr_byte_t mr_token_keyword_size[MR_TOKEN_KEYWORD_COUNT] =
 {
-    3, 4, 5, 4, 4, 6, 5, 4, 7, 6, 5, 6, 5,
+    3, 4, 5, 4, 4, 6, 5, 4, 7, 6, 9, 6, 8, 5,
     6, 2, 3, 2, 3, 2, 2, 4, 4, 6, 4, 7, 3,
     2, 4, 5, 2, 3, 6, 7, 5, 6, 7, 6, 5, 8
 };

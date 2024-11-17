@@ -112,7 +112,8 @@ void mr_node_print(
         fwrite(_mr_config.code + node.value, sizeof(mr_chr_t), size, stdout);
         break;
     case MR_NODE_BOOL:
-        fputs(node.value ? "true" : "false", stdout);
+    case MR_NODE_TYPE:
+        fputs(mr_token_labels[MR_TOKEN_GET_TYPE(node.value)], stdout);
         break;
     case MR_NODE_FSTR:
     case MR_NODE_LIST:
@@ -151,9 +152,6 @@ void mr_node_print(
         fputs(")}]", stdout);
         break;
     }
-    case MR_NODE_TYPE:
-        fputs(mr_token_labels[node.value], stdout);
-        break;
     case MR_NODE_BINARY_OP:
     {
         mr_node_binary_op_t *value;
@@ -190,12 +188,37 @@ void mr_node_print(
         idx = MR_IDX_EXTRACT(value->name);
         size = mr_token_getsize2(MR_TOKEN_IDENTIFIER, idx);
 
-        printf("%.*s, public=%hhu, private=%hhu, global=%hhu, local=%hhu, const=%hhu, static=%hhu, link=%hhu, %s",
-            size, _mr_config.code + idx, value->is_public, value->is_private, value->is_global, value->is_local,
-            value->is_const, value->is_static, value->is_link, mr_token_labels[value->type]);
+        printf("\"%.*s\"", size, _mr_config.code + idx);
+        switch (value->access)
+        {
+        case 0:
+            break;
+        case 1:
+            fputs(", private", stdout);
+            break;
+        case 2:
+            fputs(", public", stdout);
+            break;
+        case 3:
+            fputs(", protected", stdout);
+            break;
+        }
+
+        if (value->is_global)
+            fputs(", global", stdout);
+        if (value->is_readonly)
+            fputs(", readonly", stdout);
+        if (value->is_const)
+            fputs(", const", stdout);
+        if (value->is_static)
+            fputs(", static", stdout);
+        if (value->is_link)
+            fputs(", link", stdout);
+        if (value->type != MR_TOKEN_EOF)
+            printf(", %s", mr_token_labels[value->type]);
 
         if (value->is_decl)
-            return;
+            break;
 
         fputs(", (", stdout);
         mr_node_print(value->value);
@@ -218,7 +241,7 @@ void mr_node_print(
         if (idx != MR_INVALID_IDX_CODE)
         {
             size = mr_token_getsize2(MR_TOKEN_IDENTIFIER, idx);
-            printf("), [{%.*s: (", size, _mr_config.code + idx);
+            printf("), [{\"%.*s\": (", size, _mr_config.code + idx);
         }
         else
             fputs("), [{(", stdout);
@@ -231,7 +254,7 @@ void mr_node_print(
             if (idx != MR_INVALID_IDX_CODE)
             {
                 size = mr_token_getsize2(MR_TOKEN_IDENTIFIER, idx);
-                printf(")}, {%.*s: (", size, _mr_config.code + idx);
+                printf(")}, {\"%.*s\": (", size, _mr_config.code + idx);
             }
             else
                 fputs(")}, {(", stdout);

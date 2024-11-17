@@ -243,28 +243,19 @@ copies or substantial portions of the Software.
  * @def mr_lexer_str_sub
  * The subroutine for \a mr_lexer_generate_str and <em>mr_lexer_generate_fstr</em> functions.
 */
-#define mr_lexer_str_sub                                  \
-    do                                                    \
-    {                                                     \
-        if (chr == '\0')                                  \
-        {                                                 \
-            data->flag = MR_LEXER_MATCH_FLAG_MISSING;     \
-            data->alloc = quot;                           \
-            return;                                       \
-        }                                                 \
-                                                          \
-        if (chr == '\\' && esc)                           \
-        {                                                 \
-            chr = _mr_config.code[++data->idx];           \
-            if (chr == '\0')                              \
-            {                                             \
-                data->flag = MR_LEXER_MATCH_FLAG_MISSING; \
-                data->alloc = quot;                       \
-                return;                                   \
-            }                                             \
-        }                                                 \
-                                                          \
-        chr = _mr_config.code[++data->idx];               \
+#define mr_lexer_str_sub                              \
+    do                                                \
+    {                                                 \
+        if (chr == '\\' && esc)                       \
+            chr = _mr_config.code[++data->idx];       \
+        if (chr == '\0')                              \
+        {                                             \
+            data->flag = MR_LEXER_MATCH_FLAG_MISSING; \
+            data->alloc = quot;                       \
+            return;                                   \
+        }                                             \
+                                                      \
+        chr = _mr_config.code[++data->idx];           \
     } while (0)
 
 /**
@@ -370,7 +361,7 @@ void mr_lexer_generate_chr(
  * @param data
  * Data structure containing all necessary information about the code.
  * @param esc
- * If \a esc is equal to \a MR_TRUE (by using '\\' prefix), All escape sequences will be avoided.
+ * If \a esc is equal to \a MR_FALSE (by using '\\' prefix), All escape sequences will be avoided.
 */
 void mr_lexer_generate_str(
     mr_lexer_match_t *data, mr_bool_t esc);
@@ -381,7 +372,7 @@ void mr_lexer_generate_str(
  * @param data
  * Data structure containing all necessary information about the code.
  * @param esc
- * If \a esc is equal to \a MR_TRUE (by using '\\' prefix), All escape sequences will be avoided.
+ * If \a esc is equal to \a MR_FALSE (by using '\\' prefix), All escape sequences will be avoided.
 */
 void mr_lexer_generate_fstr(
     mr_lexer_match_t *data, mr_bool_t esc);
@@ -638,8 +629,6 @@ void mr_lexer_match(
         mr_lexer_generate_chr(data);
         if (data->flag)
             return;
-
-        data->idx++;
         break;
     case '"':
         mr_lexer_generate_str(data, MR_TRUE);
@@ -885,6 +874,7 @@ void mr_lexer_generate_chr(
         if (_mr_config.code[data->idx + 2] != '\'')
         {
             mr_lexer_generate_str(data, MR_TRUE);
+            data->idx++;
             return;
         }
 
@@ -896,6 +886,7 @@ void mr_lexer_generate_chr(
     if (_mr_config.code[data->idx + 3] != '\'')
     {
         mr_lexer_generate_str(data, MR_TRUE);
+        data->idx++;
         return;
     }
 

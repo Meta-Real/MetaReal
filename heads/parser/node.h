@@ -233,14 +233,16 @@ typedef struct __MR_NODE_TUPLE_T mr_node_tuple_t;
  * Data structure that holds information about a variable assignment.
  * @var mr_idx_t __MR_NODE_VAR_ASSIGN_T::name
  * Starting index of the name.
- * @var mr_bool_t __MR_NODE_VAR_ASSIGN_T::is_public
- * A boolean value that determines if the \a public keyword is used or not.
- * @var mr_bool_t __MR_NODE_VAR_ASSIGN_T::is_private
- * A boolean value that determines if the \a private keyword is used or not.
+ * @var mr_byte_t __MR_NODE_VAR_ASSIGN_T::access
+ * A two-bit value that determines which access keyword is used. \n
+ * 00: no access keyword. \n
+ * 01: \a private keyword. \n
+ * 10: \a public keyword. \n
+ * 11: \a protected keyword.
  * @var mr_bool_t __MR_NODE_VAR_ASSIGN_T::is_global
  * A boolean value that determines if the \a global keyword is used or not.
- * @var mr_bool_t __MR_NODE_VAR_ASSIGN_T::is_local
- * A boolean value that determines if the \a local keyword is used or not.
+ * @var mr_bool_t __MR_NODE_VAR_ASSIGN_T::is_readonly
+ * A boolean value that determines if the \a readonly keyword is used or not.
  * @var mr_bool_t __MR_NODE_VAR_ASSIGN_T::is_const
  * A boolean value that determines if the \a const keyword is used or not.
  * @var mr_bool_t __MR_NODE_VAR_ASSIGN_T::is_static
@@ -261,10 +263,9 @@ typedef struct __MR_NODE_TUPLE_T mr_node_tuple_t;
 struct __MR_NODE_VAR_ASSIGN_T
 {
     mr_idx_t name;
-    mr_bool_t is_public : 1;
-    mr_bool_t is_private : 1;
+    mr_byte_t access : 2;
     mr_bool_t is_global : 1;
-    mr_bool_t is_local : 1;
+    mr_bool_t is_readonly : 1;
     mr_bool_t is_const : 1;
     mr_bool_t is_static : 1;
     mr_bool_t is_link : 1;

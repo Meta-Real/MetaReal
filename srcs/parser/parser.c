@@ -89,16 +89,12 @@ copies or substantial portions of the Software.
  * @param typ
  * Type of the generated node.
 */
-#define mr_parser_node_data_sub(typ)                                           \
-    do                                                                         \
-    {                                                                          \
-        mr_node_t *node;                                                       \
-                                                                               \
-        node = res->nodes + res->size;                                         \
-        *node = (mr_node_t){.type=typ, .value=MR_IDX_EXTRACT((*tokens)->idx)}; \
-                                                                               \
-        mr_parser_advance_newline;                                             \
-        return MR_NOERROR;                                                     \
+#define mr_parser_node_data_sub(typ)                                                           \
+    do                                                                                         \
+    {                                                                                          \
+        res->nodes[res->size] = (mr_node_t){.type=typ, .value=MR_IDX_EXTRACT((*tokens)->idx)}; \
+        mr_parser_advance_newline;                                                             \
+        return MR_NOERROR;                                                                     \
     } while (0)
 
 /**
@@ -706,6 +702,15 @@ mr_byte_t mr_parser_core(
         mr_parser_node_data_sub(MR_NODE_FLOAT);
     case MR_TOKEN_IMAGINARY:
         mr_parser_node_data_sub(MR_NODE_IMAGINARY);
+    case MR_TOKEN_CHR:
+        mr_parser_node_data_sub(MR_NODE_CHR);
+    case MR_TOKEN_TRUE_K:
+    case MR_TOKEN_FALSE_K:
+        res->nodes[res->size] = (mr_node_t){.type=MR_NODE_BOOL, .value=MR_TOKEN_TO_LONG(*tokens)};
+        mr_parser_advance_newline;
+        return MR_NOERROR;
+    case MR_TOKEN_STR:
+        mr_parser_node_data_sub(MR_NODE_STR);
     case MR_TOKEN_L_PAREN:
         ++*tokens;
 
@@ -731,6 +736,18 @@ mr_byte_t mr_parser_core(
 
     if ((*tokens)->type >= MR_TOKEN_PRIVATE_K && (*tokens)->type <= MR_TOKEN_STATIC_K)
         return mr_parser_handle_var_assign(res, tokens);
+    if ((*tokens)->type >= MR_TOKEN_OBJECT_T)
+    {
+        mr_token_t *ptr;
+
+        ptr = *tokens + 1;
+        if (ptr->type >= MR_TOKEN_PRIVATE_K && ptr->type <= MR_TOKEN_STATIC_K || ptr->type == MR_TOKEN_IDENTIFIER)
+            return mr_parser_handle_var_assign(res, tokens);
+
+        res->nodes[res->size] = (mr_node_t){.type=MR_NODE_TYPE, .value=MR_TOKEN_TO_LONG(*tokens)};
+        mr_parser_advance_newline;
+        return MR_NOERROR;
+    }
 
     res->error = (mr_invalid_syntax_t){.detail=NULL, .token=*tokens};
     return MR_ERROR_BAD_FORMAT;
@@ -1013,7 +1030,7 @@ mr_byte_t mr_parser_handle_var_assign(
 {
     mr_long_t ptr;
     mr_byte_t retcode;
-    mr_bool_t used_private, used_local, used_const, used_static;
+    mr_bool_t access, used_global, used_readonly, used_const, used_static;
     mr_node_var_assign_t *value;
     mr_node_t *node;
 
@@ -1022,11 +1039,11 @@ mr_byte_t mr_parser_handle_var_assign(
         return retcode;
 
     value = (mr_node_var_assign_t*)(_mr_stack.data + ptr);
-    *value = (mr_node_var_assign_t){.is_public=MR_FALSE, .is_private=MR_FALSE, .is_global=MR_FALSE, .is_local=MR_FALSE,
+    *value = (mr_node_var_assign_t){.access=0, .is_global=MR_FALSE, .is_readonly=MR_FALSE,
         .is_const=MR_FALSE, .is_static=MR_FALSE, .is_link=MR_FALSE, .is_decl=MR_FALSE,
         .type=MR_TOKEN_EOF, .sidx=(*tokens)->idx};
 
-    used_private = used_local = used_const = used_static = MR_FALSE;
+    access = used_global = used_readonly = used_const = used_static = MR_FALSE;
     while (1)
     {
         if ((*tokens)->type >= MR_TOKEN_OBJECT_T)
@@ -1042,35 +1059,28 @@ mr_byte_t mr_parser_handle_var_assign(
         switch ((*tokens)->type)
         {
         case MR_TOKEN_PRIVATE_K:
-            if (used_private)
-                break;
-
-            value->is_private = MR_TRUE;
-            used_private = MR_TRUE;
-            ++*tokens;
-            continue;
         case MR_TOKEN_PUBLIC_K:
-            if (used_private)
+        case MR_TOKEN_PROTECTED_K:
+            if (access)
                 break;
 
-            value->is_public = MR_TRUE;
-            used_private = MR_TRUE;
-            ++*tokens;
-            continue;
-        case MR_TOKEN_LOCAL_K:
-            if (used_local)
-                break;
-
-            value->is_local = MR_TRUE;
-            used_local = MR_TRUE;
-            ++*tokens;
+            value->access = (*tokens)++->type - MR_TOKEN_PRIVATE_K + 1;
+            access = MR_TRUE;
             continue;
         case MR_TOKEN_GLOBAL_K:
-            if (used_local)
+            if (used_global)
                 break;
 
             value->is_global = MR_TRUE;
-            used_local = MR_TRUE;
+            used_global = MR_TRUE;
+            ++*tokens;
+            continue;
+        case MR_TOKEN_READONLY_K:
+            if (used_readonly)
+                break;
+
+            value->is_readonly = MR_TRUE;
+            used_readonly = MR_TRUE;
             ++*tokens;
             continue;
         case MR_TOKEN_CONST_K:

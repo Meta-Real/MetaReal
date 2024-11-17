@@ -48,6 +48,30 @@ struct __MR_TOKEN_T
 typedef struct __MR_TOKEN_T mr_token_t;
 
 /**
+ * @def MR_TOKEN_TO_LONG(tok)
+ * It converts the \a tok into a 32-bit integer.
+ * @param tok
+ * Token that needs to be converted.
+*/
+#define MR_TOKEN_TO_LONG(tok) ((mr_long_t)(tok)->type << 24 | MR_IDX_EXTRACT((tok)->idx))
+
+/**
+ * @def MR_TOKEN_GET_TYPE(tok)
+ * It extracts the type from the integer form of a <em>token</em>.
+ * @param tok
+ * Token that needs its type to be extracted.
+*/
+#define MR_TOKEN_GET_TYPE(tok) ((mr_byte_t)((tok) >> 24))
+
+/**
+ * @def MR_TOKEN_GET_IDX(tok)
+ * It extracts the index from the integer form of a <em>token</em>.
+ * @param tok
+ * Token that needs its index to be extracted.
+*/
+#define MR_TOKEN_GET_IDX(tok) ((tok) & 0xffffff)
+
+/**
  * @enum __MR_TOKEN_ENUM
  * List of valid token types. \n
  * Note: <em>MR_TOKEN_PLUS</em>, <em>MR_TOKEN_MINUS<em>,
@@ -196,12 +220,14 @@ typedef struct __MR_TOKEN_T mr_token_t;
  * \b private keyword token type.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_PUBLIC_K
  * \b public keyword token type.
- * @var __MR_TOKEN_ENUM::MR_TOKEN_LOCAL_K
- * \b local keyword token type.
+ * @var __MR_TOKEN_ENUM::MR_TOKEN_PROTECTED_K
+ * \b protected keyword token type.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_GLOBAL_K
  * \b global keyword token type.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_CONST_K
  * \b const keyword token type.
+ * @var __MR_TOKEN_ENUM::MR_TOKEN_READONLY_K
+ * \b readonly keyword token type.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_STATIC_K
  * \b static keyword token type.
  * @var __MR_TOKEN_ENUM::MR_TOKEN_IS_K
@@ -368,8 +394,10 @@ enum __MR_TOKEN_ENUM
 
     MR_TOKEN_PRIVATE_K,
     MR_TOKEN_PUBLIC_K,
-    MR_TOKEN_LOCAL_K,
+    MR_TOKEN_PROTECTED_K,
+
     MR_TOKEN_GLOBAL_K,
+    MR_TOKEN_READONLY_K,
     MR_TOKEN_CONST_K,
     MR_TOKEN_STATIC_K,
 
@@ -432,10 +460,10 @@ enum __MR_TOKEN_ENUM
 #define MR_TOKEN_KEYWORD_COUNT ((mr_byte_t)(MR_TOKEN_CONTINUE_K - MR_TOKEN_KEYWORD_PAD + 1))
 
 /**
- * Maximum size of a keyword (<em>continue</em>). \n
+ * Maximum size of a keyword (<em>protected</em>). \n
  * Used by the keyword detection subroutine to optimize the search process.
 */
-#define MR_TOKEN_KEYWORD_MAXSIZE ((mr_byte_t)8)
+#define MR_TOKEN_KEYWORD_MAXSIZE ((mr_byte_t)9)
 
 /**
  * Padding for the type tokens. \n
