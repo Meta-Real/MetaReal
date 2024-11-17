@@ -113,7 +113,7 @@ void mr_node_print(
         break;
     case MR_NODE_BOOL:
     case MR_NODE_TYPE:
-        fputs(mr_token_labels[MR_TOKEN_GET_TYPE(node.value)], stdout);
+        fputs(mr_token_labels[((mr_token_t*)&node.value)->type], stdout);
         break;
     case MR_NODE_FSTR:
     case MR_NODE_LIST:

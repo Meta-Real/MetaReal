@@ -83,6 +83,11 @@ copies or substantial portions of the Software.
 #define MR_PARSER_NODES_CHUNK ((mr_byte_t)64)
 
 /**
+ * Default size of a <em>fstr</em>.
+*/
+#define MR_PARSER_FSTR_SIZE ((mr_byte_t)16)
+
+/**
  * Default size of a <em>list</em>.
 */
 #define MR_PARSER_LIST_SIZE ((mr_byte_t)16)

@@ -290,6 +290,18 @@ mr_byte_t mr_parser_core(
     mr_parser_t *res, mr_token_t **tokens);
 
 /**
+ * It generates formatted strings.
+ * @param res
+ * Result of the \a mr_parser function passed as a pointer.
+ * @param tokens
+ * List of tokens passed as a pointer.
+ * @return It returns a code which indicates if the process was successful or not. \n
+ * If the process was successful, it returns 0. Otherwise, it returns the error code.
+*/
+mr_byte_t mr_parser_handle_fstr(
+    mr_parser_t *res, mr_token_t **tokens);
+
+/**
  * It generates lists.
  * @param res
  * Result of the \a mr_parser function passed as a pointer.
@@ -706,11 +718,19 @@ mr_byte_t mr_parser_core(
         mr_parser_node_data_sub(MR_NODE_CHR);
     case MR_TOKEN_TRUE_K:
     case MR_TOKEN_FALSE_K:
-        res->nodes[res->size] = (mr_node_t){.type=MR_NODE_BOOL, .value=MR_TOKEN_TO_LONG(*tokens)};
+        res->nodes[res->size] = (mr_node_t){.type=MR_NODE_BOOL, .value=*(mr_long_t*)*tokens};
         mr_parser_advance_newline;
         return MR_NOERROR;
     case MR_TOKEN_STR:
         mr_parser_node_data_sub(MR_NODE_STR);
+    case MR_TOKEN_FSTR_START:
+        return mr_parser_handle_fstr(res, tokens);
+    case MR_TOKEN_L_SQUARE:
+        return mr_parser_handle_list(res, tokens);
+    case MR_TOKEN_L_CURLY:
+        return mr_parser_handle_dict(res, tokens);
+    case MR_TOKEN_DOLLAR:
+        return mr_parser_handle_dollar_method(res, tokens);
     case MR_TOKEN_L_PAREN:
         ++*tokens;
 
@@ -726,12 +746,6 @@ mr_byte_t mr_parser_core(
 
         mr_parser_advance_newline;
         return MR_NOERROR;
-    case MR_TOKEN_L_SQUARE:
-        return mr_parser_handle_list(res, tokens);
-    case MR_TOKEN_L_CURLY:
-        return mr_parser_handle_dict(res, tokens);
-    case MR_TOKEN_DOLLAR:
-        return mr_parser_handle_dollar_method(res, tokens);
     }
 
     if ((*tokens)->type >= MR_TOKEN_PRIVATE_K && (*tokens)->type <= MR_TOKEN_STATIC_K)
@@ -744,13 +758,89 @@ mr_byte_t mr_parser_core(
         if (ptr->type >= MR_TOKEN_PRIVATE_K && ptr->type <= MR_TOKEN_STATIC_K || ptr->type == MR_TOKEN_IDENTIFIER)
             return mr_parser_handle_var_assign(res, tokens);
 
-        res->nodes[res->size] = (mr_node_t){.type=MR_NODE_TYPE, .value=MR_TOKEN_TO_LONG(*tokens)};
+        res->nodes[res->size] = (mr_node_t){.type=MR_NODE_TYPE, .value=*(mr_long_t*)*tokens};
         mr_parser_advance_newline;
         return MR_NOERROR;
     }
 
     res->error = (mr_invalid_syntax_t){.detail=NULL, .token=*tokens};
     return MR_ERROR_BAD_FORMAT;
+}
+
+mr_byte_t mr_parser_handle_fstr(
+    mr_parser_t *res, mr_token_t **tokens)
+{
+    mr_long_t ptr, pidx, size, alloc;
+    mr_byte_t retcode;
+    mr_node_list_t *value;
+    mr_node_t *node, *elems;
+
+    retcode = mr_stack_push(&ptr, sizeof(mr_node_list_t));
+    if (retcode != MR_NOERROR)
+        return retcode;
+
+    node = res->nodes + res->size;
+    value = (mr_node_list_t*)(_mr_stack.data + ptr);
+    value->sidx = (*tokens)++->idx;
+
+    if ((*tokens)->type == MR_TOKEN_FSTR_END)
+    {
+        value->size = MR_ZERO_IDX;
+        value->eidx = (*tokens)->idx;
+
+        *node = (mr_node_t){.type=MR_NODE_FSTR, .value=ptr};
+        mr_parser_advance_newline;
+        return MR_NOERROR;
+    }
+
+    retcode = mr_stack_palloc(&pidx, MR_PARSER_FSTR_SIZE * sizeof(mr_node_t));
+    if (retcode != MR_NOERROR)
+        return retcode;
+
+    value->elems = MR_IDX_DECOMPOSE(pidx);
+    elems = (mr_node_t*)_mr_stack.ptrs[pidx];
+
+    size = 0;
+    alloc = MR_PARSER_FSTR_SIZE;
+    do
+    {
+        if (size == alloc)
+        {
+            retcode = mr_stack_prealloc(pidx, (alloc += MR_PARSER_FSTR_SIZE) * sizeof(mr_node_t));
+            if (retcode != MR_NOERROR)
+                return retcode;
+
+            elems = (mr_node_t*)_mr_stack.ptrs[pidx];
+        }
+
+        if ((*tokens)->type == MR_TOKEN_FSTR)
+        {
+            elems[size++] = (mr_node_t){.type=MR_NODE_FSTR_FRAG, .value=MR_IDX_EXTRACT((*tokens)->idx)};
+            ++*tokens;
+            continue;
+        }
+
+        retcode = mr_parser_tuple(res, tokens);
+        if (retcode != MR_NOERROR)
+            return retcode;
+
+        elems[size++] = *node;
+    }
+    while ((*tokens)->type != MR_TOKEN_FSTR_END);
+
+    if (size != alloc)
+    {
+        retcode = mr_stack_prealloc(pidx, size * sizeof(mr_node_t));
+        if (retcode != MR_NOERROR)
+            return retcode;
+    }
+
+    value->size = MR_IDX_DECOMPOSE(size);
+    value->eidx = (*tokens)->idx;
+
+    *node = (mr_node_t){.type=MR_NODE_FSTR, .value=ptr};
+    mr_parser_advance_newline;
+    return MR_NOERROR;
 }
 
 mr_byte_t mr_parser_handle_list(
@@ -760,17 +850,14 @@ mr_byte_t mr_parser_handle_list(
     mr_byte_t retcode;
     mr_node_list_t *value;
     mr_node_t *node, *elems;
-    mr_idx_t sidx;
-
-    node = res->nodes + res->size;
-    sidx = (*tokens)++->idx;
 
     retcode = mr_stack_push(&ptr, sizeof(mr_node_list_t));
     if (retcode != MR_NOERROR)
         return retcode;
 
+    node = res->nodes + res->size;
     value = (mr_node_list_t*)(_mr_stack.data + ptr);
-    value->sidx = sidx;
+    value->sidx = (*tokens)++->idx;
 
     if ((*tokens)->type == MR_TOKEN_R_SQUARE)
     {
@@ -840,18 +927,15 @@ mr_byte_t mr_parser_handle_dict(
     mr_node_keyval_t *elems;
     mr_node_list_t *value;
     mr_node_t *node;
-    mr_idx_t sidx;
-
-    sidx = (*tokens)->idx;
 
     retcode = mr_stack_push(&ptr, sizeof(mr_node_list_t));
     if (retcode != MR_NOERROR)
         return retcode;
 
     value = (mr_node_list_t*)(_mr_stack.data + ptr);
-    value->sidx = sidx;
+    value->sidx = (*tokens)++->idx;
 
-    if ((++*tokens)->type == MR_TOKEN_R_CURLY)
+    if ((*tokens)->type == MR_TOKEN_R_CURLY)
     {
         value->size = MR_ZERO_IDX;
         value->eidx = (*tokens)->idx;
@@ -1119,7 +1203,6 @@ mr_byte_t mr_parser_handle_var_assign(
     else if ((*tokens)->type != MR_TOKEN_ASSIGN)
     {
         value->is_decl = MR_TRUE;
-
         *node = (mr_node_t){.type=MR_NODE_VAR_ASSIGN, .value=ptr};
         return MR_NOERROR;
     }

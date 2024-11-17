@@ -48,30 +48,6 @@ struct __MR_TOKEN_T
 typedef struct __MR_TOKEN_T mr_token_t;
 
 /**
- * @def MR_TOKEN_TO_LONG(tok)
- * It converts the \a tok into a 32-bit integer.
- * @param tok
- * Token that needs to be converted.
-*/
-#define MR_TOKEN_TO_LONG(tok) ((mr_long_t)(tok)->type << 24 | MR_IDX_EXTRACT((tok)->idx))
-
-/**
- * @def MR_TOKEN_GET_TYPE(tok)
- * It extracts the type from the integer form of a <em>token</em>.
- * @param tok
- * Token that needs its type to be extracted.
-*/
-#define MR_TOKEN_GET_TYPE(tok) ((mr_byte_t)((tok) >> 24))
-
-/**
- * @def MR_TOKEN_GET_IDX(tok)
- * It extracts the index from the integer form of a <em>token</em>.
- * @param tok
- * Token that needs its index to be extracted.
-*/
-#define MR_TOKEN_GET_IDX(tok) ((tok) & 0xffffff)
-
-/**
  * @enum __MR_TOKEN_ENUM
  * List of valid token types. \n
  * Note: <em>MR_TOKEN_PLUS</em>, <em>MR_TOKEN_MINUS<em>,
@@ -320,9 +296,9 @@ enum __MR_TOKEN_ENUM
     MR_TOKEN_IMAGINARY,
     MR_TOKEN_CHR,
     MR_TOKEN_STR,
+    MR_TOKEN_FSTR_END,
     MR_TOKEN_FSTR,
     MR_TOKEN_FSTR_START,
-    MR_TOKEN_FSTR_END,
 
     MR_TOKEN_MULTIPLY,
     MR_TOKEN_DIVIDE,

@@ -233,10 +233,10 @@ copies or substantial portions of the Software.
  * Type of the previous token.
  * @return If a newline should be added, It returns \a MR_TRUE and \a MR_FALSE otherwise.
 */
-#define mr_lexer_add_newline(prev)                                                        \
-    (prev <= MR_TOKEN_STR && prev >= MR_TOKEN_IDENTIFIER) || prev == MR_TOKEN_FSTR_END || \
-    prev == MR_TOKEN_R_PAREN || prev == MR_TOKEN_R_SQUARE || prev == MR_TOKEN_R_CURLY ||  \
-    (prev <= MR_TOKEN_NONE_K && prev >= MR_TOKEN_TRUE_K) || prev >= MR_TOKEN_OBJECT_T ||  \
+#define mr_lexer_add_newline(prev)                                                       \
+    (prev <= MR_TOKEN_FSTR_END && prev >= MR_TOKEN_IDENTIFIER) ||                        \
+    prev == MR_TOKEN_R_PAREN || prev == MR_TOKEN_R_SQUARE || prev == MR_TOKEN_R_CURLY || \
+    (prev <= MR_TOKEN_NONE_K && prev >= MR_TOKEN_TRUE_K) || prev >= MR_TOKEN_OBJECT_T || \
     prev == MR_TOKEN_RETURN_K
 
 /**
@@ -929,16 +929,14 @@ void mr_lexer_generate_fstr(
     mr_token_t *token;
 
     mr_lexer_token_set2(MR_TOKEN_FSTR_START, ++);
-
     data->idx += esc ? 1 : 2;
+
     quot = _mr_config.code[data->idx++];
     chr = _mr_config.code[data->idx];
 
     if (chr == quot)
     {
-        data->idx++;
         mr_lexer_tokens_realloc;
-
         mr_lexer_token_set2(MR_TOKEN_FSTR_END, ++);
         return;
     }
