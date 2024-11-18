@@ -122,6 +122,18 @@ mr_byte_t mr_parser_reassign(
     mr_parser_t *res, mr_token_t **tokens);
 
 /**
+ * It handles ternary operations.
+ * @param res
+ * Result of the \a mr_parser function passed as a pointer.
+ * @param tokens
+ * List of tokens passed as a pointer.
+ * @return It returns a code which indicates if the process was successful or not. \n
+ * If the process was successful, it returns 0. Otherwise, it returns the error code.
+*/
+mr_byte_t mr_parser_ternary(
+    mr_parser_t *res, mr_token_t **tokens);
+
+/**
  * It handles or (`||`, `or`) operation nodes.
  * @param res
  * Result of the \a mr_parser function passed as a pointer.
@@ -410,7 +422,7 @@ mr_byte_t mr_parser(
 
     if (ptr->type != MR_TOKEN_EOF)
     {
-        res->error = (mr_invalid_syntax_t){.detail="Expected EOF", .token=ptr};
+        res->error = (mr_invalid_syntax_t){.detail="Expected end of file or line", .token=ptr};
 
         free(res->nodes);
         return MR_ERROR_BAD_FORMAT;
@@ -485,7 +497,55 @@ mr_byte_t mr_parser_tuple(
 mr_byte_t mr_parser_reassign(
     mr_parser_t *res, mr_token_t **tokens)
 {
-    mr_parser_bin_op(mr_parser_or, mr_parser_tuple, (*tokens)->type >= MR_TOKEN_ASSIGN && (*tokens)->type <= MR_TOKEN_R_SHIFT_ASSIGN);
+    mr_parser_bin_op(mr_parser_ternary, mr_parser_tuple,
+        (*tokens)->type >= MR_TOKEN_ASSIGN && (*tokens)->type <= MR_TOKEN_R_SHIFT_ASSIGN);
+}
+
+mr_byte_t mr_parser_ternary(
+    mr_parser_t *res, mr_token_t **tokens)
+{
+    mr_long_t ptr;
+    mr_byte_t retcode;
+    mr_node_ternary_op_t *value;
+    mr_node_t *node;
+
+    retcode = mr_parser_or(res, tokens);
+    if (retcode != MR_NOERROR || (*tokens)->type != MR_TOKEN_QUESTION)
+        return retcode;
+
+    retcode = mr_stack_push(&ptr, sizeof(mr_node_ternary_op_t));
+    if (retcode != MR_NOERROR)
+        return retcode;
+
+    node = res->nodes + res->size;
+    value = (mr_node_ternary_op_t*)(_mr_stack.data + ptr);
+    value->cond = *node;
+
+    if ((++*tokens)->type != MR_TOKEN_COLON)
+    {
+        retcode = mr_parser_tuple(res, tokens);
+        if (retcode != MR_NOERROR)
+            return retcode;
+
+        value->left = *node;
+        if ((*tokens)->type != MR_TOKEN_COLON)
+        {
+            value->right.type = MR_NODE_NULL;
+            *node = (mr_node_t){.type=MR_NODE_TERNARY_OP, .value=ptr};
+            return MR_NOERROR;
+        }
+    }
+    else
+        value->left.type = MR_NODE_NULL;
+
+    ++*tokens;
+    retcode = mr_parser_tuple(res, tokens);
+    if (retcode != MR_NOERROR)
+        return retcode;
+
+    value->right = *node;
+    *node = (mr_node_t){.type=MR_NODE_TERNARY_OP, .value=ptr};
+    return MR_NOERROR;
 }
 
 mr_byte_t mr_parser_or(
@@ -1124,8 +1184,7 @@ mr_byte_t mr_parser_handle_var_assign(
 
     value = (mr_node_var_assign_t*)(_mr_stack.data + ptr);
     *value = (mr_node_var_assign_t){.access=0, .is_global=MR_FALSE, .is_readonly=MR_FALSE,
-        .is_const=MR_FALSE, .is_static=MR_FALSE, .is_link=MR_FALSE, .is_decl=MR_FALSE,
-        .type=MR_TOKEN_EOF, .sidx=(*tokens)->idx};
+        .is_const=MR_FALSE, .is_static=MR_FALSE, .is_link=MR_FALSE, .type=MR_TOKEN_EOF, .sidx=(*tokens)->idx};
 
     access = used_global = used_readonly = used_const = used_static = MR_FALSE;
     while (1)
@@ -1202,7 +1261,7 @@ mr_byte_t mr_parser_handle_var_assign(
         value->is_link = MR_TRUE;
     else if ((*tokens)->type != MR_TOKEN_ASSIGN)
     {
-        value->is_decl = MR_TRUE;
+        value->value.type = MR_NODE_NULL;
         *node = (mr_node_t){.type=MR_NODE_VAR_ASSIGN, .value=ptr};
         return MR_NOERROR;
     }

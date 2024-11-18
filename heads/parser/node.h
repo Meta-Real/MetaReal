@@ -46,6 +46,8 @@ typedef struct __MR_NODE_T mr_node_t;
 /**
  * @enum __MR_NODE_ENUM
  * List of valid node types.
+ * @var __MR_NODE_ENUM::MR_NODE_NULL
+ * Null node type (used for missing nodes).
  * @var __MR_NODE_ENUM::MR_NODE_NONE
  * \a None node type.
  * @var __MR_NODE_ENUM::MR_NODE_INT
@@ -78,12 +80,12 @@ typedef struct __MR_NODE_T mr_node_t;
  * <em>Binary operation</em> node type.
  * @var __MR_NODE_ENUM::MR_NODE_UNARY_OP
  * <em>Unary operation</em> node type.
+ * @var __MR_NODE_ENUM::MR_NODE_TERNARY_OP
+ * <em>Ternary operation</em> node type.
  * @var __MR_NODE_ENUM::MR_NODE_VAR_ACCESS
  * <em>Variable access</em> node type.
  * @var __MR_NODE_ENUM::MR_NODE_VAR_ASSIGN
  * <em>Variable assignment</em> node type.
- * @var __MR_NODE_ENUM::MR_NODE_VAR_REASSIGN
- * <em>Variable reassignment</em> node type.
  * @var __MR_NODE_ENUM::MR_NODE_FUNC_CALL
  * <em>Function call</em> node type.
  * @var __MR_NODE_ENUM::MR_NODE_EX_FUNC_CALL
@@ -95,6 +97,7 @@ typedef struct __MR_NODE_T mr_node_t;
 */
 enum __MR_NODE_ENUM
 {
+    MR_NODE_NULL,
     MR_NODE_NONE,
 
     MR_NODE_INT,
@@ -114,6 +117,7 @@ enum __MR_NODE_ENUM
 
     MR_NODE_BINARY_OP,
     MR_NODE_UNARY_OP,
+    MR_NODE_TERNARY_OP,
 
     MR_NODE_VAR_ACCESS,
     MR_NODE_VAR_ASSIGN,
@@ -169,6 +173,26 @@ struct __MR_NODE_UNARY_OP_T
 };
 #pragma pack(pop)
 typedef struct __MR_NODE_UNARY_OP_T mr_node_unary_op_t;
+
+/**
+ * @struct __MR_NODE_TERNARY_OP_T
+ * Data structure that holds information about a ternary operation.
+ * @var mr_node_t __MR_NODE_TERNARY_OP_T::cond
+ * Condition of the ternary operation.
+ * @var mr_node_t __MR_NODE_TERNARY_OP_T::left
+ * Left operand of the ternary operation.
+ * @var mr_node_t __MR_NODE_TERNARY_OP_T::right
+ * Right operand of the ternary operation.
+*/
+#pragma pack(push, 1)
+struct __MR_NODE_TERNARY_OP_T
+{
+    mr_node_t cond;
+    mr_node_t left;
+    mr_node_t right;
+};
+#pragma pack(pop)
+typedef struct __MR_NODE_TERNARY_OP_T mr_node_ternary_op_t;
 
 /**
  * @struct __MR_NODE_KEYVAL_T
@@ -249,8 +273,6 @@ typedef struct __MR_NODE_TUPLE_T mr_node_tuple_t;
  * A boolean value that determines if the \a static keyword is used or not.
  * @var mr_bool_t __MR_NODE_VAR_ASSIGN_T::is_link
  * A boolean value that determines if the assignment is linking or not.
- * @var mr_bool_t __MR_NODE_VAR_ASSIGN_T::is_decl
- * A boolean value that determines if the expression is declaration or definition.
  * @var mr_node_t __MR_NODE_VAR_ASSIGN_T::value
  * Value of the assignment.
  * @var mr_byte_t __MR_NODE_VAR_ASSIGN_T::type
@@ -269,7 +291,6 @@ struct __MR_NODE_VAR_ASSIGN_T
     mr_bool_t is_const : 1;
     mr_bool_t is_static : 1;
     mr_bool_t is_link : 1;
-    mr_bool_t is_decl : 1;
     mr_node_t value;
     mr_byte_t type;
     mr_idx_t sidx;

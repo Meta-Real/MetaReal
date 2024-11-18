@@ -30,8 +30,6 @@ typedef uint8_t mr_byte_t;
 typedef uint16_t mr_short_t;
 typedef uint32_t mr_long_t;
 
-typedef size_t mr_size_t;
-
 typedef void *mr_ptr_t;
 
 typedef char mr_chr_t;

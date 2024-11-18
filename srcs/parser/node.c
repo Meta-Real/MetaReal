@@ -80,10 +80,10 @@ mr_byte_t mr_node_get_token(
 */
 static mr_str_ct mr_node_labels[MR_NODE_COUNT] =
 {
-    "NODE_NONE",
+    "NODE_NULL", "NODE_NONE",
     "NODE_INT", "NODE_FLOAT", "NODE_IMAGINARY", "NODE_BOOL", "NODE_CHR", "NODE_FSTR_FRAG",
     "NODE_STR", "NODE_FSTR", "NODE_LIST", "NODE_TUPLE", "NODE_DICT", "NODE_SET", "NODE_TYPE",
-    "NODE_BINARY_OP", "NODE_UNARY_OP",
+    "NODE_BINARY_OP", "NODE_UNARY_OP", "NODE_TERNARY_OP",
     "NODE_VAR_ACCESS", "NODE_VAR_ASSIGN",
     "NODE_FUNC_CALL", "NODE_EX_FUNC_CALL", "NODE_DOLLAR_METHOD", "NODE_EX_DOLLAR_METHOD"
 };
@@ -93,7 +93,7 @@ void mr_node_print(
 {
     mr_long_t size, idx;
 
-    if (node.type == MR_NODE_NONE || node.type == MR_NODE_FSTR_FRAG)
+    if (node.type <= MR_NODE_NONE || node.type == MR_NODE_FSTR_FRAG)
     {
         printf("%s", mr_node_labels[node.type]);
         return;
@@ -176,6 +176,21 @@ void mr_node_print(
         putchar(')');
         break;
     }
+    case MR_NODE_TERNARY_OP:
+    {
+        mr_node_ternary_op_t *value;
+
+        value = (mr_node_ternary_op_t*)(_mr_stack.data + node.value);
+
+        putchar('(');
+        mr_node_print(value->cond);
+        fputs("), (", stdout);
+        mr_node_print(value->left);
+        fputs("), (", stdout);
+        mr_node_print(value->right);
+        putchar(')');
+        break;
+    }
     case MR_NODE_VAR_ACCESS:
         size = mr_token_getsize2(MR_TOKEN_IDENTIFIER, node.value);
         printf("\"%.*s\"", size, _mr_config.code + node.value);
@@ -216,9 +231,6 @@ void mr_node_print(
             fputs(", link", stdout);
         if (value->type != MR_TOKEN_EOF)
             printf(", %s", mr_token_labels[value->type]);
-
-        if (value->is_decl)
-            break;
 
         fputs(", (", stdout);
         mr_node_print(value->value);
