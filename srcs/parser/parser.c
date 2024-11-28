@@ -940,11 +940,11 @@ mr_byte_t mr_parser_handle_subscript(
 {
     mr_long_t ptr;
     mr_byte_t retcode;
-    mr_node_t fnode, start, end, *node;
+    mr_node_t *cnode, node, start, end, step;
     mr_node_subscript_step_t *value;
 
-    node = res->nodes + res->size;
-    fnode = *node;
+    cnode = res->nodes + res->size;
+    node = *cnode;
 
     if ((++*tokens)->type != MR_TOKEN_COLON)
     {
@@ -961,9 +961,9 @@ mr_byte_t mr_parser_handle_subscript(
                 return retcode;
 
             ex_value = (mr_node_subscript_t*)(_mr_stack.data + ptr);
-            *ex_value = (mr_node_subscript_t){.node=fnode, .idx=*node, .eidx=(*tokens)->idx};
+            *ex_value = (mr_node_subscript_t){.node=node, .idx=*cnode, .eidx=(*tokens)->idx};
 
-            *node = (mr_node_t){.type=MR_NODE_SUBSCRIPT, .value=ptr};
+            *cnode = (mr_node_t){.type=MR_NODE_SUBSCRIPT, .value=ptr};
             mr_parser_advance_newline;
             return MR_NOERROR;
         }
@@ -974,7 +974,7 @@ mr_byte_t mr_parser_handle_subscript(
             return MR_ERROR_BAD_FORMAT;
         }
 
-        start = *node;
+        start = *cnode;
     }
     else
         start.type = MR_NODE_NULL;
@@ -983,6 +983,17 @@ mr_byte_t mr_parser_handle_subscript(
     {
         mr_node_subscript_end_t *ex_value;
 
+        if ((*tokens)->type != MR_TOKEN_R_SQUARE)
+        {
+            retcode = mr_parser_tuple(res, tokens);
+            if (retcode != MR_NOERROR)
+                return retcode;
+
+            end = *cnode;
+        }
+        else
+            end.type = MR_NODE_NULL;
+
         if ((*tokens)->type == MR_TOKEN_R_SQUARE)
         {
             retcode = mr_stack_push(&ptr, sizeof(mr_node_subscript_end_t));
@@ -990,61 +1001,46 @@ mr_byte_t mr_parser_handle_subscript(
                 return retcode;
 
             ex_value = (mr_node_subscript_end_t*)(_mr_stack.data + ptr);
-            *ex_value = (mr_node_subscript_end_t){.node=fnode, .start=start, .end.type=MR_NODE_NULL, .eidx=(*tokens)->idx};
+            *ex_value = (mr_node_subscript_end_t){.node=node, .start=start, .end=end, .eidx=(*tokens)->idx};
 
-            *node = (mr_node_t){.type=MR_NODE_SUBSCRIPT_END, .value=ptr};
+            *cnode = (mr_node_t){.type=MR_NODE_SUBSCRIPT_END, .value=ptr};
             mr_parser_advance_newline;
             return MR_NOERROR;
         }
-
-        retcode = mr_parser_tuple(res, tokens);
-        if (retcode != MR_NOERROR)
-            return retcode;
-
-        if ((*tokens)->type == MR_TOKEN_R_SQUARE)
-        {
-            retcode = mr_stack_push(&ptr, sizeof(mr_node_subscript_end_t));
-            if (retcode != MR_NOERROR)
-                return retcode;
-
-            ex_value = (mr_node_subscript_end_t*)(_mr_stack.data + ptr);
-            *ex_value = (mr_node_subscript_end_t){.node=fnode, .start=start, .end=*node, .eidx=(*tokens)->idx};
-
-            *node = (mr_node_t){.type=MR_NODE_SUBSCRIPT_END, .value=ptr};
-            mr_parser_advance_newline;
-            return MR_NOERROR;
-        }
-
         if ((*tokens)->type != MR_TOKEN_COLON)
         {
             res->error = (mr_invalid_syntax_t){.detail="Expected ']' or ':'", .token=*tokens};
             return MR_ERROR_BAD_FORMAT;
         }
-
-        end = *node;
     }
     else
         end.type = MR_NODE_NULL;
 
-    ++*tokens;
-    retcode = mr_parser_tuple(res, tokens);
-    if (retcode != MR_NOERROR)
-        return retcode;
-
-    if ((*tokens)->type != MR_TOKEN_R_SQUARE)
+    if ((++*tokens)->type != MR_TOKEN_R_SQUARE)
     {
-        res->error = (mr_invalid_syntax_t){.detail="Expected ']'", .token=*tokens};
-        return MR_ERROR_BAD_FORMAT;
+        retcode = mr_parser_tuple(res, tokens);
+        if (retcode != MR_NOERROR)
+            return retcode;
+
+        if ((*tokens)->type != MR_TOKEN_R_SQUARE)
+        {
+            res->error = (mr_invalid_syntax_t){.detail="Expected ']'", .token=*tokens};
+            return MR_ERROR_BAD_FORMAT;
+        }
+
+        step = *cnode;
     }
+    else
+        step.type = MR_NODE_NULL;
 
     retcode = mr_stack_push(&ptr, sizeof(mr_node_subscript_step_t));
     if (retcode != MR_NOERROR)
         return retcode;
 
     value = (mr_node_subscript_step_t*)(_mr_stack.data + ptr);
-    *value = (mr_node_subscript_step_t){.node=fnode, .start=start, .end=end, .step=*node, .eidx=(*tokens)->idx};
+    *value = (mr_node_subscript_step_t){.node=node, .start=start, .end=end, .step=step, .eidx=(*tokens)->idx};
 
-    *node = (mr_node_t){.type=MR_NODE_SUBSCRIPT_STEP, .value=ptr};
+    *cnode = (mr_node_t){.type=MR_NODE_SUBSCRIPT_STEP, .value=ptr};
     mr_parser_advance_newline;
     return MR_NOERROR;
 }
