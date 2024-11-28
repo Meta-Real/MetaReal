@@ -82,6 +82,12 @@ typedef struct __MR_NODE_T mr_node_t;
  * <em>Unary operation</em> node type.
  * @var __MR_NODE_ENUM::MR_NODE_TERNARY_OP
  * <em>Ternary operation</em> node type.
+ * @var __MR_NODE_ENUM::MR_NODE_SUBSCRIPT
+ * \a Subscript node type (index).
+ * @var __MR_NODE_ENUM::MR_NODE_SUBSCRIPT_END
+ * \a Subscript node type (start and end).
+ * @var __MR_NODE_ENUM::MR_NODE_SUBSCRIPT_STEP
+ * \a Subscript node type (start, end, and step).
  * @var __MR_NODE_ENUM::MR_NODE_VAR_ACCESS
  * <em>Variable access</em> node type.
  * @var __MR_NODE_ENUM::MR_NODE_VAR_ASSIGN
@@ -118,6 +124,10 @@ enum __MR_NODE_ENUM
     MR_NODE_BINARY_OP,
     MR_NODE_UNARY_OP,
     MR_NODE_TERNARY_OP,
+
+    MR_NODE_SUBSCRIPT,
+    MR_NODE_SUBSCRIPT_END,
+    MR_NODE_SUBSCRIPT_STEP,
 
     MR_NODE_VAR_ACCESS,
     MR_NODE_VAR_ASSIGN,
@@ -193,6 +203,74 @@ struct __MR_NODE_TERNARY_OP_T
 };
 #pragma pack(pop)
 typedef struct __MR_NODE_TERNARY_OP_T mr_node_ternary_op_t;
+
+/**
+ * @struct __MR_NODE_SUBSCRIPT_T
+ * Data structure that holds information about a subscript operation (index).
+ * @var mr_node_t __MR_NODE_SUBSCRIPT_T::node
+ * Subscriptable node.
+ * @var mr_node_t __MR_NODE_SUBSCRIPT_T::idx
+ * Index of the subscript.
+ * @var mr_idx_t __MR_NODE_SUBSCRIPT_T::eidx
+ * Ending index of the operation.
+*/
+#pragma pack(push, 1)
+struct __MR_NODE_SUBSCRIPT_T
+{
+    mr_node_t node;
+    mr_node_t idx;
+    mr_idx_t eidx;
+};
+#pragma pack(pop)
+typedef struct __MR_NODE_SUBSCRIPT_T mr_node_subscript_t;
+
+/**
+ * Data structure that holds information about a subscript operation (start and end).
+ * @var mr_node_t __MR_NODE_SUBSCRIPT_END_T::node
+ * Subscriptable node.
+ * @var mr_node_t __MR_NODE_SUBSCRIPT_END_T::start
+ * Starting index of the subscript.
+ * @var mr_node_t __MR_NODE_SUBSCRIPT_END_T::end
+ * Ending index of the subscript.
+ * @var mr_idx_t __MR_NODE_SUBSCRIPT_END_T::eidx
+ * Ending index of the operation.
+*/
+#pragma pack(push, 1)
+struct __MR_NODE_SUBSCRIPT_END_T
+{
+    mr_node_t node;
+    mr_node_t start;
+    mr_node_t end;
+    mr_idx_t eidx;
+};
+#pragma pack(pop)
+typedef struct __MR_NODE_SUBSCRIPT_END_T mr_node_subscript_end_t;
+
+/**
+ * @struct __MR_NODE_SUBSCRIPT_STEP_T
+ * Data structure that holds information about a subscript operation (start, end, and step).
+ * @var mr_node_t __MR_NODE_SUBSCRIPT_STEP_T::node
+ * Subscriptable node.
+ * @var mr_node_t __MR_NODE_SUBSCRIPT_STEP_T::start
+ * Starting index of the subscript.
+ * @var mr_node_t __MR_NODE_SUBSCRIPT_STEP_T::end
+ * Ending index of the subscript.
+ * @var mr_node_t __MR_NODE_SUBSCRIPT_STEP_T::step
+ * Step of the subscript iterated over the <em>node</em>.
+ * @var mr_idx_t __MR_NODE_SUBSCRIPT_STEP_T::eidx
+ * Ending index of the operation.
+*/
+#pragma pack(push, 1)
+struct __MR_NODE_SUBSCRIPT_STEP_T
+{
+    mr_node_t node;
+    mr_node_t start;
+    mr_node_t end;
+    mr_node_t step;
+    mr_idx_t eidx;
+};
+#pragma pack(pop)
+typedef struct __MR_NODE_SUBSCRIPT_STEP_T mr_node_subscript_step_t;
 
 /**
  * @struct __MR_NODE_KEYVAL_T

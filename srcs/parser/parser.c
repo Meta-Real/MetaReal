@@ -278,7 +278,7 @@ mr_byte_t mr_parser_power(
     mr_parser_t *res, mr_token_t **tokens);
 
 /**
- * It handles function calls (both \a FUNC_CALL and \a EX_FUNC_CALL versions).
+ * It handles prefix reassignments (++ and --).
  * @param res
  * Result of the \a mr_parser function passed as a pointer.
  * @param tokens
@@ -286,7 +286,19 @@ mr_byte_t mr_parser_power(
  * @return It returns a code which indicates if the process was successful or not. \n
  * If the process was successful, it returns 0. Otherwise, it returns the error code.
 */
-mr_byte_t mr_parser_call(
+mr_byte_t mr_parser_prefix(
+    mr_parser_t *res, mr_token_t **tokens);
+
+/**
+ * It handles function calls, postfix reassignments (++ and --), and subscript expressions.
+ * @param res
+ * Result of the \a mr_parser function passed as a pointer.
+ * @param tokens
+ * List of tokens passed as a pointer.
+ * @return It returns a code which indicates if the process was successful or not. \n
+ * If the process was successful, it returns 0. Otherwise, it returns the error code.
+*/
+mr_byte_t mr_parser_postfix(
     mr_parser_t *res, mr_token_t **tokens);
 
 /**
@@ -299,6 +311,30 @@ mr_byte_t mr_parser_call(
  * If the process was successful, it returns 0. Otherwise, it returns the error code.
 */
 mr_byte_t mr_parser_core(
+    mr_parser_t *res, mr_token_t **tokens);
+
+/**
+ * It generates function calls (both \a FUNC_CALL and \a EX_FUNC_CALL versions).
+ * @param res
+ * Result of the \a mr_parser function passed as a pointer.
+ * @param tokens
+ * List of tokens passed as a pointer.
+ * @return It returns a code which indicates if the process was successful or not. \n
+ * If the process was successful, it returns 0. Otherwise, it returns the error code.
+*/
+mr_byte_t mr_parser_handle_call(
+    mr_parser_t *res, mr_token_t **tokens);
+
+/**
+ * It generates subscript expressions (all <em>SUBSCRIPT</em>, <em>SUBSCRIPT_END</em>, and \a SUBSCRIPT_STEP versions).
+ * @param res
+ * Result of the \a mr_parser function passed as a pointer.
+ * @param tokens
+ * List of tokens passed as a pointer.
+ * @return It returns a code which indicates if the process was successful or not. \n
+ * If the process was successful, it returns 0. Otherwise, it returns the error code.
+*/
+mr_byte_t mr_parser_handle_subscript(
     mr_parser_t *res, mr_token_t **tokens);
 
 /**
@@ -638,16 +674,49 @@ mr_byte_t mr_parser_factor(
         return MR_NOERROR;
     }
 
-    return mr_parser_call(res, tokens);
+    return mr_parser_power(res, tokens);
 }
 
 mr_byte_t mr_parser_power(
     mr_parser_t *res, mr_token_t **tokens)
 {
-    mr_parser_bin_op(mr_parser_call, mr_parser_factor, (*tokens)->type == MR_TOKEN_POWER);
+    mr_parser_bin_op(mr_parser_prefix, mr_parser_factor, (*tokens)->type == MR_TOKEN_POWER);
 }
 
-mr_byte_t mr_parser_call(
+mr_byte_t mr_parser_prefix(
+    mr_parser_t *res, mr_token_t **tokens)
+{
+    if ((*tokens)->type == MR_TOKEN_INCREMENT || (*tokens)->type == MR_TOKEN_DECREMENT)
+    {
+        mr_long_t ptr;
+        mr_byte_t op, retcode;
+        mr_node_unary_op_t *value;
+        mr_node_t *node;
+        mr_idx_t sidx;
+
+        sidx = (*tokens)->idx;
+        op = (*tokens)++->type;
+
+        retcode = mr_parser_prefix(res, tokens);
+        if (retcode != MR_NOERROR)
+            return retcode;
+
+        retcode = mr_stack_push(&ptr, sizeof(mr_node_unary_op_t));
+        if (retcode != MR_NOERROR)
+            return retcode;
+
+        value = (mr_node_unary_op_t*)(_mr_stack.data + ptr);
+        node = res->nodes + res->size;
+        *value = (mr_node_unary_op_t){.operand=*node, .sidx=sidx, .op=op};
+
+        *node = (mr_node_t){.type=MR_NODE_UNARY_OP, .value=ptr};
+        return MR_NOERROR;
+    }
+
+    return mr_parser_postfix(res, tokens);
+}
+
+mr_byte_t mr_parser_postfix(
     mr_parser_t *res, mr_token_t **tokens)
 {
     mr_byte_t retcode;
@@ -658,105 +727,43 @@ mr_byte_t mr_parser_call(
         return retcode;
 
     node = res->nodes + res->size;
-    if ((*tokens)->type == MR_TOKEN_L_PAREN)
+    while (1)
     {
-        mr_long_t ptr, idx;
-        mr_byte_t alloc;
-        mr_node_func_call_t *value;
-        mr_node_call_arg_t *args, *arg;
-
-        if ((++*tokens)->type == MR_TOKEN_R_PAREN)
+        if ((*tokens)->type == MR_TOKEN_L_PAREN)
         {
-            mr_node_ex_func_call_t *ex_value;
-
-            retcode = mr_stack_push(&ptr, sizeof(mr_node_ex_func_call_t));
+            retcode = mr_parser_handle_call(res, tokens);
             if (retcode != MR_NOERROR)
                 return retcode;
-
-            ex_value = (mr_node_ex_func_call_t*)(_mr_stack.data + ptr);
-            *ex_value = (mr_node_ex_func_call_t){.func=*node, .eidx=(++*tokens)->idx};
-
-            mr_parser_advance_newline;
-
-            *node = (mr_node_t){.type=MR_NODE_EX_FUNC_CALL, .value=ptr};
-            return MR_NOERROR;
+            continue;
         }
-
-        retcode = mr_stack_push(&ptr, sizeof(mr_node_func_call_t));
-        if (retcode != MR_NOERROR)
-            return retcode;
-
-        value = (mr_node_func_call_t*)(_mr_stack.data + ptr);
-        retcode = mr_stack_palloc(&idx, MR_PARSER_FUNC_CALL_SIZE * sizeof(mr_node_call_arg_t));
-        if (retcode != MR_NOERROR)
-            return retcode;
-
-        value->func = *node;
-        value->size = 0;
-
-        alloc = MR_PARSER_FUNC_CALL_SIZE;
-
-        value->args = MR_IDX_DECOMPOSE(idx);
-        args = _mr_stack.ptrs[idx];
-        do
+        if ((*tokens)->type == MR_TOKEN_L_SQUARE)
         {
-            if (value->size == alloc)
-            {
-                if (alloc == MR_PARSER_FUNC_CALL_MAX)
-                {
-                    res->error = (mr_invalid_syntax_t){.detail="Number of function call arguments exceeds the limit", .token=*tokens};
-                    return MR_ERROR_BAD_FORMAT;
-                }
+            retcode = mr_parser_handle_subscript(res, tokens);
+            if (retcode != MR_NOERROR)
+                return retcode;
+            continue;
+        }
+        if ((*tokens)->type == MR_TOKEN_INCREMENT || (*tokens)->type == MR_TOKEN_DECREMENT)
+        {
+            mr_long_t ptr;
+            mr_node_unary_op_t *value;
 
-                retcode = mr_stack_prealloc(idx, (alloc += MR_PARSER_FUNC_CALL_SIZE) * sizeof(mr_node_call_arg_t));
-                if (retcode != MR_NOERROR)
-                    return MR_ERROR_BAD_FORMAT;
-
-                args = _mr_stack.ptrs[idx];
-            }
-
-            arg = (mr_node_call_arg_t*)(args + value->size);
-            if ((*tokens)->type == MR_TOKEN_IDENTIFIER && (*tokens)[1].type == MR_TOKEN_ASSIGN)
-            {
-                arg->name = (*tokens)->idx;
-                *tokens += 2;
-            }
-            else
-                arg->name = MR_INVALID_IDX;
-
-            retcode = mr_parser_reassign(res, tokens);
+            retcode = mr_stack_push(&ptr, sizeof(mr_node_unary_op_t));
             if (retcode != MR_NOERROR)
                 return retcode;
 
-            arg->value = *node;
-            value->size++;
+            value = (mr_node_unary_op_t*)(_mr_stack.data + ptr);
+            *value = (mr_node_unary_op_t){.operand=*node, .sidx=(*tokens)->idx, .op=(*tokens)->type + 2};
 
-            if ((*tokens)->type != MR_TOKEN_COMMA)
-                break;
-
+            *node = (mr_node_t){.type=MR_NODE_UNARY_OP, .value=ptr};
             ++*tokens;
-        } while (1);
-
-        if ((*tokens)->type != MR_TOKEN_R_PAREN)
-        {
-            res->error = (mr_invalid_syntax_t){.detail="Expected ')' or ','", .token=*tokens};
-            return MR_ERROR_BAD_FORMAT;
+            continue;
         }
 
-        if (value->size != alloc)
-        {
-            retcode = mr_stack_prealloc(idx, value->size * sizeof(mr_node_call_arg_t));
-            if (retcode != MR_NOERROR)
-                return retcode;
-        }
-
-        mr_parser_advance_newline;
-
-        *node = (mr_node_t){.type=MR_NODE_FUNC_CALL, .value=ptr};
-        return MR_NOERROR;
+        break;
     }
 
-    return retcode;
+    return MR_NOERROR;
 }
 
 mr_byte_t mr_parser_core(
@@ -825,6 +832,221 @@ mr_byte_t mr_parser_core(
 
     res->error = (mr_invalid_syntax_t){.detail=NULL, .token=*tokens};
     return MR_ERROR_BAD_FORMAT;
+}
+
+mr_byte_t mr_parser_handle_call(
+    mr_parser_t *res, mr_token_t **tokens)
+{
+    mr_long_t ptr, idx;
+    mr_byte_t retcode, alloc;
+    mr_node_func_call_t *value;
+    mr_node_call_arg_t *args, *arg;
+    mr_node_t *node;
+
+    node = res->nodes + res->size;
+    if ((++*tokens)->type == MR_TOKEN_R_PAREN)
+    {
+        mr_node_ex_func_call_t *ex_value;
+
+        retcode = mr_stack_push(&ptr, sizeof(mr_node_ex_func_call_t));
+        if (retcode != MR_NOERROR)
+            return retcode;
+
+        ex_value = (mr_node_ex_func_call_t*)(_mr_stack.data + ptr);
+        *ex_value = (mr_node_ex_func_call_t){.func=*node, .eidx=(++*tokens)->idx};
+
+        mr_parser_advance_newline;
+
+        *node = (mr_node_t){.type=MR_NODE_EX_FUNC_CALL, .value=ptr};
+        return MR_NOERROR;
+    }
+
+    retcode = mr_stack_push(&ptr, sizeof(mr_node_func_call_t));
+    if (retcode != MR_NOERROR)
+        return retcode;
+
+    value = (mr_node_func_call_t*)(_mr_stack.data + ptr);
+    retcode = mr_stack_palloc(&idx, MR_PARSER_FUNC_CALL_SIZE * sizeof(mr_node_call_arg_t));
+    if (retcode != MR_NOERROR)
+        return retcode;
+
+    value->func = *node;
+    value->size = 0;
+
+    alloc = MR_PARSER_FUNC_CALL_SIZE;
+
+    value->args = MR_IDX_DECOMPOSE(idx);
+    args = _mr_stack.ptrs[idx];
+    do
+    {
+        if (value->size == alloc)
+        {
+            if (alloc == MR_PARSER_FUNC_CALL_MAX)
+            {
+                res->error = (mr_invalid_syntax_t){.detail="Number of function call arguments exceeds the limit", .token=*tokens};
+                return MR_ERROR_BAD_FORMAT;
+            }
+
+            retcode = mr_stack_prealloc(idx, (alloc += MR_PARSER_FUNC_CALL_SIZE) * sizeof(mr_node_call_arg_t));
+            if (retcode != MR_NOERROR)
+                return MR_ERROR_BAD_FORMAT;
+
+            args = _mr_stack.ptrs[idx];
+        }
+
+        arg = (mr_node_call_arg_t*)(args + value->size);
+        if ((*tokens)->type == MR_TOKEN_IDENTIFIER && (*tokens)[1].type == MR_TOKEN_ASSIGN)
+        {
+            arg->name = (*tokens)->idx;
+            *tokens += 2;
+        }
+        else
+            arg->name = MR_INVALID_IDX;
+
+        retcode = mr_parser_reassign(res, tokens);
+        if (retcode != MR_NOERROR)
+            return retcode;
+
+        arg->value = *node;
+        value->size++;
+
+        if ((*tokens)->type != MR_TOKEN_COMMA)
+            break;
+
+        ++*tokens;
+    } while (1);
+
+    if ((*tokens)->type != MR_TOKEN_R_PAREN)
+    {
+        res->error = (mr_invalid_syntax_t){.detail="Expected ')' or ','", .token=*tokens};
+        return MR_ERROR_BAD_FORMAT;
+    }
+
+    if (value->size != alloc)
+    {
+        retcode = mr_stack_prealloc(idx, value->size * sizeof(mr_node_call_arg_t));
+        if (retcode != MR_NOERROR)
+            return retcode;
+    }
+
+    mr_parser_advance_newline;
+
+    *node = (mr_node_t){.type=MR_NODE_FUNC_CALL, .value=ptr};
+    return MR_NOERROR;
+}
+
+mr_byte_t mr_parser_handle_subscript(
+    mr_parser_t *res, mr_token_t **tokens)
+{
+    mr_long_t ptr;
+    mr_byte_t retcode;
+    mr_node_t fnode, start, end, *node;
+    mr_node_subscript_step_t *value;
+
+    node = res->nodes + res->size;
+    fnode = *node;
+
+    if ((++*tokens)->type != MR_TOKEN_COLON)
+    {
+        retcode = mr_parser_tuple(res, tokens);
+        if (retcode != MR_NOERROR)
+            return retcode;
+
+        if ((*tokens)->type == MR_TOKEN_R_SQUARE)
+        {
+            mr_node_subscript_t *ex_value;
+
+            retcode = mr_stack_push(&ptr, sizeof(mr_node_subscript_t));
+            if (retcode != MR_NOERROR)
+                return retcode;
+
+            ex_value = (mr_node_subscript_t*)(_mr_stack.data + ptr);
+            *ex_value = (mr_node_subscript_t){.node=fnode, .idx=*node, .eidx=(*tokens)->idx};
+
+            *node = (mr_node_t){.type=MR_NODE_SUBSCRIPT, .value=ptr};
+            mr_parser_advance_newline;
+            return MR_NOERROR;
+        }
+
+        if ((*tokens)->type != MR_TOKEN_COLON)
+        {
+            res->error = (mr_invalid_syntax_t){.detail="Expected ']' or ':'", .token=*tokens};
+            return MR_ERROR_BAD_FORMAT;
+        }
+
+        start = *node;
+    }
+    else
+        start.type = MR_NODE_NULL;
+
+    if ((++*tokens)->type != MR_TOKEN_COLON)
+    {
+        mr_node_subscript_end_t *ex_value;
+
+        if ((*tokens)->type == MR_TOKEN_R_SQUARE)
+        {
+            retcode = mr_stack_push(&ptr, sizeof(mr_node_subscript_end_t));
+            if (retcode != MR_NOERROR)
+                return retcode;
+
+            ex_value = (mr_node_subscript_end_t*)(_mr_stack.data + ptr);
+            *ex_value = (mr_node_subscript_end_t){.node=fnode, .start=start, .end.type=MR_NODE_NULL, .eidx=(*tokens)->idx};
+
+            *node = (mr_node_t){.type=MR_NODE_SUBSCRIPT_END, .value=ptr};
+            mr_parser_advance_newline;
+            return MR_NOERROR;
+        }
+
+        retcode = mr_parser_tuple(res, tokens);
+        if (retcode != MR_NOERROR)
+            return retcode;
+
+        if ((*tokens)->type == MR_TOKEN_R_SQUARE)
+        {
+            retcode = mr_stack_push(&ptr, sizeof(mr_node_subscript_end_t));
+            if (retcode != MR_NOERROR)
+                return retcode;
+
+            ex_value = (mr_node_subscript_end_t*)(_mr_stack.data + ptr);
+            *ex_value = (mr_node_subscript_end_t){.node=fnode, .start=start, .end=*node, .eidx=(*tokens)->idx};
+
+            *node = (mr_node_t){.type=MR_NODE_SUBSCRIPT_END, .value=ptr};
+            mr_parser_advance_newline;
+            return MR_NOERROR;
+        }
+
+        if ((*tokens)->type != MR_TOKEN_COLON)
+        {
+            res->error = (mr_invalid_syntax_t){.detail="Expected ']' or ':'", .token=*tokens};
+            return MR_ERROR_BAD_FORMAT;
+        }
+
+        end = *node;
+    }
+    else
+        end.type = MR_NODE_NULL;
+
+    ++*tokens;
+    retcode = mr_parser_tuple(res, tokens);
+    if (retcode != MR_NOERROR)
+        return retcode;
+
+    if ((*tokens)->type != MR_TOKEN_R_SQUARE)
+    {
+        res->error = (mr_invalid_syntax_t){.detail="Expected ']'", .token=*tokens};
+        return MR_ERROR_BAD_FORMAT;
+    }
+
+    retcode = mr_stack_push(&ptr, sizeof(mr_node_subscript_step_t));
+    if (retcode != MR_NOERROR)
+        return retcode;
+
+    value = (mr_node_subscript_step_t*)(_mr_stack.data + ptr);
+    *value = (mr_node_subscript_step_t){.node=fnode, .start=start, .end=end, .step=*node, .eidx=(*tokens)->idx};
+
+    *node = (mr_node_t){.type=MR_NODE_SUBSCRIPT_STEP, .value=ptr};
+    mr_parser_advance_newline;
+    return MR_NOERROR;
 }
 
 mr_byte_t mr_parser_handle_fstr(

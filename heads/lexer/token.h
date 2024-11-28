@@ -126,6 +126,10 @@ typedef struct __MR_TOKEN_T mr_token_t;
  * \a increment token type ('++' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_DECREMENT
  * \a decrement token type ('--' equivalent).
+ * @var __MR_TOKEN_ENUM::MR_TOKEN_INCREMENT_POST
+ * <em>postfix increment</em> token type ('++' equivalent, only used in the parser).
+ * @var __MR_TOKEN_ENUM::MR_TOKEN_DECREMENT_POST
+ * <em>postfix decrement</em> token type ('--' equivalent, only used in the parser).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_ASSIGN
  * \a assign token type ('=' equivalent).
  * @var __MR_TOKEN_ENUM::MR_TOKEN_LINK
@@ -323,6 +327,8 @@ enum __MR_TOKEN_ENUM
 
     MR_TOKEN_INCREMENT,
     MR_TOKEN_DECREMENT,
+    MR_TOKEN_INCREMENT_POST,
+    MR_TOKEN_DECREMENT_POST,
 
     MR_TOKEN_ASSIGN,
     MR_TOKEN_LINK,

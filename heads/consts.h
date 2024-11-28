@@ -83,47 +83,47 @@ copies or substantial portions of the Software.
 #define MR_PARSER_NODES_CHUNK ((mr_byte_t)64)
 
 /**
- * Default size of a <em>fstr</em>.
+ * Default size of a <em>fstr</em> in nodes.
 */
 #define MR_PARSER_FSTR_SIZE ((mr_byte_t)16)
 
 /**
- * Default size of a <em>list</em>.
+ * Default size of a <em>list</em> in nodes.
 */
 #define MR_PARSER_LIST_SIZE ((mr_byte_t)16)
 
 /**
- * Default size of a <em>tuple</em>.
+ * Default size of a <em>tuple</em> in nodes.
 */
 #define MR_PARSER_TUPLE_SIZE ((mr_byte_t)8)
 
 /**
- * Default size of a <em>dict</em>.
+ * Default size of a <em>dict</em> in key-values.
 */
 #define MR_PARSER_DICT_SIZE ((mr_byte_t)8)
 
 /**
- * Default size of a <em>set</em>.
+ * Default size of a <em>set</em> in nodes.
 */
 #define MR_PARSER_SET_SIZE ((mr_byte_t)8)
 
 /**
- * Default size of a <em>function call</em> argument list.
+ * Default size of a <em>function call</em> argument list in call-args.
 */
 #define MR_PARSER_FUNC_CALL_SIZE ((mr_byte_t)4)
 
 /**
- * Maximum size of a <em>function call</em> argument list.
+ * Maximum size of a <em>function call</em> argument list in call-args.
 */
 #define MR_PARSER_FUNC_CALL_MAX ((mr_byte_t)(MR_PARSER_FUNC_CALL_SIZE * 16))
 
 /**
- * Default size of a <em>dollar method</em> parameter list.
+ * Default size of a <em>dollar method</em> parameter list in nodes.
 */
 #define MR_PARSER_DOLLAR_METHOD_SIZE ((mr_byte_t)4)
 
 /**
- * Maximum size of a <em>dollar method</em> parameter list.
+ * Maximum size of a <em>dollar method</em> parameter list in nodes.
 */
 #define MR_PARSER_DOLLAR_METHOD_MAX ((mr_byte_t)(MR_PARSER_DOLLAR_METHOD_SIZE * 4))
 

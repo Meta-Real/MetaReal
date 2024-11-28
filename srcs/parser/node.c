@@ -84,6 +84,7 @@ static mr_str_ct mr_node_labels[MR_NODE_COUNT] =
     "NODE_INT", "NODE_FLOAT", "NODE_IMAGINARY", "NODE_BOOL", "NODE_CHR", "NODE_FSTR_FRAG",
     "NODE_STR", "NODE_FSTR", "NODE_LIST", "NODE_TUPLE", "NODE_DICT", "NODE_SET", "NODE_TYPE",
     "NODE_BINARY_OP", "NODE_UNARY_OP", "NODE_TERNARY_OP",
+    "NODE_SUBSCRIPT", "NODE_SUBSCRIPT_END", "NODE_SUBSCRIPT_STEP",
     "NODE_VAR_ACCESS", "NODE_VAR_ASSIGN",
     "NODE_FUNC_CALL", "NODE_EX_FUNC_CALL", "NODE_DOLLAR_METHOD", "NODE_EX_DOLLAR_METHOD"
 };
@@ -188,6 +189,51 @@ void mr_node_print(
         mr_node_print(value->left);
         fputs("), (", stdout);
         mr_node_print(value->right);
+        putchar(')');
+        break;
+    }
+    case MR_NODE_SUBSCRIPT:
+    {
+        mr_node_subscript_t *value;
+
+        value = (mr_node_subscript_t*)(_mr_stack.data + node.value);
+
+        putchar('(');
+        mr_node_print(value->node);
+        fputs("), (", stdout);
+        mr_node_print(value->idx);
+        putchar(')');
+        break;
+    }
+    case MR_NODE_SUBSCRIPT_END:
+    {
+        mr_node_subscript_end_t *value;
+
+        value = (mr_node_subscript_end_t*)(_mr_stack.data + node.value);
+
+        putchar('(');
+        mr_node_print(value->node);
+        fputs("), (", stdout);
+        mr_node_print(value->start);
+        fputs("), (", stdout);
+        mr_node_print(value->end);
+        putchar(')');
+        break;
+    }
+    case MR_NODE_SUBSCRIPT_STEP:
+    {
+        mr_node_subscript_step_t *value;
+
+        value = (mr_node_subscript_step_t*)(_mr_stack.data + node.value);
+
+        putchar('(');
+        mr_node_print(value->node);
+        fputs("), (", stdout);
+        mr_node_print(value->start);
+        fputs("), (", stdout);
+        mr_node_print(value->end);
+        fputs("), (", stdout);
+        mr_node_print(value->step);
         putchar(')');
         break;
     }
