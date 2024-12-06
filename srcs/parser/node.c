@@ -27,11 +27,6 @@ copies or substantial portions of the Software.
 #include <config.h>
 
 /**
- * Number of valid nodes.
-*/
-#define MR_NODE_COUNT (MR_NODE_EX_DOLLAR_METHOD + 1)
-
-/**
  * @def mr_node_list(typ)
  * It handles \a mr_node_list_t and \a mr_node_tuple_t types.
  * @param typ
@@ -86,7 +81,9 @@ static mr_str_ct mr_node_labels[MR_NODE_COUNT] =
     "NODE_BINARY_OP", "NODE_UNARY_OP", "NODE_TERNARY_OP",
     "NODE_SUBSCRIPT", "NODE_SUBSCRIPT_END", "NODE_SUBSCRIPT_STEP",
     "NODE_VAR_ACCESS", "NODE_VAR_ASSIGN",
-    "NODE_FUNC_CALL", "NODE_EX_FUNC_CALL", "NODE_DOLLAR_METHOD", "NODE_EX_DOLLAR_METHOD"
+    "NODE_FUNC_CALL", "NODE_EX_FUNC_CALL",
+    "NODE_DOLLAR_METHOD", "NODE_EX_DOLLAR_METHOD",
+    "NODE_IMPORT", "NODE_INCLUDE"
 };
 
 void mr_node_print(
@@ -365,6 +362,29 @@ void mr_node_print(
         size = mr_token_getsize2(MR_TOKEN_IDENTIFIER, idx);
 
         printf("\"%.*s\"", size, _mr_config.code + idx);
+        break;
+    }
+    case MR_NODE_IMPORT:
+    case MR_NODE_INCLUDE:
+    {
+        mr_idx_t *libs;
+        mr_node_import_t *value;
+
+        value = (mr_node_import_t*)(_mr_stack.data + node.value);
+        libs = (mr_idx_t*)_mr_stack.ptrs[MR_IDX_EXTRACT(value->libs)];
+
+        idx = MR_IDX_EXTRACT(*libs);
+        size = mr_token_getsize2(MR_TOKEN_IDENTIFIER, idx);
+        printf("[\"%.*s\"", size, _mr_config.code + idx);
+
+        for (mr_byte_t i = 1; i != value->size; i++)
+        {
+            idx = MR_IDX_EXTRACT(libs[i]);
+            size = mr_token_getsize2(MR_TOKEN_IDENTIFIER, idx);
+            printf(", \"%.*s\"", size, _mr_config.code + idx);
+        }
+
+        putchar(']');
         break;
     }
     }

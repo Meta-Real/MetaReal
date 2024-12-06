@@ -136,13 +136,16 @@ enum __MR_NODE_ENUM
     MR_NODE_EX_FUNC_CALL,
 
     MR_NODE_DOLLAR_METHOD,
-    MR_NODE_EX_DOLLAR_METHOD
+    MR_NODE_EX_DOLLAR_METHOD,
+
+    MR_NODE_IMPORT,
+    MR_NODE_INCLUDE
 };
 
 /**
  * Number of valid nodes.
 */
-#define MR_NODE_COUNT (MR_NODE_EX_DOLLAR_METHOD + 1)
+#define MR_NODE_COUNT (MR_NODE_INCLUDE + 1)
 
 /**
  * @struct __MR_NODE_BINARY_OP_T
@@ -470,6 +473,26 @@ struct __MR_NODE_EX_DOLLAR_METHOD_T
 };
 #pragma pack(pop)
 typedef struct __MR_NODE_EX_DOLLAR_METHOD_T mr_node_ex_dollar_method_t;
+
+/**
+ * @struct __MR_NODE_IMPORT_T
+ * Data structure that holds information about an import or an include statement.
+ * @var mr_idx_t __MR_NODE_IMPORT_T::libs
+ * The list of libraries.
+ * @var mr_idx_t __MR_NODE_IMPORT_T::size
+ * Size of the libraries list.
+ * @var mr_idx_t __MR_NODE_IMPORT_T::sidx
+ * Starting index of the list.
+*/
+#pragma pack(push, 1)
+struct __MR_NODE_IMPORT_T
+{
+    mr_idx_t libs;
+    mr_byte_t size;
+    mr_idx_t sidx;
+};
+#pragma pack(pop)
+typedef struct __MR_NODE_IMPORT_T mr_node_import_t;
 
 #ifdef __MR_DEBUG__
 

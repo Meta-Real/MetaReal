@@ -411,6 +411,20 @@ mr_byte_t mr_parser_handle_var_assign(
 mr_byte_t mr_parser_handle_dollar_method(
     mr_parser_t *res, mr_token_t **tokens);
 
+/**
+ * It generates import and include statements.
+ * @param res
+ * Result of the \a mr_parser function passed as a pointer.
+ * @param tokens
+ * List of tokens passed as a pointer.
+ * @param type
+ * Type of the generated node (<em>MR_NODE_IMPORT</em> or <em>MR_NODE_INCLUDE</em>).
+ * @return It returns a code which indicates if the process was successful or not. \n
+ * If the process was successful, it returns 0. Otherwise, it returns the error code.
+*/
+mr_byte_t mr_parser_handle_import(
+    mr_parser_t *res, mr_token_t **tokens, mr_byte_t type);
+
 mr_byte_t mr_parser(
     mr_parser_t *res, mr_token_t *tokens)
 {
@@ -743,6 +757,29 @@ mr_byte_t mr_parser_postfix(
                 return retcode;
             continue;
         }
+        if ((*tokens)->type == MR_TOKEN_DOT)
+        {
+            mr_long_t ptr;
+            mr_node_binary_op_t *value;
+            mr_node_t left;
+
+            left = *node;
+
+            ++*tokens;
+            retcode = mr_parser_core(res, tokens);
+            if (retcode != MR_NOERROR)
+                return retcode;
+
+            retcode = mr_stack_push(&ptr, sizeof(mr_node_binary_op_t));
+            if (retcode != MR_NOERROR)
+                return retcode;
+
+            value = (mr_node_binary_op_t*)(_mr_stack.data + ptr);
+            *value = (mr_node_binary_op_t){.left=left, .right=*node, .op=MR_TOKEN_DOT};
+
+            *node = (mr_node_t){.type=MR_NODE_BINARY_OP, .value=ptr};
+            continue;
+        }
         if ((*tokens)->type == MR_TOKEN_INCREMENT || (*tokens)->type == MR_TOKEN_DECREMENT)
         {
             mr_long_t ptr;
@@ -813,6 +850,10 @@ mr_byte_t mr_parser_core(
 
         mr_parser_advance_newline;
         return MR_NOERROR;
+    case MR_TOKEN_IMPORT_K:
+        return mr_parser_handle_import(res, tokens, MR_NODE_IMPORT);
+    case MR_TOKEN_INCLUDE_K:
+        return mr_parser_handle_import(res, tokens, MR_NODE_INCLUDE);
     }
 
     if ((*tokens)->type >= MR_TOKEN_PRIVATE_K && (*tokens)->type <= MR_TOKEN_STATIC_K)
@@ -865,11 +906,11 @@ mr_byte_t mr_parser_handle_call(
     if (retcode != MR_NOERROR)
         return retcode;
 
-    value = (mr_node_func_call_t*)(_mr_stack.data + ptr);
     retcode = mr_stack_palloc(&idx, MR_PARSER_FUNC_CALL_SIZE * sizeof(mr_node_call_arg_t));
     if (retcode != MR_NOERROR)
         return retcode;
 
+    value = (mr_node_func_call_t*)(_mr_stack.data + ptr);
     value->func = *node;
     value->size = 0;
 
@@ -1534,16 +1575,14 @@ mr_byte_t mr_parser_handle_dollar_method(
     if (retcode != MR_NOERROR)
         return retcode;
 
-    value = (mr_node_dollar_method_t*)(_mr_stack.data + ptr);
-
     retcode = mr_stack_palloc(&pidx, MR_PARSER_DOLLAR_METHOD_SIZE * sizeof(mr_node_t));
     if (retcode != MR_NOERROR)
         return retcode;
 
-    value->params = MR_IDX_DECOMPOSE(pidx);
-    params = (mr_node_t*)_mr_stack.ptrs[pidx];
+    value = (mr_node_dollar_method_t*)(_mr_stack.data + ptr);
+    *value = (mr_node_dollar_method_t){.params=MR_IDX_DECOMPOSE(pidx), .size=0};
 
-    value->size = 0;
+    params = (mr_node_t*)_mr_stack.ptrs[pidx];
     alloc = MR_PARSER_DOLLAR_METHOD_SIZE;
     do
     {
@@ -1581,5 +1620,64 @@ mr_byte_t mr_parser_handle_dollar_method(
     value->sidx = sidx;
 
     *node = (mr_node_t){.type=MR_NODE_DOLLAR_METHOD, .value=ptr};
+    return MR_NOERROR;
+}
+
+mr_byte_t mr_parser_handle_import(
+    mr_parser_t *res, mr_token_t **tokens, mr_byte_t type)
+{
+    mr_long_t ptr, pidx;
+    mr_byte_t retcode, alloc;
+    mr_idx_t *libs;
+    mr_node_import_t *value;
+
+    retcode = mr_stack_push(&ptr, sizeof(mr_node_import_t));
+    if (retcode != MR_NOERROR)
+        return retcode;
+
+    retcode = mr_stack_palloc(&pidx, MR_PARSER_IMPORT_SIZE * sizeof(mr_idx_t));
+    if (retcode != MR_NOERROR)
+        return retcode;
+
+    value = (mr_node_import_t*)(_mr_stack.data + ptr);
+    *value = (mr_node_import_t){.libs=MR_IDX_DECOMPOSE(pidx), .size=0, .sidx=(*tokens)->idx};
+
+    libs = (mr_idx_t*)_mr_stack.ptrs[pidx];
+    alloc = MR_PARSER_IMPORT_SIZE;
+    do
+    {
+        if ((++*tokens)->type != MR_TOKEN_IDENTIFIER)
+        {
+            res->error = (mr_invalid_syntax_t){.detail="Expected an identifier", .token=*tokens};
+            return MR_ERROR_BAD_FORMAT;
+        }
+
+        if (value->size == alloc)
+        {
+            if (alloc == MR_PARSER_IMPORT_MAX)
+            {
+                res->error = (mr_invalid_syntax_t){.detail="Number of libraries exceeds the limit", .token=*tokens};
+                return MR_ERROR_BAD_FORMAT;
+            }
+
+            retcode = mr_stack_prealloc(pidx, (alloc += MR_PARSER_IMPORT_SIZE) * sizeof(mr_idx_t));
+            if (retcode != MR_NOERROR)
+                return retcode;
+
+            libs = (mr_idx_t*)_mr_stack.ptrs[pidx];
+        }
+
+        libs[value->size++] = (*tokens)->idx;
+        mr_parser_advance_newline;
+    } while ((*tokens)->type == MR_TOKEN_COMMA);
+
+    if (value->size != alloc)
+    {
+        retcode = mr_stack_prealloc(pidx, value->size * sizeof(mr_idx_t));
+        if (retcode != MR_NOERROR)
+            return retcode;
+    }
+
+    res->nodes[res->size] = (mr_node_t){.type=type, .value=ptr};
     return MR_NOERROR;
 }

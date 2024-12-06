@@ -127,6 +127,16 @@ copies or substantial portions of the Software.
 */
 #define MR_PARSER_DOLLAR_METHOD_MAX ((mr_byte_t)(MR_PARSER_DOLLAR_METHOD_SIZE * 4))
 
+/**
+ * Default size of an \a import libraries list in indexes.
+*/
+#define MR_PARSER_IMPORT_SIZE ((mr_byte_t)2)
+
+/**
+ * Maximum size of an \a import libraries list in indexes.
+*/
+#define MR_PARSER_IMPORT_MAX ((mr_byte_t)(MR_PARSER_IMPORT_SIZE * 8))
+
 /* Generator */
 
 /**
