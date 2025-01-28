@@ -61,7 +61,8 @@ mr_byte_t mr_compile(void);
  * @param size
  * Number of arguments to process.
 */
-void mr_handle_args(mr_str_ct argv[], mr_byte_t size);
+void mr_handle_args(
+    mr_str_ct argv[], mr_byte_t size);
 
 int main(
     int argc, mr_str_ct argv[])
@@ -201,7 +202,8 @@ mr_byte_t mr_compile(void)
     return MR_NOERROR;
 }
 
-void mr_handle_args(mr_str_ct argv[], mr_byte_t size)
+void mr_handle_args(
+    mr_str_ct argv[], mr_byte_t size)
 {
     mr_str_ct str;
 

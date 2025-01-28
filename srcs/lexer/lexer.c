@@ -32,7 +32,6 @@ copies or substantial portions of the Software.
 */
 #define mr_lexer_tokens_realloc                                                                 \
     do                                                                                          \
-    {                                                                                           \
         if (data->size == data->alloc)                                                          \
         {                                                                                       \
             block = realloc(data->tokens, (data->alloc += data->exalloc) * sizeof(mr_token_t)); \
@@ -44,7 +43,7 @@ copies or substantial portions of the Software.
                                                                                                 \
             data->tokens = block;                                                               \
         }                                                                                       \
-    } while (0)
+    while (0)
 
 /**
  * @def mr_lexer_token_set(typ, inc)

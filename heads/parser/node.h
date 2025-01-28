@@ -100,6 +100,22 @@ typedef struct __MR_NODE_T mr_node_t;
  * <em>Dollar method call</em> node type.
  * @var __MR_NODE_ENUM::MR_NODE_EX_DOLLAR_METHOD
  * <em>Exclusive dollar method call</em> node type with an empty list of parameters.
+ * @var __MR_NODE_ENUM::MR_NODE_MULTILINE
+ * \a Multiline node type (used for bodies of the statements).
+ * @var __MR_NODE_ENUM::MR_NODE_IF
+ * <em>If statement</em> node type (if).
+ * @var __MR_NODE_ENUM::MR_NODE_IF_ELSE
+ * <em>If statement</em> node type (if and else).
+ * @var __MR_NODE_ENUM::MR_NODE_IF_ELIF
+ * <em>If statement</em> node type (if, elif, and else).
+ * @var __MR_NODE_ENUM::MR_NODE_SWITCH
+ * <em>Switch statement</em> node type (case).
+ * @var __MR_NODE_ENUM::MR_NODE_SWITCH_DEF
+ * <em>Switch statement</em> node type (case and default).
+ * @var __MR_NODE_ENUM::MR_NODE_IMPORT
+ * <em>Import statement</em> node type.
+ * @var __MR_NODE_ENUM::MR_NODE_INCLUDE
+ * <em>Include statement</em> node type.
 */
 enum __MR_NODE_ENUM
 {
@@ -138,6 +154,16 @@ enum __MR_NODE_ENUM
     MR_NODE_DOLLAR_METHOD,
     MR_NODE_EX_DOLLAR_METHOD,
 
+    MR_NODE_MULTILINE,
+    MR_NODE_MULTILINE_TUPLE,
+
+    MR_NODE_IF,
+    MR_NODE_IF_ELSE,
+    MR_NODE_IF_ELIF,
+
+    MR_NODE_SWITCH,
+    MR_NODE_SWITCH_DEF,
+
     MR_NODE_IMPORT,
     MR_NODE_INCLUDE
 };
@@ -146,6 +172,64 @@ enum __MR_NODE_ENUM
  * Number of valid nodes.
 */
 #define MR_NODE_COUNT (MR_NODE_INCLUDE + 1)
+
+/**
+ * @struct __MR_NODE_KEYVAL_T
+ * Data structure that holds information about a single key-value. \n
+ * This structure is used by the \a __MR_NODE_LIST_T data structure (for dictionaries).
+ * @var mr_node_t __MR_NODE_KEYVAL_T::key
+ * Key of the key-value.
+ * @var mr_node_t __MR_NODE_KEYVAL_T::value
+ * Value of the key-value.
+*/
+#pragma pack(push, 1)
+struct __MR_NODE_KEYVAL_T
+{
+    mr_node_t key;
+    mr_node_t value;
+};
+#pragma pack(pop)
+typedef struct __MR_NODE_KEYVAL_T mr_node_keyval_t;
+
+/**
+ * @struct __MR_NODE_LIST_T
+ * Data structure that holds information about a fstr, list, dict, or a set.
+ * @var mr_idx_t __MR_NODE_LIST_T::elems
+ * The list of elements.
+ * @var mr_idx_t __MR_NODE_LIST_T::size
+ * Size of the elements list.
+ * @var mr_idx_t __MR_NODE_LIST_T::sidx
+ * Starting index of the list.
+ * @var mr_idx_t __MR_NODE_LIST_T::eidx
+ * Ending index of the list.
+*/
+#pragma pack(push, 1)
+struct __MR_NODE_LIST_T
+{
+    mr_idx_t elems;
+    mr_idx_t size;
+    mr_idx_t sidx;
+    mr_idx_t eidx;
+};
+#pragma pack(pop)
+typedef struct __MR_NODE_LIST_T mr_node_list_t;
+
+/**
+ * @struct __MR_NODE_TUPLE_T
+ * Data structure that holds information about a tuple.
+ * @var mr_idx_t __MR_NODE_TUPLE_T::elems
+ * The list of elements.
+ * @var mr_idx_t __MR_NODE_TUPLE_T::size
+ * Size of the elements list.
+*/
+#pragma pack(push, 1)
+struct __MR_NODE_TUPLE_T
+{
+    mr_idx_t elems;
+    mr_idx_t size;
+};
+#pragma pack(pop)
+typedef struct __MR_NODE_TUPLE_T mr_node_tuple_t;
 
 /**
  * @struct __MR_NODE_BINARY_OP_T
@@ -274,64 +358,6 @@ struct __MR_NODE_SUBSCRIPT_STEP_T
 };
 #pragma pack(pop)
 typedef struct __MR_NODE_SUBSCRIPT_STEP_T mr_node_subscript_step_t;
-
-/**
- * @struct __MR_NODE_KEYVAL_T
- * Data structure that holds information about a single key-value. \n
- * This structure is used by the \a __MR_NODE_LIST_T data structure (for dictionaries).
- * @var mr_node_t __MR_NODE_KEYVAL_T::key
- * Key of the key-value.
- * @var mr_node_t __MR_NODE_KEYVAL_T::value
- * Value of the key-value.
-*/
-#pragma pack(push, 1)
-struct __MR_NODE_KEYVAL_T
-{
-    mr_node_t key;
-    mr_node_t value;
-};
-#pragma pack(pop)
-typedef struct __MR_NODE_KEYVAL_T mr_node_keyval_t;
-
-/**
- * @struct __MR_NODE_LIST_T
- * Data structure that holds information about a fstr, list, dict, or a set.
- * @var mr_idx_t __MR_NODE_LIST_T::elems
- * The list of elements.
- * @var mr_idx_t __MR_NODE_LIST_T::size
- * Size of the elements list.
- * @var mr_idx_t __MR_NODE_LIST_T::sidx
- * Starting index of the list.
- * @var mr_idx_t __MR_NODE_LIST_T::eidx
- * Ending index of the list.
-*/
-#pragma pack(push, 1)
-struct __MR_NODE_LIST_T
-{
-    mr_idx_t elems;
-    mr_idx_t size;
-    mr_idx_t sidx;
-    mr_idx_t eidx;
-};
-#pragma pack(pop)
-typedef struct __MR_NODE_LIST_T mr_node_list_t;
-
-/**
- * @struct __MR_NODE_TUPLE_T
- * Data structure that holds information about a tuple.
- * @var mr_idx_t __MR_NODE_TUPLE_T::elems
- * The list of elements.
- * @var mr_idx_t __MR_NODE_TUPLE_T::size
- * Size of the elements list.
-*/
-#pragma pack(push, 1)
-struct __MR_NODE_TUPLE_T
-{
-    mr_idx_t elems;
-    mr_idx_t size;
-};
-#pragma pack(pop)
-typedef struct __MR_NODE_TUPLE_T mr_node_tuple_t;
 
 /**
  * @struct __MR_NODE_VAR_ASSIGN_T
@@ -475,6 +501,127 @@ struct __MR_NODE_EX_DOLLAR_METHOD_T
 typedef struct __MR_NODE_EX_DOLLAR_METHOD_T mr_node_ex_dollar_method_t;
 
 /**
+ * @struct __MR_NODE_IF_T
+ * Data structure that holds information about an if statement (if).
+ * @var mr_node_t __MR_NODE_IF_T::cond
+ * Condition of the if statement.
+ * @var mr_node_t __MR_NODE_IF_T::body
+ * Body of the if statement.
+ * @var mr_idx_t __MR_NODE_IF_T::sidx
+ * Starting index of the if statement.
+*/
+#pragma pack(push, 1)
+struct __MR_NODE_IF_T
+{
+    mr_node_t cond;
+    mr_node_t body;
+    mr_idx_t sidx;
+};
+#pragma pack(pop)
+typedef struct __MR_NODE_IF_T mr_node_if_t;
+
+/**
+ * @struct __MR_NODE_IF_ELSE_T
+ * Data structure that holds information about an if statement (if and else).
+ * @var mr_node_t __MR_NODE_IF_ELSE_T::cond
+ * Condition of the if statement.
+ * @var mr_node_t __MR_NODE_IF_ELSE_T::body
+ * Body of the if statement.
+ * @var mr_node_t __MR_NODE_IF_ELSE_T::ebody
+ * Body of the else statement.
+ * @var mr_idx_t __MR_NODE_IF_ELSE_T::sidx
+ * Statring index of the if statement.
+*/
+#pragma pack(push, 1)
+struct __MR_NODE_IF_ELSE_T
+{
+    mr_node_t cond;
+    mr_node_t body;
+    mr_node_t ebody;
+    mr_idx_t sidx;
+};
+#pragma pack(pop)
+typedef struct __MR_NODE_IF_ELSE_T mr_node_if_else_t;
+
+/**
+ * @struct __MR_NODE_IF_ELIF_T
+ * Data structure that holds information about an if statement (if, elif, and else).
+ * @var mr_node_t __MR_NODE_IF_ELIF_T::ebody
+ * Body of the else statement.
+ * @var mr_idx_t __MR_NODE_IF_ELIF_T::cases
+ * Cases of the if statement (if and elif).
+ * @var mr_idx_t __MR_NODE_IF_ELIF_T::size
+ * Size of the cases list.
+ * @var mr_idx_t __MR_NODE_IF_ELIF_T::sidx
+ * Starting index of the if statement.
+*/
+#pragma pack(push, 1)
+struct __MR_NODE_IF_ELIF_T
+{
+    mr_node_t ebody;
+    mr_idx_t cases;
+    mr_idx_t size;
+    mr_idx_t sidx;
+};
+#pragma pack(pop)
+typedef struct __MR_NODE_IF_ELIF_T mr_node_if_elif_t;
+
+/**
+ * @struct __MR_NODE_SWITCH_T
+ * Data structure that holds information about a switch statement (case).
+ * @var mr_node_t __MR_NODE_SWITCH_T::value
+ * Value of the switch statement.
+ * @var mr_idx_t __MR_NODE_SWITCH_T::cases
+ * Cases of the switch statement.
+ * @var mr_idx_t __MR_NODE_SWITCH_T::size
+ * Size of the cases list.
+ * @var mr_idx_t __MR_NODE_SWITCH_T::sidx
+ * Statring index of the switch statement.
+ * @var mr_idx_t __MR_NODE_SWITCH_T::eidx
+ * Ending index of the switch statement.
+*/
+#pragma pack(push, 1)
+struct __MR_NODE_SWITCH_T
+{
+    mr_node_t value;
+    mr_idx_t cases;
+    mr_idx_t size;
+    mr_idx_t sidx;
+    mr_idx_t eidx;
+};
+#pragma pack(pop)
+typedef struct __MR_NODE_SWITCH_T mr_node_switch_t;
+
+/**
+ * @struct __MR_NODE_SWITCH_DEF_T
+ * Data structure that holds information about a switch statement (case and default).
+ * @var mr_node_t __MR_NODE_SWITCH_DEF_T::value
+ * Value of the switch statement.
+ * @var mr_node_t __MR_NODE_SWITCH::dbody
+ * Body of the default statement.
+ * @var mr_idx_t __MR_NODE_SWITCH_DEF_T::cases
+ * Cases of the switch statement.
+ * @var mr_idx_t __MR_NODE_SWITCH_DEF_T::size
+ * Size of the cases list.
+ * @var mr_idx_t __MR_NODE_SWITCH_DEF_T::sidx
+ * Statring index of the switch statement.
+ * @var mr_idx_t __MR_NODE_SWITCH_DEF_T::eidx
+ * Ending index of the switch statement.
+*/
+#pragma pack(push, 1)
+struct __MR_NODE_SWITCH_DEF_T
+{
+    mr_node_t value;
+    mr_node_t dbody;
+    mr_idx_t cases;
+    mr_idx_t size;
+    mr_idx_t sidx;
+    mr_idx_t eidx;
+};
+#pragma pack(pop)
+typedef struct __MR_NODE_SWITCH_DEF_T mr_node_switch_def_t;
+
+/**
  * @struct __MR_NODE_IMPORT_T
  * Data structure that holds information about an import or an include statement.
  * @var mr_idx_t __MR_NODE_IMPORT_T::libs
@@ -493,6 +640,24 @@ struct __MR_NODE_IMPORT_T
 };
 #pragma pack(pop)
 typedef struct __MR_NODE_IMPORT_T mr_node_import_t;
+
+/**
+ * It extracts the starting index of a node.
+ * @param node
+ * The specified node.
+ * @return It returns the starting index of the <em>node</em>.
+*/
+mr_long_t mr_node_sidx(
+    mr_node_t node);
+
+/**
+ * It extracts the ending index of a node.
+ * @param node
+ * The specified node.
+ * @return It returns the ending index of the <em>node</em>.
+*/
+mr_long_t mr_node_eidx(
+    mr_node_t node);
 
 #ifdef __MR_DEBUG__
 
