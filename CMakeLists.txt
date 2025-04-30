@@ -8,9 +8,7 @@ if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif()
 
-project(MetaReal VERSION 0.1.0
-    DESCRIPTION "MetaReal Compiler version 0.1.0"
-    LANGUAGES C)
+project(MetaReal VERSION 0.1.0 DESCRIPTION "MetaReal Compiler version 0.1.0" LANGUAGES C)
 
 if (CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
     set(CMAKE_C_FLAGS "-Wall -Wextra -Wpedantic -Werror")
@@ -33,4 +31,4 @@ add_executable(MetaReal
     srcs/parser/parser.c srcs/parser/node.c)
 
 target_compile_definitions(MetaReal PRIVATE $<$<CONFIG:Debug>:__MR_DEBUG__>)
-target_include_directories(MetaReal PRIVATE heads)
+target_include_directories(MetaReal PRIVATE headers)

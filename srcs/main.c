@@ -117,7 +117,7 @@ int main(
 
     if (size > MR_FILE_MAXSIZE)
     {
-        fprintf(stderr, "Internal error: File size exceeds the limit (%" PRIu32 ")", MR_FILE_MAXSIZE);
+        fprintf(stderr, "Internal Error: File size exceeds the limit (%" PRIu32 ")", MR_FILE_MAXSIZE);
 
         fclose(file);
         return MR_ERROR_FILE_TOO_LARGE;
@@ -133,7 +133,7 @@ int main(
     if (!code)
     {
         fclose(file);
-        fputs("Internal error: not enough memory\n", stderr);
+        fputs("Internal Error: not enough memory\n", stderr);
         return MR_ERROR_NOT_ENOUGH_MEMORY;
     }
 
